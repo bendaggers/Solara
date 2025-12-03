@@ -5,6 +5,7 @@
 #define ERRORHANDLER_MQH
 
 #include "Logger.mqh"
+#include <Arrays\ArrayObj.mqh>
 
 //+------------------------------------------------------------------+
 //| Error severity levels                                            |
@@ -29,9 +30,10 @@ enum ENUM_ERROR_CATEGORY {
 };
 
 //+------------------------------------------------------------------+
-//| Error information structure                                      |
+//| Error information class                                          |
 //+------------------------------------------------------------------+
-struct ErrorInfo {
+class CErrorInfo : public CObject {
+public:
     datetime timestamp;
     ENUM_ERROR_SEVERITY severity;
     ENUM_ERROR_CATEGORY category;
@@ -40,6 +42,29 @@ struct ErrorInfo {
     string context;
     string component;
     string suggestion;
+    
+    CErrorInfo() {
+        timestamp = TimeCurrent();
+        severity = ERROR_SEVERITY_INFO;
+        category = ERROR_CATEGORY_SYSTEM;
+        errorCode = 0;
+        errorMessage = "";
+        context = "";
+        component = "";
+        suggestion = "";
+    }
+    
+    CErrorInfo(datetime time, ENUM_ERROR_SEVERITY sev, ENUM_ERROR_CATEGORY cat, 
+               int code, string message, string ctx, string comp, string sugg) {
+        timestamp = time;
+        severity = sev;
+        category = cat;
+        errorCode = code;
+        errorMessage = message;
+        context = ctx;
+        component = comp;
+        suggestion = sugg;
+    }
 };
 
 //+------------------------------------------------------------------+
@@ -65,7 +90,7 @@ public:
     }
     
     ~CErrorHandler(void) {
-        m_errorHistory.Clear();
+        ClearHistory();
     }
     
     //+------------------------------------------------------------------+
@@ -89,7 +114,7 @@ public:
         
         if(!m_enabled) return false;
         
-        ErrorInfo* error = new ErrorInfo();
+        CErrorInfo* error = new CErrorInfo();
         error.timestamp = TimeCurrent();
         error.severity = severity;
         error.category = category;
@@ -101,7 +126,10 @@ public:
         
         // Add to history
         if(m_errorHistory.Total() >= m_maxHistorySize) {
-            m_errorHistory.Delete(0);
+            CObject* oldError = m_errorHistory.Detach(0);
+            if(CheckPointer(oldError) == POINTER_DYNAMIC) {
+                delete oldError;
+            }
         }
         m_errorHistory.Add(error);
         
@@ -136,31 +164,50 @@ public:
     //| Error history management                                         |
     //+------------------------------------------------------------------+
     void ClearHistory() {
+        for(int i = m_errorHistory.Total() - 1; i >= 0; i--) {
+            CObject* error = m_errorHistory.Detach(i);
+            if(CheckPointer(error) == POINTER_DYNAMIC) {
+                delete error;
+            }
+        }
         m_errorHistory.Clear();
     }
     
     int GetErrorCount(ENUM_ERROR_SEVERITY severity = -1, ENUM_ERROR_CATEGORY category = -1) {
         int count = 0;
         for(int i = 0; i < m_errorHistory.Total(); i++) {
-            ErrorInfo* error = m_errorHistory.At(i);
-            if((severity == -1 || error.severity == severity) &&
-               (category == -1 || error.category == category)) {
-                count++;
+            CErrorInfo* error = m_errorHistory.At(i);
+            if(error != NULL) {
+                if((severity == -1 || error.severity == severity) &&
+                   (category == -1 || error.category == category)) {
+                    count++;
+                }
             }
         }
         return count;
     }
     
-    void GetRecentErrors(int count, ErrorInfo &errors[]) {
+    bool GetRecentErrors(int count, CArrayObj &errors) {
+        errors.Clear();
         int total = m_errorHistory.Total();
         int start = MathMax(0, total - count);
-        int size = total - start;
         
-        ArrayResize(errors, size);
-        for(int i = 0; i < size; i++) {
-            ErrorInfo* error = m_errorHistory.At(start + i);
-            errors[i] = error;
+        for(int i = start; i < total; i++) {
+            CErrorInfo* error = m_errorHistory.At(i);
+            if(error != NULL) {
+                CErrorInfo* copy = new CErrorInfo();
+                copy.timestamp = error.timestamp;
+                copy.severity = error.severity;
+                copy.category = error.category;
+                copy.errorCode = error.errorCode;
+                copy.errorMessage = error.errorMessage;
+                copy.context = error.context;
+                copy.component = error.component;
+                copy.suggestion = error.suggestion;
+                errors.Add(copy);
+            }
         }
+        return errors.Total() > 0;
     }
     
     string GetErrorSummary() {
@@ -177,8 +224,8 @@ private:
     //+------------------------------------------------------------------+
     //| Internal methods                                                 |
     //+------------------------------------------------------------------+
-    void LogError(ErrorInfo* error) {
-        if(GlobalLogger == NULL) return;
+    void LogError(CErrorInfo* error) {
+        if(GlobalLogger == NULL || error == NULL) return;
         
         string levelStr = "";
         switch(error.severity) {
@@ -220,7 +267,9 @@ private:
     //+------------------------------------------------------------------+
     //| Error recovery attempts                                          |
     //+------------------------------------------------------------------+
-    bool AttemptRecovery(ErrorInfo* error) {
+    bool AttemptRecovery(CErrorInfo* error) {
+        if(error == NULL) return false;
+        
         switch(error.category) {
             case ERROR_CATEGORY_NETWORK:
                 return RecoverNetworkError(error);
@@ -233,21 +282,27 @@ private:
         }
     }
     
-    bool RecoverNetworkError(ErrorInfo* error) {
+    bool RecoverNetworkError(CErrorInfo* error) {
         // Simple network recovery - wait and retry
-        GlobalLogger.Info("Attempting network error recovery", "ErrorHandler");
+        if(GlobalLogger != NULL) {
+            GlobalLogger.Info("Attempting network error recovery", "ErrorHandler");
+        }
         Sleep(1000);
         return true;
     }
     
-    bool RecoverDataError(ErrorInfo* error) {
-        GlobalLogger.Info("Attempting data error recovery", "ErrorHandler");
+    bool RecoverDataError(CErrorInfo* error) {
+        if(GlobalLogger != NULL) {
+            GlobalLogger.Info("Attempting data error recovery", "ErrorHandler");
+        }
         // Data errors might require refreshing symbol data
         return true;
     }
     
-    bool RecoverExecutionError(ErrorInfo* error) {
-        GlobalLogger.Info("Attempting execution error recovery", "ErrorHandler");
+    bool RecoverExecutionError(CErrorInfo* error) {
+        if(GlobalLogger != NULL) {
+            GlobalLogger.Info("Attempting execution error recovery", "ErrorHandler");
+        }
         // Execution errors might require modifying order parameters
         return true;
     }

@@ -15,6 +15,24 @@ class CFileUtils {
 private:
     CLogger* m_logger;
     
+    // Helper function to trim strings (MQL5 doesn't have StringTrim)
+    string StringTrim(string str) {
+        // Trim leading spaces
+        int start = 0;
+        while(start < StringLen(str) && StringGetCharacter(str, start) == ' ') {
+            start++;
+        }
+        
+        // Trim trailing spaces
+        int end = StringLen(str) - 1;
+        while(end >= 0 && StringGetCharacter(str, end) == ' ') {
+            end--;
+        }
+        
+        if(start > end) return "";
+        return StringSubstr(str, start, end - start + 1);
+    }
+    
 public:
     CFileUtils(void) {
         m_logger = GlobalLogger;
@@ -33,7 +51,7 @@ public:
         int handle = FileOpen(filename, FILE_READ|FILE_BIN);
         if(handle == INVALID_HANDLE) return -1;
         
-        long size = FileSize(handle);
+        long size = (long)FileSize(handle);
         FileClose(handle);
         return size;
     }
@@ -44,7 +62,7 @@ public:
         int handle = FileOpen(filename, FILE_READ|FILE_BIN);
         if(handle == INVALID_HANDLE) return 0;
         
-        datetime modified = FileGetInteger(handle, FILE_MODIFY_DATE);
+        datetime modified = (datetime)FileGetInteger(handle, FILE_MODIFY_DATE);
         FileClose(handle);
         return modified;
     }
@@ -188,14 +206,15 @@ public:
         // Determine column count from first data line
         string firstLine = lines[startLine];
         string testCols[];
-        int colCount = StringSplit(firstLine, StringGetCharacter(delimiter, 0), testCols);
+        ushort delimiterChar = StringGetCharacter(delimiter, 0);
+        int colCount = StringSplit(firstLine, delimiterChar, testCols);
         
         ArrayResize(data, rowCount, colCount);
         
         for(int row = 0; row < rowCount; row++) {
             string currentLine = lines[startLine + row];
             string columns[];
-            int splitCount = StringSplit(currentLine, StringGetCharacter(delimiter, 0), columns);
+            int splitCount = StringSplit(currentLine, delimiterChar, columns);
             
             for(int col = 0; col < MathMin(colCount, splitCount); col++) {
                 data[row][col] = columns[col];
@@ -300,32 +319,57 @@ public:
     //+------------------------------------------------------------------+
     //| Directory operations                                            |
     //+------------------------------------------------------------------+
-    bool CreateDirectory(string path) {
-        if(FolderCreate(path, FILE_COMMON)) {
+    bool CreateDirectory(string dirPath) {
+        ResetLastError();
+        
+        // In MQL5, directories are created automatically when you create a file in them
+        // Just check if it exists or can be accessed
+        string testFile = dirPath + "\\_temp_check.tmp";
+        int handle = FileOpen(testFile, FILE_WRITE|FILE_BIN);
+        if(handle != INVALID_HANDLE) {
+            FileClose(handle);
+            FileDelete(testFile);
             return true;
-        } else {
-            if(m_logger != NULL) {
-                m_logger.Error("Cannot create directory: " + path, "FileUtils");
-            }
-            return false;
         }
+        
+        int error = GetLastError();
+        if(m_logger != NULL) {
+            m_logger.Error("Cannot create/access directory: " + dirPath + ", Error: " + (string)error, "FileUtils");
+        }
+        return false;
     }
     
-    bool DirectoryExists(string path) {
-        return FolderIsExist(path, FILE_COMMON);
+    bool DirectoryExists(string dirPath) {
+        // Try to open a file in the directory
+        string testFile = dirPath + "\\_temp_check.tmp";
+        int handle = FileOpen(testFile, FILE_READ|FILE_BIN);
+        if(handle != INVALID_HANDLE) {
+            FileClose(handle);
+            return true;
+        }
+        
+        // Also try to find files in the directory
+        string filename;
+        long findHandle = FileFindFirst(dirPath + "\\*", filename);
+        if(findHandle != INVALID_HANDLE) {
+            FileFindClose(findHandle);
+            return true;
+        }
+        
+        return false;
     }
     
     //+------------------------------------------------------------------+
     //| File search and listing                                         |
     //+------------------------------------------------------------------+
-    int FindFiles(string pattern, string &results[], int flags = FILE_REAL) {
+    int FindFiles(string pattern, string &results[]) {
         string filename;
         long handle;
         int count = 0;
         
         ArrayResize(results, 0);
         
-        handle = FileFindFirst(pattern, filename, flags);
+        handle = FileFindFirst(pattern, filename);
         if(handle != INVALID_HANDLE) {
             do {
                 int size = ArraySize(results);
@@ -362,15 +406,16 @@ public:
             return defaultValue;
         }
         
-        // Simplified INI parsing - would need full implementation
+        // Simplified INI parsing
         string lines[];
         int count = StringSplit(content, '\n', lines);
         
         bool inSection = false;
         for(int i = 0; i < count; i++) {
-            string line = StringTrim(lines[i]);
+            string line = lines[i];
+            line = StringTrim(line); // Use custom trim function
             
-            if(StringSubstr(line, 0, 1) == "[" && StringSubstr(line, StringLen(line)-1, 1) == "]") {
+            if(StringLen(line) > 0 && StringGetCharacter(line, 0) == '[' && StringGetCharacter(line, StringLen(line)-1) == ']') {
                 string currentSection = StringSubstr(line, 1, StringLen(line)-2);
                 inSection = (currentSection == section);
             } else if(inSection && StringFind(line, key + "=") == 0) {

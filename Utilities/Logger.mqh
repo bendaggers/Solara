@@ -4,7 +4,7 @@
 #ifndef LOGGER_MQH
 #define LOGGER_MQH
 
-#include <Arrays/ArrayString.mqh>
+#include <Arrays\ArrayString.mqh>
 
 //+------------------------------------------------------------------+
 //| Log levels enumeration                                           |
@@ -207,7 +207,7 @@ private:
         int file_handle = FileOpen(m_filename, FILE_READ|FILE_ANSI);
         if(file_handle == INVALID_HANDLE) return false;
         
-        ulong size = FileSize(file_handle);
+        long size = (long)FileSize(file_handle); // Fixed: Added explicit cast
         FileClose(file_handle);
         
         return (size / 1024) < m_maxFileSizeKB;
