@@ -1,19 +1,16 @@
 //+------------------------------------------------------------------+
-//| MoneyManagerBase.mqh                                             |
-//| Description: Abstract base class for all position sizing methods |
-//|              Integrates with StrategyConfig, SymbolInfo, and     |
-//|              RiskManager                                         |
+//| MoneyManagerBase.mqh - FIXED VERSION 2                           |
 //+------------------------------------------------------------------+
 #ifndef MONEYMANAGERBASE_MQH
 #define MONEYMANAGERBASE_MQH
 
-// Include required dependencies from your existing files
+// Include required dependencies
 #include "..\Configuration\StrategyConfig.mqh"
 #include "..\Data\SymbolInfo.mqh"
 #include "..\Core\RiskManager.mqh"
 #include "..\Utilities\Logger.mqh"
 
-// Forward declarations to avoid circular dependencies
+// Forward declarations
 class CSymbolInfo;
 class CRiskManager;
 
@@ -21,45 +18,45 @@ class CRiskManager;
 //| Money management method enumeration                              |
 //+------------------------------------------------------------------+
 enum ENUM_MONEY_MANAGEMENT {
-    MM_FIXED_FRACTIONAL = 0,    // Fixed % of account per trade
-    MM_FIXED_RATIO = 1,         // Fixed ratio position sizing
-    MM_KELLY_CRITERION = 2,     // Kelly criterion optimization
-    MM_VOLATILITY_BASED = 3,    // ATR/volatility based sizing
-    MM_FIXED_LOT = 4,           // Fixed lot size (for testing)
-    MM_CUSTOM = 5               // Custom implementation
+    MM_FIXED_FRACTIONAL = 0,
+    MM_FIXED_RATIO = 1,
+    MM_KELLY_CRITERION = 2,
+    MM_VOLATILITY_BASED = 3,
+    MM_FIXED_LOT = 4,
+    MM_CUSTOM = 5
 };
 
 //+------------------------------------------------------------------+
 //| Money manager configuration structure                            |
 //+------------------------------------------------------------------+
 struct SMoneyManagerConfig {
-    ENUM_MONEY_MANAGEMENT method;           // Money management method
-    double riskPercent;                     // Risk % per trade (0.1-5.0)
-    double fixedLotSize;                    // Fixed lot size (if using fixed lots)
-    double maxRiskPerTrade;                 // Maximum risk amount in account currency
-    double maxPositionSizePercent;          // Max position size as % of balance
-    bool useEquityInsteadOfBalance;         // Use equity instead of balance for calculations
-    bool applyRiskMultiplier;               // Apply risk multiplier from RiskManager
-    bool validateWithSymbolInfo;            // Validate lot sizes with SymbolInfo
-    bool roundToLotStep;                    // Round to symbol's lot step
+    ENUM_MONEY_MANAGEMENT method;
+    double riskPercent;
+    double fixedLotSize;
+    double maxRiskPerTrade;
+    double maxPositionSizePercent;
+    bool useEquityInsteadOfBalance;
+    bool applyRiskMultiplier;
+    bool validateWithSymbolInfo;
+    bool roundToLotStep;
     
     // Method-specific parameters
-    double kellyFraction;                   // Fraction of full Kelly (0.1-1.0)
-    double volatilityPeriod;                // Period for volatility calculation
-    double volatilityMultiplier;            // Multiplier for volatility sizing
-    double fixedRatioDelta;                 // Delta for fixed ratio method
+    double kellyFraction;
+    double volatilityPeriod;
+    double volatilityMultiplier;
+    double fixedRatioDelta;
     
     SMoneyManagerConfig() {
         method = MM_FIXED_FRACTIONAL;
         riskPercent = 1.0;
         fixedLotSize = 0.01;
-        maxRiskPerTrade = 0.0;              // 0 = no limit
+        maxRiskPerTrade = 0.0;
         maxPositionSizePercent = 2.0;
         useEquityInsteadOfBalance = false;
         applyRiskMultiplier = true;
         validateWithSymbolInfo = true;
         roundToLotStep = true;
-        kellyFraction = 0.25;               // 25% of full Kelly (conservative)
+        kellyFraction = 0.25;
         volatilityPeriod = 14;
         volatilityMultiplier = 1.0;
         fixedRatioDelta = 1000.0;
@@ -68,30 +65,20 @@ struct SMoneyManagerConfig {
     // Validation method
     bool Validate() const {
         if(riskPercent < 0.01 || riskPercent > 10.0) {
-            Print("Error: riskPercent must be between 0.01 and 10.0");
             return false;
         }
-        
         if(fixedLotSize < 0.01) {
-            Print("Error: fixedLotSize must be at least 0.01");
             return false;
         }
-        
         if(maxPositionSizePercent <= 0 || maxPositionSizePercent > 100.0) {
-            Print("Error: maxPositionSizePercent must be between 0.1 and 100.0");
             return false;
         }
-        
         if(kellyFraction <= 0 || kellyFraction > 1.0) {
-            Print("Error: kellyFraction must be between 0.01 and 1.0");
             return false;
         }
-        
         if(volatilityPeriod < 5 || volatilityPeriod > 100) {
-            Print("Error: volatilityPeriod must be between 5 and 100");
             return false;
         }
-        
         return true;
     }
     
@@ -107,35 +94,42 @@ struct SMoneyManagerConfig {
             default: return "Unknown";
         }
     }
+};
+
+//+------------------------------------------------------------------+
+//| Strategy config wrapper class                                    |
+//+------------------------------------------------------------------+
+class CStrategyConfigWrapper {
+private:
+    SStrategyConfig m_config;
+    bool m_hasConfig;
     
-    // Print configuration
-    void PrintConfig() const {
-        Print("=== Money Manager Configuration ===");
-        Print("Method: ", GetMethodString());
-        Print("Risk Percent: ", riskPercent, "%");
-        Print("Max Position Size: ", maxPositionSizePercent, "%");
-        Print("Use Equity: ", useEquityInsteadOfBalance ? "Yes" : "No");
-        Print("Apply Risk Multiplier: ", applyRiskMultiplier ? "Yes" : "No");
-        Print("Validate with SymbolInfo: ", validateWithSymbolInfo ? "Yes" : "No");
-        
-        if(method == MM_FIXED_LOT) {
-            Print("Fixed Lot Size: ", fixedLotSize);
-        }
-        
-        if(method == MM_KELLY_CRITERION) {
-            Print("Kelly Fraction: ", kellyFraction);
-        }
-        
-        if(method == MM_VOLATILITY_BASED) {
-            Print("Volatility Period: ", volatilityPeriod);
-            Print("Volatility Multiplier: ", volatilityMultiplier);
-        }
-        
-        if(method == MM_FIXED_RATIO) {
-            Print("Fixed Ratio Delta: ", fixedRatioDelta);
-        }
-        
-        Print("================================");
+public:
+    CStrategyConfigWrapper() : m_hasConfig(false) {}
+    
+    void SetConfig(const SStrategyConfig &config) {
+        m_config = config;
+        m_hasConfig = true;
+    }
+    
+    bool HasConfig() const {
+        return m_hasConfig;
+    }
+    
+    SStrategyConfig GetConfig() const {
+        return m_config;
+    }
+    
+    double GetRiskPercent() const {
+        return m_hasConfig ? m_config.riskPercent : 0.0;
+    }
+    
+    string GetStrategyName() const {
+        return m_hasConfig ? m_config.strategyName : "";
+    }
+    
+    bool IsEnabled() const {
+        return m_hasConfig ? m_config.enabled : false;
     }
 };
 
@@ -143,18 +137,18 @@ struct SMoneyManagerConfig {
 //| Calculation parameters structure                                 |
 //+------------------------------------------------------------------+
 struct SCalcParams {
-    string symbol;                          // Trading symbol
-    double entryPrice;                      // Entry price
-    double stopLossPrice;                   // Stop loss price
-    double takeProfitPrice;                 // Take profit price (optional)
-    ENUM_ORDER_TYPE orderType;              // Order type
-    double accountBalance;                  // Current account balance
-    double accountEquity;                   // Current account equity
-    string strategyName;                    // Strategy name (for strategy-specific config)
-    int magicNumber;                        // Magic number
-    double volatility;                      // Current volatility (ATR)
-    double winRate;                         // Strategy win rate (for Kelly)
-    double avgWinLossRatio;                 // Average win/loss ratio (for Kelly)
+    string symbol;
+    double entryPrice;
+    double stopLossPrice;
+    double takeProfitPrice;
+    ENUM_ORDER_TYPE orderType;
+    double accountBalance;
+    double accountEquity;
+    string strategyName;
+    int magicNumber;
+    double volatility;
+    double winRate;
+    double avgWinLossRatio;
     
     SCalcParams() {
         symbol = "";
@@ -167,52 +161,8 @@ struct SCalcParams {
         strategyName = "";
         magicNumber = 0;
         volatility = 0.0;
-        winRate = 0.5;                      // Default 50% win rate
-        avgWinLossRatio = 1.0;              // Default 1:1 win/loss ratio
-    }
-    
-    // Validation
-    bool Validate() const {
-        if(StringLen(symbol) == 0) {
-            Print("Error: Symbol cannot be empty");
-            return false;
-        }
-        
-        if(entryPrice <= 0) {
-            Print("Error: Entry price must be positive");
-            return false;
-        }
-        
-        if(stopLossPrice <= 0) {
-            Print("Error: Stop loss price must be positive");
-            return false;
-        }
-        
-        if(accountBalance <= 0) {
-            Print("Error: Account balance must be positive");
-            return false;
-        }
-        
-        if(accountEquity <= 0) {
-            Print("Error: Account equity must be positive");
-            return false;
-        }
-        
-        // Check that stop loss is on correct side of entry
-        if(orderType == ORDER_TYPE_BUY || orderType == ORDER_TYPE_BUY_LIMIT || 
-           orderType == ORDER_TYPE_BUY_STOP) {
-            if(stopLossPrice >= entryPrice) {
-                Print("Error: For buy orders, stop loss must be below entry price");
-                return false;
-            }
-        } else {
-            if(stopLossPrice <= entryPrice) {
-                Print("Error: For sell orders, stop loss must be above entry price");
-                return false;
-            }
-        }
-        
-        return true;
+        winRate = 0.5;
+        avgWinLossRatio = 1.0;
     }
 };
 
@@ -220,15 +170,15 @@ struct SCalcParams {
 //| Calculation result structure                                     |
 //+------------------------------------------------------------------+
 struct SCalcResult {
-    bool success;                           // Calculation success flag
-    double lotSize;                         // Calculated lot size
-    double riskAmount;                      // Risk amount in account currency
-    double riskPercent;                     // Risk as % of account
-    double positionValue;                   // Position value in account currency
-    double stopLossPips;                    // Stop loss in pips
-    double positionSizePercent;             // Position size as % of account
-    string errorMessage;                    // Error message if calculation failed
-    datetime calculationTime;               // Time of calculation
+    bool success;
+    double lotSize;
+    double riskAmount;
+    double riskPercent;
+    double positionValue;
+    double stopLossPips;
+    double positionSizePercent;
+    string errorMessage;
+    datetime calculationTime;
     
     SCalcResult() {
         success = false;
@@ -241,25 +191,6 @@ struct SCalcResult {
         errorMessage = "";
         calculationTime = 0;
     }
-    
-    // Print result
-    void PrintResult() const {
-        if(success) {
-            Print("=== Money Manager Calculation Result ===");
-            Print("Success: Yes");
-            Print("Lot Size: ", lotSize);
-            Print("Risk Amount: ", DoubleToString(riskAmount, 2));
-            Print("Risk Percent: ", DoubleToString(riskPercent, 2), "%");
-            Print("Position Value: ", DoubleToString(positionValue, 2));
-            Print("Stop Loss Pips: ", DoubleToString(stopLossPips, 1));
-            Print("Position Size %: ", DoubleToString(positionSizePercent, 2), "%");
-            Print("Calculation Time: ", TimeToString(calculationTime));
-        } else {
-            Print("=== Money Manager Calculation Failed ===");
-            Print("Error: ", errorMessage);
-        }
-        Print("=======================================");
-    }
 };
 
 //+------------------------------------------------------------------+
@@ -268,23 +199,23 @@ struct SCalcResult {
 class CMoneyManagerBase {
 protected:
     // Configuration
-    SMoneyManagerConfig m_config;           // Money manager configuration
-    SStrategyConfig* m_strategyConfig;      // Strategy-specific configuration (optional)
+    SMoneyManagerConfig m_config;
+    CStrategyConfigWrapper m_strategyConfig;
     
     // Dependencies
-    CSymbolInfo* m_symbolInfo;              // Symbol information manager
-    CRiskManager* m_riskManager;            // Risk manager (for risk multiplier)
-    CLogger* m_logger;                      // Logger instance
+    CSymbolInfo* m_symbolInfo;
+    CRiskManager* m_riskManager;
+    CLogger* m_logger;
     
     // State
-    bool m_initialized;                     // Initialization flag
-    double m_lastAccountBalance;            // Last known account balance
-    double m_lastAccountEquity;             // Last known account equity
-    datetime m_lastUpdateTime;              // Last update time
+    bool m_initialized;
+    double m_lastAccountBalance;
+    double m_lastAccountEquity;
+    datetime m_lastUpdateTime;
     
     // Performance tracking
-    int m_calculationCount;                 // Number of calculations performed
-    double m_totalRiskCalculated;           // Total risk amount calculated
+    int m_calculationCount;
+    double m_totalRiskCalculated;
     
 public:
     //+------------------------------------------------------------------+
@@ -294,7 +225,6 @@ public:
         m_symbolInfo(NULL),
         m_riskManager(NULL),
         m_logger(NULL),
-        m_strategyConfig(NULL),
         m_initialized(false),
         m_lastAccountBalance(0.0),
         m_lastAccountEquity(0.0),
@@ -302,8 +232,6 @@ public:
         m_calculationCount(0),
         m_totalRiskCalculated(0.0)
     {
-        // Default configuration
-        m_config = SMoneyManagerConfig();
     }
     
     virtual ~CMoneyManagerBase() {
@@ -315,8 +243,7 @@ public:
     //+------------------------------------------------------------------+
     virtual bool Initialize(CSymbolInfo* symbolInfo = NULL, 
                            CRiskManager* riskManager = NULL,
-                           CLogger* logger = NULL,
-                           SStrategyConfig* strategyConfig = NULL) {
+                           CLogger* logger = NULL) {
         if(m_initialized) {
             LogInfo("Money Manager already initialized");
             return true;
@@ -328,7 +255,6 @@ public:
         m_symbolInfo = symbolInfo;
         m_riskManager = riskManager;
         m_logger = logger;
-        m_strategyConfig = strategyConfig;
         
         // Validate configuration
         if(!m_config.Validate()) {
@@ -351,11 +277,10 @@ public:
         
         LogInfo("Deinitializing Money Manager...");
         
-        // Reset dependencies
         m_symbolInfo = NULL;
         m_riskManager = NULL;
         m_logger = NULL;
-        m_strategyConfig = NULL;
+        m_strategyConfig = CStrategyConfigWrapper(); // Reset wrapper
         
         m_initialized = false;
         
@@ -378,7 +303,6 @@ public:
         if(config.Validate()) {
             m_config = config;
             LogInfo("Money manager configuration updated");
-            m_config.PrintConfig();
         } else {
             LogError("Failed to set invalid configuration");
         }
@@ -388,16 +312,23 @@ public:
         return m_config;
     }
     
-    void SetStrategyConfig(SStrategyConfig* strategyConfig) {
-        m_strategyConfig = strategyConfig;
-        if(strategyConfig != NULL) {
-            // Override risk percent from strategy config if available
-            if(strategyConfig->riskPercent > 0) {
-                m_config.riskPercent = strategyConfig->riskPercent;
-                LogInfo("Updated risk percent from strategy config: " + 
-                        DoubleToString(strategyConfig->riskPercent, 2) + "%");
-            }
+    void SetStrategyConfig(const SStrategyConfig &strategyConfig) {
+        m_strategyConfig.SetConfig(strategyConfig);
+        
+        // Override risk percent from strategy config if available
+        if(m_strategyConfig.HasConfig() && m_strategyConfig.GetRiskPercent() > 0) {
+            m_config.riskPercent = m_strategyConfig.GetRiskPercent();
+            LogInfo("Updated risk percent from strategy config: " + 
+                    DoubleToString(m_strategyConfig.GetRiskPercent(), 2) + "%");
         }
+    }
+    
+    bool HasStrategyConfig() const {
+        return m_strategyConfig.HasConfig();
+    }
+    
+    SStrategyConfig GetStrategyConfig() const {
+        return m_strategyConfig.GetConfig();
     }
     
     //+------------------------------------------------------------------+
@@ -430,8 +361,28 @@ public:
     //| Validation methods                                               |
     //+------------------------------------------------------------------+
     bool ValidateCalculationParams(const SCalcParams &params) {
-        if(!params.Validate()) {
-            LogError("Invalid calculation parameters");
+        if(params.symbol == "" || params.symbol == NULL) {
+            LogError("Invalid calculation parameters: Symbol is empty");
+            return false;
+        }
+        
+        if(params.entryPrice <= 0) {
+            LogError("Invalid calculation parameters: Entry price must be positive");
+            return false;
+        }
+        
+        if(params.stopLossPrice <= 0) {
+            LogError("Invalid calculation parameters: Stop loss price must be positive");
+            return false;
+        }
+        
+        if(params.accountBalance <= 0) {
+            LogError("Invalid calculation parameters: Account balance must be positive");
+            return false;
+        }
+        
+        if(params.accountEquity <= 0) {
+            LogError("Invalid calculation parameters: Account equity must be positive");
             return false;
         }
         
@@ -445,7 +396,6 @@ public:
     
     bool ValidateLotSize(string symbol, double lotSize) {
         if(!m_config.validateWithSymbolInfo || m_symbolInfo == NULL) {
-            // Basic validation if SymbolInfo is not available
             return (lotSize > 0);
         }
         
@@ -459,10 +409,9 @@ public:
         
         // Apply SymbolInfo limits if available
         if(m_symbolInfo != NULL && m_config.validateWithSymbolInfo) {
-            // Get symbol limits
-            double minLot = m_symbolInfo.GetVolumeMin();
-            double maxLot = m_symbolInfo.GetVolumeMax();
-            double lotStep = m_symbolInfo.GetVolumeStep();
+            double minLot = (double)m_symbolInfo.GetVolumeMin();
+            double maxLot = (double)m_symbolInfo.GetVolumeMax();
+            double lotStep = (double)m_symbolInfo.GetVolumeStep();
             
             // Ensure within min/max
             result = MathMax(result, minLot);
@@ -495,7 +444,7 @@ public:
             
             // Re-apply rounding if needed
             if(m_symbolInfo != NULL && m_config.roundToLotStep) {
-                double lotStep = m_symbolInfo.GetVolumeStep();
+                double lotStep = (double)m_symbolInfo.GetVolumeStep();
                 if(lotStep > 0) {
                     result = MathRound(result / lotStep) * lotStep;
                 }
@@ -573,18 +522,21 @@ public:
         return "Abstract base class for position sizing methods";
     }
     
-    void PrintStatus() const {
-        LogInfo("=== Money Manager Status ===");
-        LogInfo("Name: " + GetName());
-        LogInfo("Method: " + m_config.GetMethodString());
-        LogInfo("Initialized: " + string(m_initialized ? "Yes" : "No"));
-        LogInfo("Risk Percent: " + DoubleToString(m_config.riskPercent, 2) + "%");
-        LogInfo("Risk Multiplier: " + DoubleToString(GetRiskMultiplier(), 2));
-        LogInfo("Account Balance: " + DoubleToString(m_lastAccountBalance, 2));
-        LogInfo("Account Equity: " + DoubleToString(m_lastAccountEquity, 2));
-        LogInfo("Calculations Performed: " + IntegerToString(m_calculationCount));
-        LogInfo("Total Risk Calculated: " + DoubleToString(m_totalRiskCalculated, 2));
-        LogInfo("===========================");
+    void PrintStatus() {
+        string status = "=== Money Manager Status ===\n" +
+                       "Name: " + GetName() + "\n" +
+                       "Method: " + m_config.GetMethodString() + "\n" +
+                       "Initialized: " + (m_initialized ? "Yes" : "No") + "\n" +
+                       "Risk Percent: " + DoubleToString(m_config.riskPercent, 2) + "%\n" +
+                       "Risk Multiplier: " + DoubleToString(GetRiskMultiplier(), 2) + "\n" +
+                       "Account Balance: " + DoubleToString(m_lastAccountBalance, 2) + "\n" +
+                       "Account Equity: " + DoubleToString(m_lastAccountEquity, 2) + "\n" +
+                       "Has Strategy Config: " + (m_strategyConfig.HasConfig() ? "Yes" : "No") + "\n" +
+                       "Calculations Performed: " + IntegerToString(m_calculationCount) + "\n" +
+                       "Total Risk Calculated: " + DoubleToString(m_totalRiskCalculated, 2) + "\n" +
+                       "===========================";
+        
+        LogInfo(status);
     }
     
 protected:
@@ -598,8 +550,8 @@ protected:
         double riskMultiplier = GetRiskMultiplier();
         
         // Apply strategy-specific risk if available
-        if(m_strategyConfig != NULL && m_strategyConfig->riskPercent > 0) {
-            baseRisk = m_strategyConfig->riskPercent;
+        if(m_strategyConfig.HasConfig() && m_strategyConfig.GetRiskPercent() > 0) {
+            baseRisk = m_strategyConfig.GetRiskPercent();
         }
         
         return baseRisk * riskMultiplier;
@@ -638,12 +590,6 @@ protected:
     void LogDebug(string message) {
         if(m_logger != NULL) {
             m_logger.Debug(message, GetName());
-        }
-    }
-    
-    void LogTrace(string message) {
-        if(m_logger != NULL) {
-            m_logger.Trace(message, GetName());
         }
     }
 };
