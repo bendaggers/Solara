@@ -100,7 +100,7 @@ struct SStrategyConfig {
     void PrintConfig() const {
         Print("=== Strategy Config: ", strategyName, " ===");
         Print("Enabled: ", enabled);
-        Print("Frequency: ", FrequencyToString(frequency));  // Fixed line 78
+        Print("Frequency: ", FrequencyToString(frequency));
         Print("Symbol: ", symbol);
         Print("Timeframe: ", EnumToString(timeframe));
         Print("Risk %: ", riskPercent);
