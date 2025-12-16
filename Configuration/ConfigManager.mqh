@@ -5,12 +5,6 @@
 #include "GlobalSettings.mqh"
 #include "StrategyConfig.mqh"
 
-// Forward declaration
-class CConfigManager;
-
-// Singleton instance
-CConfigManager* g_configManager = NULL;
-
 // Configuration file manager
 class CConfigManager {
 private:
@@ -19,7 +13,10 @@ private:
     string m_configPath;
     bool m_initialized;
     
-    // Helper function to trim strings (MQL5 doesn't have StringTrim)
+    // Singleton instance - PRIVATE static member
+    static CConfigManager* m_instance;
+    
+    // Helper function to trim strings
     string TrimString(string text) {
         // Remove leading and trailing spaces
         int start = 0;
@@ -49,12 +46,20 @@ private:
     }
     
 public:
-    // Singleton access
+    // Singleton access - ONLY way to get instance
     static CConfigManager* Instance() {
-        if(g_configManager == NULL) {
-            g_configManager = new CConfigManager();
+        if(m_instance == NULL) {
+            m_instance = new CConfigManager();
         }
-        return g_configManager;
+        return m_instance;
+    }
+    
+    // Cleanup singleton
+    static void Cleanup() {
+        if(m_instance != NULL) {
+            delete m_instance;
+            m_instance = NULL;
+        }
     }
     
     // Initialize
@@ -134,7 +139,7 @@ public:
         // Read the file line by line
         while(!FileIsEnding(fileHandle)) {
             string line = FileReadString(fileHandle);
-            line = TrimString(line); // Fixed: Using custom TrimString function
+            line = TrimString(line);
             
             // Skip empty lines and comments
             if(StringLen(line) == 0 || StringGetCharacter(line, 0) == '#') {
@@ -188,8 +193,8 @@ public:
     // Save global settings to file
     bool SaveGlobalSettings() {
         string filename = m_configPath + "GlobalSettings.ini";
-        
         int fileHandle = FileOpen(filename, FILE_WRITE|FILE_TXT);
+        
         if(fileHandle == INVALID_HANDLE) {
             Print("Failed to create global settings file: ", filename);
             return false;
@@ -264,7 +269,7 @@ public:
         // Read the file line by line
         while(!FileIsEnding(fileHandle)) {
             string line = FileReadString(fileHandle);
-            line = TrimString(line); // Fixed: Using custom TrimString function
+            line = TrimString(line);
             
             if(StringLen(line) == 0) {
                 continue;
@@ -324,7 +329,6 @@ public:
         }
         
         FileClose(fileHandle);
-        
         Print("Loaded ", IntegerToString(m_strategyConfigs.GetCount()), " strategy configs from: ", filename);
         return true;
     }
@@ -332,8 +336,8 @@ public:
     // Save strategy configurations
     bool SaveStrategyConfigs() {
         string filename = m_configPath + "Strategies.ini";
-        
         int fileHandle = FileOpen(filename, FILE_WRITE|FILE_TXT);
+        
         if(fileHandle == INVALID_HANDLE) {
             Print("Failed to create strategy configs file: ", filename);
             return false;
@@ -364,16 +368,12 @@ public:
                 if(config.param3 != 0) FileWrite(fileHandle, "param3=", DoubleToString(config.param3, 5));
                 if(config.param4 != 0) FileWrite(fileHandle, "param4=", DoubleToString(config.param4, 5));
                 if(config.param5 != 0) FileWrite(fileHandle, "param5=", DoubleToString(config.param5, 5));
-                
                 if(config.paramInt1 != 0) FileWrite(fileHandle, "paramInt1=", IntegerToString(config.paramInt1));
                 if(config.paramInt2 != 0) FileWrite(fileHandle, "paramInt2=", IntegerToString(config.paramInt2));
                 if(config.paramInt3 != 0) FileWrite(fileHandle, "paramInt3=", IntegerToString(config.paramInt3));
-                
                 if(StringLen(config.paramString1) > 0) FileWrite(fileHandle, "paramString1=", config.paramString1);
                 if(StringLen(config.paramString2) > 0) FileWrite(fileHandle, "paramString2=", config.paramString2);
-                
                 if(config.magicNumber > 0) FileWrite(fileHandle, "magicNumber=", IntegerToString(config.magicNumber));
-                
                 FileWrite(fileHandle, ""); // Empty line between strategies
             }
         }
@@ -411,4 +411,7 @@ public:
     }
 };
 
-#endif
+// Static member initialization - MUST be outside the class
+CConfigManager* CConfigManager::m_instance = NULL;
+
+#endif // CONFIGMANAGER_MQH

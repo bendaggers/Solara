@@ -14,6 +14,7 @@
 #include "..\Core\StrategyBase.mqh"
 #include "..\Core\PositionManager.mqh"
 #include "..\Core\RiskManager.mqh"
+#include "..\Core\CommonTypes.mqh"  // STradeRecord is defined here
 
 //+------------------------------------------------------------------+
 //| Performance period enumeration                                   |
@@ -36,7 +37,7 @@ struct SPerformanceMetric {
     int         winningTrades;          // Number of winning trades
     int         losingTrades;           // Number of losing trades
     double      winRate;                // Win rate percentage
-    int consecutiveLosses;
+    int         consecutiveLosses;      // Consecutive losses
     
     // Profit/Loss metrics
     double      totalProfit;            // Total profit
@@ -192,56 +193,6 @@ struct SPerformanceMetric {
         if(performanceScore >= 70) return "C";
         if(performanceScore >= 60) return "D";
         return "F";
-    }
-};
-
-//+------------------------------------------------------------------+
-//| Trade record structure                                           |
-//+------------------------------------------------------------------+
-struct STradeRecord {
-    ulong           ticket;            // Trade ticket number
-    ulong           magic;             // Magic number (strategy ID)
-    string          symbol;            // Symbol traded
-    ENUM_ORDER_TYPE type;              // Trade type (buy/sell)
-    double          volume;            // Trade volume
-    double          openPrice;         // Open price
-    double          closePrice;        // Close price
-    double          profit;            // Profit/loss amount
-    double          commission;        // Commission paid
-    double          swap;              // Swap paid/received
-    datetime        openTime;          // Trade open time
-    datetime        closeTime;         // Trade close time
-    double          duration;          // Trade duration in hours
-    string          strategyName;      // Strategy that executed trade
-    string          comment;           // Trade comment
-    
-    STradeRecord() {
-        ticket = 0;
-        magic = 0;
-        symbol = "";
-        type = ORDER_TYPE_BUY;
-        volume = 0;
-        openPrice = 0;
-        closePrice = 0;
-        profit = 0;
-        commission = 0;
-        swap = 0;
-        openTime = 0;
-        closeTime = 0;
-        duration = 0;
-        strategyName = "";
-        comment = "";
-    }
-    
-    bool IsWin() const { return profit > 0; }
-    bool IsLoss() const { return profit < 0; }
-    bool IsClosed() const { return closeTime > 0; }
-    
-    double GetDurationHours() const {
-        if(closeTime > 0 && openTime > 0) {
-            return (closeTime - openTime) / 3600.0;
-        }
-        return 0;
     }
 };
 
@@ -553,9 +504,9 @@ public:
         trade.strategyName = strategyName;
         trade.comment = comment;
         
-        // Calculate commission and swap (simplified - would need actual values)
-        trade.commission = MathAbs(profit) * 0.0001; // Approximate
-        trade.swap = 0; // Would need actual swap value
+        // Calculate commission and swap (simplified)
+        trade.commission = MathAbs(profit) * 0.0001;
+        trade.swap = 0;
         
         // Add to global history
         m_tradeHistory[m_tradeIndex] = trade;
@@ -680,7 +631,7 @@ public:
         if(!m_initialized) return best;
         
         for(int i = 0; i < m_strategyCount; i++) {
-            SPerformanceMetric metrics = GetStrategyMetrics(m_strategies[i].strategyName, period);
+                        SPerformanceMetric metrics = GetStrategyMetrics(m_strategies[i].strategyName, period);
             if(metrics.performanceScore > best.performanceScore) {
                 best = metrics;
             }
@@ -1246,14 +1197,12 @@ private:
     }
     
     void LoadHistoricalData() {
-        // This would load historical data from file or database
-        // For now, it's a placeholder
+        // Placeholder for historical data loading
         LogDebug("Historical data loading not implemented");
     }
     
     void SaveHistoricalData() {
-        // This would save historical data to file or database
-        // For now, it's a placeholder
+        // Placeholder for historical data saving
         LogDebug("Historical data saving not implemented");
     }
     
