@@ -6,8 +6,6 @@
 #ifndef TRADELOGGER_MQH
 #define TRADELOGGER_MQH
 
-#include <Arrays\ArrayObj.mqh>
-
 //+------------------------------------------------------------------+
 //| Signal structure for logging                                     |
 //+------------------------------------------------------------------+
@@ -36,21 +34,16 @@ struct TradingSignal {
 };
 
 //+------------------------------------------------------------------+
-//| Daily loss tracker per strategy                                  |
+//| Simple daily loss tracker                                        |
 //+------------------------------------------------------------------+
-struct DailyLossTracker {
+struct DailyTracker {
     string   strategy;
     double   dailyLoss;
     datetime lastResetDate;
-    
-    DailyLossTracker(string strat) {
-        strategy = strat;
-        dailyLoss = 0.0;
-        lastResetDate = 0;
-    }
 };
 
-CArrayObj DailyTrackers;  // Array of DailyLossTracker objects
+DailyTracker Trackers[10];  // Simple array for up to 10 strategies
+int TrackerCount = 0;
 
 //+------------------------------------------------------------------+
 //| Log signal to CSV file                                           |
@@ -150,8 +143,9 @@ string FormatCSVRow(TradingSignal &signal)
 bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type, 
                  double lotSize, double slPoints, double tpPoints)
 {
-    // Check if symbol is valid
-    if(!SymbolInfoInteger(symbol, SYMBOL_SELECT))
+    // Check if symbol is selected
+    long selectResult = 0;
+    if(!SymbolInfoInteger(symbol, SYMBOL_SELECT, selectResult) || selectResult == 0)
     {
         Print("ERROR: Symbol not selected: ", symbol);
         return false;
@@ -181,20 +175,29 @@ bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type,
     request.symbol = symbol;
     request.volume = lotSize;
     request.type = type;
-    request.magic = StringToInteger(StringSubstr(strategy, 0, 4)) + 1000; // Simple magic number
+    
+    // Create simple magic number from strategy name
+    int magic = 10000;
+    for(int i = 0; i < MathMin(StringLen(strategy), 4); i++)
+    {
+        magic += StringGetCharacter(strategy, i);
+    }
+    request.magic = magic;
     
     // Set prices based on order type
     if(type == ORDER_TYPE_BUY)
     {
         request.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
-        request.sl = request.price - (slPoints * SymbolInfoDouble(symbol, SYMBOL_POINT));
-        request.tp = request.price + (tpPoints * SymbolInfoDouble(symbol, SYMBOL_POINT));
+        double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+        request.sl = request.price - (slPoints * point);
+        request.tp = request.price + (tpPoints * point);
     }
     else // SELL
     {
         request.price = SymbolInfoDouble(symbol, SYMBOL_BID);
-        request.sl = request.price + (slPoints * SymbolInfoDouble(symbol, SYMBOL_POINT));
-        request.tp = request.price - (tpPoints * SymbolInfoDouble(symbol, SYMBOL_POINT));
+        double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+        request.sl = request.price + (slPoints * point);
+        request.tp = request.price - (tpPoints * point);
     }
     
     request.deviation = 10;
@@ -205,14 +208,14 @@ bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type,
     // Send order
     bool success = OrderSend(request, result);
     
-    if(success)
+    if(success && result.retcode == TRADE_RETCODE_DONE)
     {
         Print("TRADE EXECUTED: ", symbol, " ", EnumToString(type), 
               " Lot: ", lotSize, " Price: ", request.price,
               " Ticket: ", result.order);
         
-        // Update daily loss tracker
-        UpdateDailyLossTracker(strategy, 0); // Will be updated when position closes
+        // Update daily loss tracker (will update when position closes)
+        UpdateDailyLossTracker(strategy, 0);
         
         return true;
     }
@@ -232,17 +235,17 @@ bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
     // Reset daily loss at midnight
     ResetDailyLossIfNeeded(strategy);
     
-    // Find or create tracker for this strategy
-    DailyLossTracker* tracker = FindOrCreateTracker(strategy);
+    // Find tracker index for this strategy
+    int trackerIndex = FindTrackerIndex(strategy);
     
-    if(tracker == NULL)
-        return true; // Allow trading if tracker creation failed
+    if(trackerIndex == -1)
+        return true; // No tracker yet, allow trading
     
     // Check if daily loss exceeds limit
-    if(tracker.dailyLoss <= -dailyLossLimit)
+    if(Trackers[trackerIndex].dailyLoss <= -dailyLossLimit)
     {
         Print("DAILY LOSS LIMIT REACHED: Strategy ", strategy, 
-              " Loss: $", DoubleToString(MathAbs(tracker.dailyLoss), 2),
+              " Loss: $", DoubleToString(MathAbs(Trackers[trackerIndex].dailyLoss), 2),
               " Limit: $", DoubleToString(dailyLossLimit, 2));
         return false;
     }
@@ -255,40 +258,44 @@ bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
 //+------------------------------------------------------------------+
 void UpdateDailyLossTracker(string strategy, double pnl)
 {
-    DailyLossTracker* tracker = FindOrCreateTracker(strategy);
+    int trackerIndex = FindTrackerIndex(strategy);
     
-    if(tracker != NULL)
+    if(trackerIndex != -1)
     {
-        tracker.dailyLoss += pnl;
+        Trackers[trackerIndex].dailyLoss += pnl;
         
         // Log significant updates
         if(MathAbs(pnl) > 10.0) // Log trades with > $10 P/L
         {
             Print("Daily loss updated: Strategy ", strategy, 
                   " P/L: $", DoubleToString(pnl, 2),
-                  " Total: $", DoubleToString(tracker.dailyLoss, 2));
+                  " Total: $", DoubleToString(Trackers[trackerIndex].dailyLoss, 2));
         }
     }
 }
 
 //+------------------------------------------------------------------+
-//| Find or create daily loss tracker                                |
+//| Find tracker index for strategy                                  |
 //+------------------------------------------------------------------+
-DailyLossTracker* FindOrCreateTracker(string strategy)
+int FindTrackerIndex(string strategy)
 {
-    // Check if tracker already exists
-    for(int i = 0; i < DailyTrackers.Total(); i++)
+    for(int i = 0; i < TrackerCount; i++)
     {
-        DailyLossTracker* tracker = DailyTrackers.At(i);
-        if(tracker.strategy == strategy)
-            return tracker;
+        if(Trackers[i].strategy == strategy)
+            return i;
     }
     
-    // Create new tracker
-    DailyLossTracker* newTracker = new DailyLossTracker(strategy);
-    DailyTrackers.Add(newTracker);
+    // Create new tracker if we have space
+    if(TrackerCount < 10)
+    {
+        Trackers[TrackerCount].strategy = strategy;
+        Trackers[TrackerCount].dailyLoss = 0.0;
+        Trackers[TrackerCount].lastResetDate = 0;
+        TrackerCount++;
+        return TrackerCount - 1;
+    }
     
-    return newTracker;
+    return -1;
 }
 
 //+------------------------------------------------------------------+
@@ -296,23 +303,23 @@ DailyLossTracker* FindOrCreateTracker(string strategy)
 //+------------------------------------------------------------------+
 void ResetDailyLossIfNeeded(string strategy)
 {
-    DailyLossTracker* tracker = FindOrCreateTracker(strategy);
+    int trackerIndex = FindTrackerIndex(strategy);
     
-    if(tracker != NULL)
+    if(trackerIndex != -1)
     {
         MqlDateTime currentTime;
         TimeCurrent(currentTime);
         
         MqlDateTime lastResetTime;
-        TimeToStruct(tracker.lastResetDate, lastResetTime);
+        TimeToStruct(Trackers[trackerIndex].lastResetDate, lastResetTime);
         
         // Reset if it's a new day
         if(currentTime.day != lastResetTime.day || 
            currentTime.mon != lastResetTime.mon || 
            currentTime.year != lastResetTime.year)
         {
-            tracker.dailyLoss = 0.0;
-            tracker.lastResetDate = TimeCurrent();
+            Trackers[trackerIndex].dailyLoss = 0.0;
+            Trackers[trackerIndex].lastResetDate = TimeCurrent();
             Print("Daily loss reset for strategy: ", strategy);
         }
     }
@@ -325,9 +332,10 @@ bool HasOpenPosition(string symbol, string strategy)
 {
     for(int i = PositionsTotal() - 1; i >= 0; i--)
     {
-        if(PositionGetSymbol(i) == symbol)
+        ulong ticket = PositionGetTicket(i);
+        if(PositionGetString(POSITION_SYMBOL) == symbol)
         {
-            // Check if position belongs to this strategy (by magic number or comment)
+            // Check if position belongs to this strategy (by comment)
             string comment = PositionGetString(POSITION_COMMENT);
             if(comment == strategy)
                 return true;
@@ -387,7 +395,7 @@ bool SimpleExecuteTrade(TradingSignal &signal, double lotSize)
     // For trading mode
     ENUM_ORDER_TYPE orderType = (signal.signal == "BUY") ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     
-    // Simple fixed stop loss and take profit (50 points each)
+    // Simple fixed stop loss and take profit
     double slPoints = 50.0;
     double tpPoints = 100.0;
     

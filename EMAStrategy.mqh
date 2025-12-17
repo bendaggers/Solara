@@ -7,6 +7,7 @@
 #define EMASTRATEGY_MQH
 
 #include "TradeLogger.mqh"
+#include "ScannerCore.mqh"  // Now includes TimeframeToString
 
 //+------------------------------------------------------------------+
 //| Strategy settings structure                                      |
@@ -65,7 +66,7 @@ TradingSignal CheckEMAStrategy(string symbol, ENUM_TIMEFRAMES timeframe,
     TradingSignal signal;
     signal.symbol = symbol;
     signal.strategy = "EMA_Crossover";
-    signal.timeframe = TimeframeToString(timeframe);
+    signal.timeframe = TimeframeToString(timeframe);  // Now uses function from ScannerCore.mqh
     
     // Get EMA values for current and previous bars
     EMAValues ema = CalculateEMAValues(symbol, timeframe, settings.fastPeriod, settings.slowPeriod);

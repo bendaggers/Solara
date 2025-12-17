@@ -5,11 +5,11 @@ A lightweight MQL5 Expert Advisor that scans multiple currency pairs for trading
 
 ## Core Architecture
 ```
-TradingScanner.mq5           - Main EA file (timer-driven execution)
-Symbols.txt                  - Plain text file listing symbols to scan
-ScannerCore.mqh             - Core scanning and symbol management functions
-EMAStrategy.mqh             - EMA crossover strategy implementation  
-TradeLogger.mqh             - CSV logging and trade execution functions
+TradingScanner.mq5 - Main EA file (timer-driven execution)
+Symbols.txt - Plain text file listing symbols to scan
+ScannerCore.mqh - Core scanning and symbol management functions
+EMAStrategy.mqh - EMA crossover strategy implementation  
+TradeLogger.mqh - CSV logging and trade execution functions
 ```
 
 ## File Specifications

@@ -6,58 +6,6 @@
 #ifndef SCANNERCORE_MQH
 #define SCANNERCORE_MQH
 
-//+------------------------------------------------------------------+
-//| Read symbols from text file                                      |
-//+------------------------------------------------------------------+
-bool ReadSymbolsFromFile(string filename, string &symbols[])
-{
-    // Reset array
-    ArrayResize(symbols, 0);
-    
-    // Build full path
-    string filepath = "Files\\" + filename;
-    
-    // Open file
-    int filehandle = FileOpen(filepath, FILE_READ|FILE_TXT|FILE_ANSI);
-    if(filehandle == INVALID_HANDLE)
-    {
-        Print("ERROR: Cannot open symbol file: ", filepath);
-        return false;
-    }
-    
-    int count = 0;
-    
-    // Read file line by line
-    while(!FileIsEnding(filehandle))
-    {
-        string line = FileReadString(filehandle);
-        
-        // Trim whitespace
-        line = StringTrimLeft(line);
-        line = StringTrimRight(line);
-        
-        // Skip empty lines and comments
-        if(StringLen(line) == 0 || StringGetCharacter(line, 0) == '#')
-            continue;
-        
-        // Add symbol to array
-        int size = ArraySize(symbols);
-        ArrayResize(symbols, size + 1);
-        symbols[size] = line;
-        count++;
-    }
-    
-    FileClose(filehandle);
-    
-    if(count == 0)
-    {
-        Print("WARNING: No symbols found in file: ", filepath);
-        return false;
-    }
-    
-    Print("Loaded ", count, " symbols from: ", filepath);
-    return true;
-}
 
 //+------------------------------------------------------------------+
 //| Check if symbol is valid and tradeable                           |
@@ -65,7 +13,8 @@ bool ReadSymbolsFromFile(string filename, string &symbols[])
 bool IsValidSymbol(string symbol)
 {
     // Check if symbol exists in Market Watch
-    if(!SymbolInfoInteger(symbol, SYMBOL_SELECT))
+    long selectResult = 0;
+    if(!SymbolInfoInteger(symbol, SYMBOL_SELECT, selectResult) || selectResult == 0)
     {
         // Try to select it
         if(!SymbolSelect(symbol, true))
@@ -76,7 +25,13 @@ bool IsValidSymbol(string symbol)
     }
     
     // Check if trading is allowed for this symbol
-    long tradeMode = SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE);
+    long tradeMode = 0;
+    if(!SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE, tradeMode))
+    {
+        Print("WARNING: Cannot get trade mode for: ", symbol);
+        return false;
+    }
+    
     if(tradeMode == SYMBOL_TRADE_MODE_DISABLED || 
        tradeMode == SYMBOL_TRADE_MODE_CLOSEONLY)
     {
@@ -85,9 +40,18 @@ bool IsValidSymbol(string symbol)
     }
     
     // Check if market is open (simplified check)
-    if(!SymbolInfoInteger(symbol, SYMBOL_TRADE_EXECUTION))
+    // Just check if we can get the spread - if not, symbol might not be tradeable
+    long spread = 0;
+    if(!SymbolInfoInteger(symbol, SYMBOL_SPREAD, spread))
     {
-        Print("WARNING: Symbol not executable: ", symbol);
+        Print("WARNING: Cannot get spread for: ", symbol);
+        return false;
+    }
+    
+    // Check if spread is reasonable (less than 100 points)
+    if(spread > 1000) // 100 points = 1000 for 5-digit brokers
+    {
+        Print("WARNING: Symbol has very high spread: ", symbol, " (", spread, " points)");
         return false;
     }
     
@@ -153,7 +117,7 @@ string TimeframeToString(ENUM_TIMEFRAMES tf)
 //+------------------------------------------------------------------+
 //| Trim leading whitespace from string                              |
 //+------------------------------------------------------------------+
-string StringTrimLeft(string text)
+string TrimLeft(string text)
 {
     int start = 0;
     int len = StringLen(text);
@@ -170,7 +134,7 @@ string StringTrimLeft(string text)
 //+------------------------------------------------------------------+
 //| Trim trailing whitespace from string                             |
 //+------------------------------------------------------------------+
-string StringTrimRight(string text)
+string TrimRight(string text)
 {
     int end = StringLen(text) - 1;
     
