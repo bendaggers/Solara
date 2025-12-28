@@ -6,7 +6,6 @@
 #ifndef SCANNERCORE_MQH
 #define SCANNERCORE_MQH
 
-
 //+------------------------------------------------------------------+
 //| Check if symbol is valid and tradeable                           |
 //+------------------------------------------------------------------+

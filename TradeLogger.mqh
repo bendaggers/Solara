@@ -46,6 +46,180 @@ DailyTracker Trackers[10];  // Simple array for up to 10 strategies
 int TrackerCount = 0;
 
 //+------------------------------------------------------------------+
+//| Get trade error description                                      |
+//+------------------------------------------------------------------+
+string GetTradeErrorDescription(int errorCode)
+{
+    switch(errorCode)
+    {
+        case 10004: return "Requote";
+        case 10006: return "Request rejected";
+        case 10007: return "Request canceled by trader";
+        case 10008: return "Order placed";
+        case 10009: return "Request completed";
+        case 10010: return "Request partially filled";
+        case 10011: return "Request processing error";
+        case 10012: return "Request canceled";
+        case 10013: return "Invalid request";
+        case 10014: return "Invalid volume";
+        case 10015: return "Invalid price";
+        case 10016: return "Invalid stops";
+        case 10017: return "Trade is disabled";
+        case 10018: return "Market is closed";
+        case 10019: return "Insufficient funds";
+        case 10020: return "Price changed";
+        case 10021: return "Too many requests";
+        case 10022: return "No changes";
+        case 10023: return "Autotrading disabled";
+        case 10024: return "Order locked";
+        case 10025: return "Long positions only allowed";
+        case 10026: return "Too many orders";
+        case 10027: return "Hedging prohibited";
+        case 10028: return "Prohibited by FIFO";
+        case 10029: return "Invalid filling";
+        case 10030: return "Invalid order type";
+        case 10031: return "Invalid position";
+        case 10032: return "Invalid trade volume";
+        case 10033: return "Invalid trade price";
+        case 10034: return "Invalid trade stops";
+        case 10035: return "Invalid trade expiration";
+        case 10036: return "Invalid trade request";
+        case 10038: return "Trade timeout";
+        case 10039: return "Invalid trade filling mode";
+        case 10040: return "Invalid trade type";
+        case 10041: return "No connection with trade server";
+        case 10042: return "Trade context is busy";
+        case 10043: return "Invalid trade parameters";
+        case 10044: return "Invalid trade function";
+        case 10045: return "Trade function denied";
+        case 10046: return "Trade disabled";
+        case 10047: return "Old version of trade server";
+        case 10048: return "Invalid account";
+        case 10049: return "Invalid trade position";
+        case 10050: return "Invalid trade volume limit";
+        default:    return "Unknown error (" + IntegerToString(errorCode) + ")";
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Find tracker index for strategy                                  |
+//+------------------------------------------------------------------+
+int FindTrackerIndex(string strategy)
+{
+    for(int i = 0; i < TrackerCount; i++)
+    {
+        if(Trackers[i].strategy == strategy)
+            return i;
+    }
+    
+    // Create new tracker if we have space
+    if(TrackerCount < 10)
+    {
+        Trackers[TrackerCount].strategy = strategy;
+        Trackers[TrackerCount].dailyLoss = 0.0;
+        Trackers[TrackerCount].lastResetDate = 0;
+        TrackerCount++;
+        return TrackerCount - 1;
+    }
+    
+    return -1;
+}
+
+//+------------------------------------------------------------------+
+//| Reset daily loss if new day                                      |
+//+------------------------------------------------------------------+
+void ResetDailyLossIfNeeded(string strategy)
+{
+    int trackerIndex = FindTrackerIndex(strategy);
+    
+    if(trackerIndex != -1)
+    {
+        MqlDateTime currentTime;
+        TimeCurrent(currentTime);
+        
+        MqlDateTime lastResetTime;
+        TimeToStruct(Trackers[trackerIndex].lastResetDate, lastResetTime);
+        
+        // Reset if it's a new day
+        if(currentTime.day != lastResetTime.day || 
+           currentTime.mon != lastResetTime.mon || 
+           currentTime.year != lastResetTime.year)
+        {
+            Trackers[trackerIndex].dailyLoss = 0.0;
+            Trackers[trackerIndex].lastResetDate = TimeCurrent();
+            Print("Daily loss reset for strategy: ", strategy);
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check daily loss limit for strategy                              |
+//+------------------------------------------------------------------+
+bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
+{
+    // Reset daily loss at midnight
+    ResetDailyLossIfNeeded(strategy);
+    
+    // Find tracker index for this strategy
+    int trackerIndex = FindTrackerIndex(strategy);
+    
+    if(trackerIndex == -1)
+        return true; // No tracker yet, allow trading
+    
+    // Check if daily loss exceeds limit
+    if(Trackers[trackerIndex].dailyLoss <= -dailyLossLimit)
+    {
+        Print("DAILY LOSS LIMIT REACHED: Strategy ", strategy, 
+              " Loss: $", DoubleToString(MathAbs(Trackers[trackerIndex].dailyLoss), 2),
+              " Limit: $", DoubleToString(dailyLossLimit, 2));
+        return false;
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
+//| Update daily loss tracker                                        |
+//+------------------------------------------------------------------+
+void UpdateDailyLossTracker(string strategy, double pnl)
+{
+    int trackerIndex = FindTrackerIndex(strategy);
+    
+    if(trackerIndex != -1)
+    {
+        Trackers[trackerIndex].dailyLoss += pnl;
+        
+        // Log significant updates
+        if(MathAbs(pnl) > 10.0) // Log trades with > $10 P/L
+        {
+            Print("Daily loss updated: Strategy ", strategy, 
+                  " P/L: $", DoubleToString(pnl, 2),
+                  " Total: $", DoubleToString(Trackers[trackerIndex].dailyLoss, 2));
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Check if position already exists                                 |
+//+------------------------------------------------------------------+
+bool HasOpenPosition(string symbol, string strategy)
+{
+    for(int i = PositionsTotal() - 1; i >= 0; i--)
+    {
+        ulong ticket = PositionGetTicket(i);
+        if(PositionGetString(POSITION_SYMBOL) == symbol)
+        {
+            // Check if position belongs to this strategy (by comment)
+            string comment = PositionGetString(POSITION_COMMENT);
+            if(comment == strategy)
+                return true;
+        }
+    }
+    
+    return false;
+}
+
+//+------------------------------------------------------------------+
 //| Log signal to CSV file                                           |
 //+------------------------------------------------------------------+
 void LogSignalToCSV(string csvFile, TradingSignal &signal, bool append = true)
@@ -140,30 +314,14 @@ string FormatCSVRow(TradingSignal &signal)
 //+------------------------------------------------------------------+
 //| Execute trade if conditions met                                  |
 //+------------------------------------------------------------------+
+//+------------------------------------------------------------------+
+//| SIMPLE Execute trade - No checks, just place order!             |
+//+------------------------------------------------------------------+
 bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type, 
                  double lotSize, double slPoints, double tpPoints)
 {
-    // Check if symbol is selected
-    long selectResult = 0;
-    if(!SymbolInfoInteger(symbol, SYMBOL_SELECT, selectResult) || selectResult == 0)
-    {
-        Print("ERROR: Symbol not selected: ", symbol);
-        return false;
-    }
-    
-    // Check daily loss limit
-    if(!CheckDailyLossLimit(strategy, 100.0)) // Default limit
-    {
-        Print("WARNING: Daily loss limit reached for strategy: ", strategy);
-        return false;
-    }
-    
-    // Check if position already exists for this symbol/strategy
-    if(HasOpenPosition(symbol, strategy))
-    {
-        Print("WARNING: Position already exists for ", symbol, " (", strategy, ")");
-        return false;
-    }
+    Print("SIMPLE ORDER: Placing ", EnumToString(type), " for ", symbol, 
+          " Lot: ", lotSize, " Strategy: ", strategy);
     
     // Prepare trade request
     MqlTradeRequest request;
@@ -175,34 +333,31 @@ bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type,
     request.symbol = symbol;
     request.volume = lotSize;
     request.type = type;
+    request.magic = 12345;
     
-    // Create simple magic number from strategy name
-    int magic = 10000;
-    for(int i = 0; i < MathMin(StringLen(strategy), 4); i++)
-    {
-        magic += StringGetCharacter(strategy, i);
-    }
-    request.magic = magic;
+    // Get current prices
+    double ask = SymbolInfoDouble(symbol, SYMBOL_ASK);
+    double bid = SymbolInfoDouble(symbol, SYMBOL_BID);
+    double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
+    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
     
     // Set prices based on order type
     if(type == ORDER_TYPE_BUY)
     {
-        request.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
-        double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
-        request.sl = request.price - (slPoints * point);
-        request.tp = request.price + (tpPoints * point);
+        request.price = ask;
+        if(slPoints > 0) request.sl = NormalizeDouble(ask - (slPoints * point), digits);
+        if(tpPoints > 0) request.tp = NormalizeDouble(ask + (tpPoints * point), digits);
     }
     else // SELL
     {
-        request.price = SymbolInfoDouble(symbol, SYMBOL_BID);
-        double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
-        request.sl = request.price + (slPoints * point);
-        request.tp = request.price - (tpPoints * point);
+        request.price = bid;
+        if(slPoints > 0) request.sl = NormalizeDouble(bid + (slPoints * point), digits);
+        if(tpPoints > 0) request.tp = NormalizeDouble(bid - (tpPoints * point), digits);
     }
     
     request.deviation = 10;
     request.comment = strategy;
-    request.type_filling = ORDER_FILLING_FOK;
+    request.type_filling = ORDER_FILLING_IOC;
     request.type_time = ORDER_TIME_GTC;
     
     // Send order
@@ -210,173 +365,15 @@ bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type,
     
     if(success && result.retcode == TRADE_RETCODE_DONE)
     {
-        Print("TRADE EXECUTED: ", symbol, " ", EnumToString(type), 
+        Print("ORDER PLACED: ", symbol, " ", EnumToString(type), 
               " Lot: ", lotSize, " Price: ", request.price,
               " Ticket: ", result.order);
-        
-        // Update daily loss tracker (will update when position closes)
-        UpdateDailyLossTracker(strategy, 0);
-        
         return true;
     }
     else
     {
-        Print("ERROR: Trade execution failed: ", symbol, 
-              " Error: ", result.retcode, " ", GetTradeErrorDescription(result.retcode));
+        Print("ORDER FAILED: ", symbol, " Error: ", GetTradeErrorDescription(result.retcode));
         return false;
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Check daily loss limit for strategy                              |
-//+------------------------------------------------------------------+
-bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
-{
-    // Reset daily loss at midnight
-    ResetDailyLossIfNeeded(strategy);
-    
-    // Find tracker index for this strategy
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex == -1)
-        return true; // No tracker yet, allow trading
-    
-    // Check if daily loss exceeds limit
-    if(Trackers[trackerIndex].dailyLoss <= -dailyLossLimit)
-    {
-        Print("DAILY LOSS LIMIT REACHED: Strategy ", strategy, 
-              " Loss: $", DoubleToString(MathAbs(Trackers[trackerIndex].dailyLoss), 2),
-              " Limit: $", DoubleToString(dailyLossLimit, 2));
-        return false;
-    }
-    
-    return true;
-}
-
-//+------------------------------------------------------------------+
-//| Update daily loss tracker                                        |
-//+------------------------------------------------------------------+
-void UpdateDailyLossTracker(string strategy, double pnl)
-{
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex != -1)
-    {
-        Trackers[trackerIndex].dailyLoss += pnl;
-        
-        // Log significant updates
-        if(MathAbs(pnl) > 10.0) // Log trades with > $10 P/L
-        {
-            Print("Daily loss updated: Strategy ", strategy, 
-                  " P/L: $", DoubleToString(pnl, 2),
-                  " Total: $", DoubleToString(Trackers[trackerIndex].dailyLoss, 2));
-        }
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Find tracker index for strategy                                  |
-//+------------------------------------------------------------------+
-int FindTrackerIndex(string strategy)
-{
-    for(int i = 0; i < TrackerCount; i++)
-    {
-        if(Trackers[i].strategy == strategy)
-            return i;
-    }
-    
-    // Create new tracker if we have space
-    if(TrackerCount < 10)
-    {
-        Trackers[TrackerCount].strategy = strategy;
-        Trackers[TrackerCount].dailyLoss = 0.0;
-        Trackers[TrackerCount].lastResetDate = 0;
-        TrackerCount++;
-        return TrackerCount - 1;
-    }
-    
-    return -1;
-}
-
-//+------------------------------------------------------------------+
-//| Reset daily loss if new day                                      |
-//+------------------------------------------------------------------+
-void ResetDailyLossIfNeeded(string strategy)
-{
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex != -1)
-    {
-        MqlDateTime currentTime;
-        TimeCurrent(currentTime);
-        
-        MqlDateTime lastResetTime;
-        TimeToStruct(Trackers[trackerIndex].lastResetDate, lastResetTime);
-        
-        // Reset if it's a new day
-        if(currentTime.day != lastResetTime.day || 
-           currentTime.mon != lastResetTime.mon || 
-           currentTime.year != lastResetTime.year)
-        {
-            Trackers[trackerIndex].dailyLoss = 0.0;
-            Trackers[trackerIndex].lastResetDate = TimeCurrent();
-            Print("Daily loss reset for strategy: ", strategy);
-        }
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Check if position already exists                                 |
-//+------------------------------------------------------------------+
-bool HasOpenPosition(string symbol, string strategy)
-{
-    for(int i = PositionsTotal() - 1; i >= 0; i--)
-    {
-        ulong ticket = PositionGetTicket(i);
-        if(PositionGetString(POSITION_SYMBOL) == symbol)
-        {
-            // Check if position belongs to this strategy (by comment)
-            string comment = PositionGetString(POSITION_COMMENT);
-            if(comment == strategy)
-                return true;
-        }
-    }
-    
-    return false;
-}
-
-//+------------------------------------------------------------------+
-//| Get trade error description                                      |
-//+------------------------------------------------------------------+
-string GetTradeErrorDescription(int errorCode)
-{
-    switch(errorCode)
-    {
-        case 10004: return "Requote";
-        case 10006: return "Request rejected";
-        case 10007: return "Request canceled by trader";
-        case 10008: return "Order placed";
-        case 10009: return "Request completed";
-        case 10010: return "Request partially filled";
-        case 10011: return "Request processing error";
-        case 10012: return "Request canceled";
-        case 10013: return "Invalid request";
-        case 10014: return "Invalid volume";
-        case 10015: return "Invalid price";
-        case 10016: return "Invalid stops";
-        case 10017: return "Trade is disabled";
-        case 10018: return "Market is closed";
-        case 10019: return "Insufficient funds";
-        case 10020: return "Price changed";
-        case 10021: return "Too many requests";
-        case 10022: return "No changes";
-        case 10023: return "Autotrading disabled";
-        case 10024: return "Order locked";
-        case 10025: return "Long positions only allowed";
-        case 10026: return "Too many orders";
-        case 10027: return "Hedging prohibited";
-        case 10028: return "Prohibited by FIFO";
-        default:    return "Unknown error";
     }
 }
 
@@ -395,9 +392,9 @@ bool SimpleExecuteTrade(TradingSignal &signal, double lotSize)
     // For trading mode
     ENUM_ORDER_TYPE orderType = (signal.signal == "BUY") ? ORDER_TYPE_BUY : ORDER_TYPE_SELL;
     
-    // Simple fixed stop loss and take profit
-    double slPoints = 50.0;
-    double tpPoints = 100.0;
+    // Use reasonable stop loss and take profit
+    double slPoints = 50.0;   // 50 points stop loss
+    double tpPoints = 100.0;  // 100 points take profit
     
     return ExecuteTrade(signal.symbol, signal.strategy, orderType, lotSize, slPoints, tpPoints);
 }

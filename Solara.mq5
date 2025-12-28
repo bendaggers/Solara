@@ -113,30 +113,6 @@ int OnInit()
 }
 
 //+------------------------------------------------------------------+
-//| Load symbols from include file                                   |
-//+------------------------------------------------------------------+
-bool LoadSymbols()
-{
-    // Copy symbols from include file
-    SymbolCount = GetSymbolCount();
-    if(SymbolCount == 0)
-    {
-        Print("ERROR: No symbols defined in Symbols.mqh");
-        return false;
-    }
-    
-    ArrayResize(Symbols, SymbolCount);
-    for(int i = 0; i < SymbolCount; i++)
-    {
-        Symbols[i] = GetSymbol(i);
-    }
-    
-    return true;
-}
-
-// ... REST OF THE FILE REMAINS THE SAME (OnDeinit, OnTimer, etc.) ...
-
-//+------------------------------------------------------------------+
 //| Expert deinitialization function                                 |
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
@@ -245,6 +221,28 @@ bool CheckAndScanTimeframe(string symbol, ENUM_TIMEFRAMES timeframe, int timefra
 }
 
 //+------------------------------------------------------------------+
+//| Load symbols from include file                                   |
+//+------------------------------------------------------------------+
+bool LoadSymbols()
+{
+    // Copy symbols from include file
+    SymbolCount = GetSymbolCount();
+    if(SymbolCount == 0)
+    {
+        Print("ERROR: No symbols defined in SymbolList.mqh");
+        return false;
+    }
+    
+    ArrayResize(Symbols, SymbolCount);
+    for(int i = 0; i < SymbolCount; i++)
+    {
+        Symbols[i] = GetSymbol(i);
+    }
+    
+    return true;
+}
+
+//+------------------------------------------------------------------+
 //| Find array index of symbol                                       |
 //+------------------------------------------------------------------+
 int ArrayIndexOfSymbol(string symbol)
@@ -307,9 +305,6 @@ bool ValidateSettings()
 //+------------------------------------------------------------------+
 //| Print all settings                                               |
 //+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//| Print all settings                                               |
-//+------------------------------------------------------------------+
 void PrintSettings()
 {
     Print("=== Scanner Settings ===");
@@ -334,7 +329,7 @@ void PrintSettings()
 //+------------------------------------------------------------------+
 void UpdateChartComment()
 {
-    string comment = "Trading Scanner v1.0\n";
+    string comment = "Solara Scanner v1.0\n";
     comment += "=====================\n";
     comment += "Mode: " + (EnableTrading ? "TRADING" : "SCREENING") + "\n";
     comment += "Symbols: " + IntegerToString(SymbolCount) + "\n";

@@ -1,13 +1,12 @@
-// EMAStrategy.mqh - EMA Crossover Strategy for Multi-Symbol Scanner
+// EMAStrategy.mqh - Simplified EMA Crossover Strategy for Multi-Symbol Scanner
 //+------------------------------------------------------------------+
-//| Description: Implements EMA 20/50 crossover strategy with       |
-//|              precise entry/exit conditions                       |
+//| Description: Simple EMA 20/50 crossover strategy                 |
 //+------------------------------------------------------------------+
 #ifndef EMASTRATEGY_MQH
 #define EMASTRATEGY_MQH
 
 #include "TradeLogger.mqh"
-#include "ScannerCore.mqh"  // Now includes TimeframeToString
+#include "ScannerCore.mqh"
 
 //+------------------------------------------------------------------+
 //| Strategy settings structure                                      |
@@ -36,24 +35,16 @@ struct EMAValues {
     double currentSlow;      // EMA slow on current bar (bar 0)
     double prevFast;         // EMA fast on previous bar (bar 1)
     double prevSlow;         // EMA slow on previous bar (bar 1)
-    double prev2Fast;        // EMA fast on bar before previous (bar 2)
-    double prev2Slow;        // EMA slow on bar before previous (bar 2)
     double currentClose;     // Close price on current bar
     double currentOpen;      // Open price on current bar
-    double currentHigh;      // High price on current bar
-    double currentLow;       // Low price on current bar
     
     EMAValues() {
         currentFast = 0.0;
         currentSlow = 0.0;
         prevFast = 0.0;
         prevSlow = 0.0;
-        prev2Fast = 0.0;
-        prev2Slow = 0.0;
         currentClose = 0.0;
         currentOpen = 0.0;
-        currentHigh = 0.0;
-        currentLow = 0.0;
     }
 };
 
@@ -61,12 +52,12 @@ struct EMAValues {
 //| Check EMA crossover strategy for given symbol/timeframe          |
 //+------------------------------------------------------------------+
 TradingSignal CheckEMAStrategy(string symbol, ENUM_TIMEFRAMES timeframe, 
-                              EMAStrategySettings &settings)
+                              EMAStrategySettings &settings, bool hasOpenPosition = false)
 {
     TradingSignal signal;
     signal.symbol = symbol;
     signal.strategy = "EMA_Crossover";
-    signal.timeframe = TimeframeToString(timeframe);  // Now uses function from ScannerCore.mqh
+    signal.timeframe = TimeframeToString(timeframe);
     
     // Get EMA values for current and previous bars
     EMAValues ema = CalculateEMAValues(symbol, timeframe, settings.fastPeriod, settings.slowPeriod);
@@ -77,40 +68,65 @@ TradingSignal CheckEMAStrategy(string symbol, ENUM_TIMEFRAMES timeframe,
         return signal;
     }
     
-    // Check for BUY signal (EMA crossover)
-    if(CheckBuySignal(ema))
+    // Debug information
+    Print("=== Checking ", symbol, " ", TimeframeToString(timeframe), " ===");
+    Print("Has open position: ", hasOpenPosition ? "YES" : "NO");
+    Print("Enable trading: ", settings.enableTrading ? "YES" : "NO");
+    
+    // If we DON'T have an open position, check for BUY signal
+    if(!hasOpenPosition)
     {
-        signal.signal = "BUY";
-        signal.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
-        signal.ema20 = ema.currentFast;
-        signal.ema50 = ema.currentSlow;
-        signal.action = settings.enableTrading ? "TRADED" : "SCREENED";
-        
-        // Log the signal
-        Print("BUY SIGNAL: ", symbol, " ", signal.timeframe,
-              " Price: ", DoubleToString(signal.price, 5),
-              " EMA20: ", DoubleToString(ema.currentFast, 5),
-              " EMA50: ", DoubleToString(ema.currentSlow, 5));
-        
-        // Execute trade if enabled
-        if(settings.enableTrading)
+        if(CheckBuySignal(ema))
         {
-            SimpleExecuteTrade(signal, settings.lotSize);
+            signal.signal = "BUY";
+            signal.price = SymbolInfoDouble(symbol, SYMBOL_ASK);
+            signal.ema20 = ema.currentFast;
+            signal.ema50 = ema.currentSlow;
+            signal.action = settings.enableTrading ? "TRADED" : "SCREENED";
+            
+            // Log the signal
+            Print("BUY SIGNAL: ", symbol, " ", signal.timeframe,
+                  " Price: ", DoubleToString(signal.price, 5),
+                  " EMA20: ", DoubleToString(ema.currentFast, 5),
+                  " EMA50: ", DoubleToString(ema.currentSlow, 5));
+            
+            // Execute trade if enabled
+            if(settings.enableTrading)
+            {
+                SimpleExecuteTrade(signal, settings.lotSize);
+            }
+        }
+        else
+        {
+            Print("No BUY signal for ", symbol, " ", TimeframeToString(timeframe));
         }
     }
-    // Check for SELL signal (exit condition)
-    else if(CheckSellSignal(ema))
+    // If we DO have an open position, check for SELL signal
+    else
     {
-        signal.signal = "SELL";
-        signal.price = SymbolInfoDouble(symbol, SYMBOL_BID);
-        signal.ema20 = ema.currentFast;
-        signal.ema50 = ema.currentSlow;
-        signal.action = "EXIT_SIGNAL";
-        
-        // Log exit signal
-        Print("EXIT SIGNAL: ", symbol, " ", signal.timeframe,
-              " Price below EMA20: ", DoubleToString(signal.price, 5),
-              " EMA20: ", DoubleToString(ema.currentFast, 5));
+        if(CheckSellSignal(ema))
+        {
+            signal.signal = "SELL";
+            signal.price = SymbolInfoDouble(symbol, SYMBOL_BID);
+            signal.ema20 = ema.currentFast;
+            signal.ema50 = ema.currentSlow;
+            signal.action = "EXIT_SIGNAL";
+            
+            // Log exit signal
+            Print("EXIT SIGNAL: ", symbol, " ", signal.timeframe,
+                  " Price below EMA20: ", DoubleToString(signal.price, 5),
+                  " EMA20: ", DoubleToString(ema.currentFast, 5));
+            
+            // Execute exit trade if enabled
+            if(settings.enableTrading)
+            {
+                SimpleExecuteTrade(signal, settings.lotSize);
+            }
+        }
+        else
+        {
+            Print("No exit signal for existing position on ", symbol);
+        }
     }
     
     return signal;
@@ -134,12 +150,12 @@ EMAValues CalculateEMAValues(string symbol, ENUM_TIMEFRAMES timeframe,
         return ema;
     }
     
-    // Copy EMA values for bars 0, 1, 2
-    double fastValues[3];
-    double slowValues[3];
+    // Copy EMA values for bars 0 and 1
+    double fastValues[2];
+    double slowValues[2];
     
-    // Copy fast EMA values (current bar = 0, previous = 1, previous-1 = 2)
-    if(CopyBuffer(handleFast, 0, 0, 3, fastValues) < 3)
+    // Copy fast EMA values (current bar = 0, previous = 1)
+    if(CopyBuffer(handleFast, 0, 0, 2, fastValues) < 2)
     {
         Print("ERROR: Cannot copy fast EMA values for ", symbol);
         IndicatorRelease(handleFast);
@@ -148,7 +164,7 @@ EMAValues CalculateEMAValues(string symbol, ENUM_TIMEFRAMES timeframe,
     }
     
     // Copy slow EMA values
-    if(CopyBuffer(handleSlow, 0, 0, 3, slowValues) < 3)
+    if(CopyBuffer(handleSlow, 0, 0, 2, slowValues) < 2)
     {
         Print("ERROR: Cannot copy slow EMA values for ", symbol);
         IndicatorRelease(handleFast);
@@ -169,16 +185,12 @@ EMAValues CalculateEMAValues(string symbol, ENUM_TIMEFRAMES timeframe,
     // Assign values
     ema.currentFast = fastValues[0];   // Bar 0 (current)
     ema.prevFast = fastValues[1];      // Bar 1 (previous)
-    ema.prev2Fast = fastValues[2];     // Bar 2 (previous-1)
     
     ema.currentSlow = slowValues[0];   // Bar 0 (current)
     ema.prevSlow = slowValues[1];      // Bar 1 (previous)
-    ema.prev2Slow = slowValues[2];     // Bar 2 (previous-1)
     
     ema.currentClose = rates[0].close;
     ema.currentOpen = rates[0].open;
-    ema.currentHigh = rates[0].high;
-    ema.currentLow = rates[0].low;
     
     // Release indicator handles
     IndicatorRelease(handleFast);
@@ -192,23 +204,37 @@ EMAValues CalculateEMAValues(string symbol, ENUM_TIMEFRAMES timeframe,
 //+------------------------------------------------------------------+
 bool CheckBuySignal(EMAValues &ema)
 {
-    // Condition 1: Current price above both EMAs
-    if(ema.currentClose <= ema.currentFast || ema.currentClose <= ema.currentSlow)
+    // Condition 1: Previous candle has crossover of EMA20 above EMA50
+    // Previous bar: EMA20 > EMA50 (crossover happened)
+    if(!(ema.prevFast > ema.prevSlow))
+    {
+        Print("FAIL: No crossover on previous bar. Prev EMA20=", ema.prevFast, 
+              " Prev EMA50=", ema.prevSlow);
         return false;
+    }
     
-    // Condition 2: EMA crossover happened on previous bar
-    // Previous bar: fast EMA > slow EMA (crossover just happened)
-    if(ema.prevFast <= ema.prevSlow)
+    // Condition 2: Current candle close price OR body is above EMA20
+    // Check if close price is above EMA20
+    bool closeAboveEMA20 = (ema.currentClose > ema.currentFast);
+    
+    // Check if candle body (midpoint between open and close) is above EMA20
+    double bodyMidpoint = (ema.currentOpen + ema.currentClose) / 2.0;
+    bool bodyAboveEMA20 = (bodyMidpoint > ema.currentFast);
+    
+    if(!(closeAboveEMA20 || bodyAboveEMA20))
+    {
+        Print("FAIL: Neither close nor body above EMA20. Close=", ema.currentClose,
+              " BodyMid=", bodyMidpoint, " EMA20=", ema.currentFast);
         return false;
+    }
     
-    // Condition 3: Before previous bar: fast EMA <= slow EMA (before crossover)
-    if(ema.prev2Fast > ema.prev2Slow)
-        return false;
+    // SUCCESS - All conditions met
+    Print("SUCCESS: BUY SIGNAL!");
+    Print("  Previous: EMA20=", ema.prevFast, " > EMA50=", ema.prevSlow, " (CROSSOVER)");
+    Print("  Current: Close=", ema.currentClose, 
+          " EMA20=", ema.currentFast, " EMA50=", ema.currentSlow);
+    Print("  Body Midpoint: ", bodyMidpoint);
     
-    // Condition 4: Crossover is fresh (happened exactly on previous bar)
-    // This is already ensured by conditions 2 and 3
-    
-    // All conditions met
     return true;
 }
 
@@ -217,34 +243,15 @@ bool CheckBuySignal(EMAValues &ema)
 //+------------------------------------------------------------------+
 bool CheckSellSignal(EMAValues &ema)
 {
-    // Exit Condition: Price below EMA20 AND candle body not touching EMA20
-    
-    // Check if close price is below EMA20
-    if(ema.currentClose >= ema.currentFast)
-        return false;
-    
-    // Calculate candle body midpoint
-    double bodyMidpoint = (ema.currentOpen + ema.currentClose) / 2.0;
-    
-    // Check if candle body touches EMA20
-    // Body touches EMA20 if: EMA20 is between open and close prices
-    double minPrice = MathMin(ema.currentOpen, ema.currentClose);
-    double maxPrice = MathMax(ema.currentOpen, ema.currentClose);
-    
-    if(ema.currentFast >= minPrice && ema.currentFast <= maxPrice)
+    // Simple exit condition: Price closes below EMA20
+    if(ema.currentClose < ema.currentFast)
     {
-        // Candle body touches EMA20 line - don't exit
-        return false;
+        Print("SELL SIGNAL: Close price ", ema.currentClose, 
+              " below EMA20 ", ema.currentFast);
+        return true;
     }
     
-    // Additional filter: Check if price is significantly below EMA20
-    // (at least 0.1% below to avoid whipsaws)
-    double priceBelowPercent = ((ema.currentFast - ema.currentClose) / ema.currentFast) * 100;
-    if(priceBelowPercent < 0.1)
-        return false;
-    
-    // All exit conditions met
-    return true;
+    return false;
 }
 
 //+------------------------------------------------------------------+
@@ -276,9 +283,7 @@ string GetStrategyName()
 //+------------------------------------------------------------------+
 string GetStrategyDescription()
 {
-    return "EMA 20/50 Crossover Strategy - " +
-           "Entry: Price above both EMAs with crossover on previous bar. " +
-           "Exit: Price below EMA20 with candle body not touching EMA20.";
+    return "Simple EMA 20/50 Crossover Strategy";
 }
 
 //+------------------------------------------------------------------+
