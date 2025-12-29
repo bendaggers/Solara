@@ -1,13 +1,21 @@
-// TradeLogger.mqh - CSV logging and trade execution for Multi-Symbol Scanner
+// TradeLogger.mqh - Enhanced for multi-strategy support
 //+------------------------------------------------------------------+
-//| Description: Handles CSV logging of trading signals and optional |
-//|              trade execution with risk management                |
+//| Description: Handles CSV logging and trade execution with        |
+//|              enhanced multi-strategy support                     |
 //+------------------------------------------------------------------+
 #ifndef TRADELOGGER_MQH
 #define TRADELOGGER_MQH
 
+// Include StrategyBase to get BaseSignal definition
+#include "StrategyBase.mqh"
+
 //+------------------------------------------------------------------+
-//| Signal structure for logging                                     |
+//| Forward declarations                                             |
+//+------------------------------------------------------------------+
+struct TradingSignal;  // Forward declaration
+
+//+------------------------------------------------------------------+
+//| TradingSignal structure (must be defined BEFORE functions that use it)
 //+------------------------------------------------------------------+
 struct TradingSignal {
     datetime timestamp;
@@ -34,19 +42,7 @@ struct TradingSignal {
 };
 
 //+------------------------------------------------------------------+
-//| Simple daily loss tracker                                        |
-//+------------------------------------------------------------------+
-struct DailyTracker {
-    string   strategy;
-    double   dailyLoss;
-    datetime lastResetDate;
-};
-
-DailyTracker Trackers[10];  // Simple array for up to 10 strategies
-int TrackerCount = 0;
-
-//+------------------------------------------------------------------+
-//| Get trade error description                                      |
+//| Get trade error description (complete implementation)            |
 //+------------------------------------------------------------------+
 string GetTradeErrorDescription(int errorCode)
 {
@@ -102,147 +98,61 @@ string GetTradeErrorDescription(int errorCode)
 }
 
 //+------------------------------------------------------------------+
-//| Find tracker index for strategy                                  |
+//| Enhanced signal structure with more fields                       |
 //+------------------------------------------------------------------+
-int FindTrackerIndex(string strategy)
+struct EnhancedSignal
 {
-    for(int i = 0; i < TrackerCount; i++)
-    {
-        if(Trackers[i].strategy == strategy)
-            return i;
-    }
+    datetime timestamp;
+    string   symbol;
+    string   strategyName;
+    string   signal;        // "BUY", "SELL", "EXIT"
+    double   price;
+    double   value1;        // Strategy-specific value 1
+    double   value2;        // Strategy-specific value 2
+    string   timeframe;
+    string   action;        // "SCREENED", "TRADED", "EXIT_SIGNAL"
+    string   comment;       // Additional info
+    double   slPrice;       // Stop loss price
+    double   tpPrice;       // Take profit price
+    double   lotSize;       // Trade lot size
+    int      magicNumber;   // Strategy magic number
     
-    // Create new tracker if we have space
-    if(TrackerCount < 10)
+    EnhancedSignal()
     {
-        Trackers[TrackerCount].strategy = strategy;
-        Trackers[TrackerCount].dailyLoss = 0.0;
-        Trackers[TrackerCount].lastResetDate = 0;
-        TrackerCount++;
-        return TrackerCount - 1;
+        timestamp = TimeCurrent();
+        symbol = "";
+        strategyName = "";
+        signal = "";
+        price = 0.0;
+        value1 = 0.0;
+        value2 = 0.0;
+        timeframe = "";
+        action = "SCREENED";
+        comment = "";
+        slPrice = 0.0;
+        tpPrice = 0.0;
+        lotSize = 0.0;
+        magicNumber = 0;
     }
-    
-    return -1;
-}
+};
 
 //+------------------------------------------------------------------+
-//| Reset daily loss if new day                                      |
+//| Log enhanced signal to CSV file                                  |
 //+------------------------------------------------------------------+
-void ResetDailyLossIfNeeded(string strategy)
+void LogEnhancedSignalToCSV(string csvFile, EnhancedSignal &signal, bool append = true)
 {
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex != -1)
-    {
-        MqlDateTime currentTime;
-        TimeCurrent(currentTime);
-        
-        MqlDateTime lastResetTime;
-        TimeToStruct(Trackers[trackerIndex].lastResetDate, lastResetTime);
-        
-        // Reset if it's a new day
-        if(currentTime.day != lastResetTime.day || 
-           currentTime.mon != lastResetTime.mon || 
-           currentTime.year != lastResetTime.year)
-        {
-            Trackers[trackerIndex].dailyLoss = 0.0;
-            Trackers[trackerIndex].lastResetDate = TimeCurrent();
-            Print("Daily loss reset for strategy: ", strategy);
-        }
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Check daily loss limit for strategy                              |
-//+------------------------------------------------------------------+
-bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
-{
-    // Reset daily loss at midnight
-    ResetDailyLossIfNeeded(strategy);
-    
-    // Find tracker index for this strategy
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex == -1)
-        return true; // No tracker yet, allow trading
-    
-    // Check if daily loss exceeds limit
-    if(Trackers[trackerIndex].dailyLoss <= -dailyLossLimit)
-    {
-        Print("DAILY LOSS LIMIT REACHED: Strategy ", strategy, 
-              " Loss: $", DoubleToString(MathAbs(Trackers[trackerIndex].dailyLoss), 2),
-              " Limit: $", DoubleToString(dailyLossLimit, 2));
-        return false;
-    }
-    
-    return true;
-}
-
-//+------------------------------------------------------------------+
-//| Update daily loss tracker                                        |
-//+------------------------------------------------------------------+
-void UpdateDailyLossTracker(string strategy, double pnl)
-{
-    int trackerIndex = FindTrackerIndex(strategy);
-    
-    if(trackerIndex != -1)
-    {
-        Trackers[trackerIndex].dailyLoss += pnl;
-        
-        // Log significant updates
-        if(MathAbs(pnl) > 10.0) // Log trades with > $10 P/L
-        {
-            Print("Daily loss updated: Strategy ", strategy, 
-                  " P/L: $", DoubleToString(pnl, 2),
-                  " Total: $", DoubleToString(Trackers[trackerIndex].dailyLoss, 2));
-        }
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Check if position already exists                                 |
-//+------------------------------------------------------------------+
-bool HasOpenPosition(string symbol, string strategy)
-{
-    for(int i = PositionsTotal() - 1; i >= 0; i--)
-    {
-        ulong ticket = PositionGetTicket(i);
-        if(PositionGetString(POSITION_SYMBOL) == symbol)
-        {
-            // Check if position belongs to this strategy (by comment)
-            string comment = PositionGetString(POSITION_COMMENT);
-            if(comment == strategy)
-                return true;
-        }
-    }
-    
-    return false;
-}
-
-//+------------------------------------------------------------------+
-//| Log signal to CSV file                                           |
-//+------------------------------------------------------------------+
-void LogSignalToCSV(string csvFile, TradingSignal &signal, bool append = true)
-{
-    // Build full file path
     string filepath = "Files\\" + csvFile;
-    
-    // Check if file exists to write header
     bool fileExists = FileIsExist(filepath);
     int filehandle = INVALID_HANDLE;
     
     if(append && fileExists)
     {
-        // Open existing file for appending
         filehandle = FileOpen(filepath, FILE_READ|FILE_WRITE|FILE_CSV|FILE_ANSI, ',');
         if(filehandle != INVALID_HANDLE)
-        {
             FileSeek(filehandle, 0, SEEK_END);
-        }
     }
     else
     {
-        // Create new file or overwrite
         filehandle = FileOpen(filepath, FILE_WRITE|FILE_CSV|FILE_ANSI, ',');
     }
     
@@ -256,66 +166,59 @@ void LogSignalToCSV(string csvFile, TradingSignal &signal, bool append = true)
     if(!fileExists || !append)
     {
         FileWrite(filehandle, 
-            "Timestamp",
-            "Symbol", 
-            "Strategy", 
-            "Signal", 
-            "Price", 
-            "EMA20", 
-            "EMA50", 
-            "Timeframe",
-            "Action"
+            "Timestamp", "Symbol", "Strategy", "Signal", "Price",
+            "Value1", "Value2", "Timeframe", "Action", "Comment",
+            "SL_Price", "TP_Price", "LotSize", "MagicNumber"
         );
     }
     
-    // Format timestamp
-    string timestampStr = TimeToString(signal.timestamp, TIME_DATE|TIME_SECONDS);
-    
     // Write signal data
     FileWrite(filehandle,
-        timestampStr,
+        TimeToString(signal.timestamp, TIME_DATE|TIME_SECONDS),
         signal.symbol,
-        signal.strategy,
+        signal.strategyName,
         signal.signal,
         DoubleToString(signal.price, 5),
-        DoubleToString(signal.ema20, 5),
-        DoubleToString(signal.ema50, 5),
+        DoubleToString(signal.value1, 5),
+        DoubleToString(signal.value2, 5),
         signal.timeframe,
-        signal.action
+        signal.action,
+        signal.comment,
+        DoubleToString(signal.slPrice, 5),
+        DoubleToString(signal.tpPrice, 5),
+        DoubleToString(signal.lotSize, 2),
+        IntegerToString(signal.magicNumber)
     );
     
     FileClose(filehandle);
     
-    Print("Signal logged: ", signal.symbol, " ", signal.strategy, " ", 
+    Print("Signal logged to CSV: ", signal.symbol, " ", signal.strategyName, " ", 
           signal.signal, " @ ", DoubleToString(signal.price, 5), 
           " (", signal.timeframe, ")");
 }
 
 //+------------------------------------------------------------------+
-//| Format CSV row (alternative method)                              |
+//| Log signal (backward compatibility)                              |
 //+------------------------------------------------------------------+
-string FormatCSVRow(TradingSignal &signal)
+void LogSignalToCSV(string csvFile, BaseSignal &signal, bool append = true)
 {
-    string timestampStr = TimeToString(signal.timestamp, TIME_DATE|TIME_SECONDS);
+    EnhancedSignal enhancedSignal;
+    enhancedSignal.timestamp = signal.timestamp;
+    enhancedSignal.symbol = signal.symbol;
+    enhancedSignal.strategyName = signal.strategyName;
+    enhancedSignal.signal = signal.signal;
+    enhancedSignal.price = signal.price;
+    enhancedSignal.value1 = signal.value1;
+    enhancedSignal.value2 = signal.value2;
+    enhancedSignal.timeframe = signal.timeframe;
+    enhancedSignal.action = signal.action;
+    enhancedSignal.comment = signal.comment;
     
-    return StringFormat("%s,%s,%s,%s,%.5f,%.5f,%.5f,%s,%s",
-        timestampStr,
-        signal.symbol,
-        signal.strategy,
-        signal.signal,
-        signal.price,
-        signal.ema20,
-        signal.ema50,
-        signal.timeframe,
-        signal.action
-    );
+    LogEnhancedSignalToCSV(csvFile, enhancedSignal, append);
 }
 
 //+------------------------------------------------------------------+
-//| Execute trade if conditions met                                  |
-//+------------------------------------------------------------------+
-//+------------------------------------------------------------------+
-//| SIMPLE Execute trade - No checks, just place order!             |
+//| SIMPLE Execute trade - No checks, just place order!              |
 //+------------------------------------------------------------------+
 bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type, 
                  double lotSize, double slPoints, double tpPoints)
@@ -385,7 +288,20 @@ bool SimpleExecuteTrade(TradingSignal &signal, double lotSize)
     // For screening mode, just log
     if(signal.action == "SCREENED")
     {
-        LogSignalToCSV("ScannerSignals.csv", signal, true);
+        // Create BaseSignal from TradingSignal
+        BaseSignal baseSignal;
+        baseSignal.timestamp = signal.timestamp;
+        baseSignal.symbol = signal.symbol;
+        baseSignal.strategyName = signal.strategy;
+        baseSignal.signal = signal.signal;
+        baseSignal.price = signal.price;
+        baseSignal.value1 = signal.ema20;
+        baseSignal.value2 = signal.ema50;
+        baseSignal.timeframe = signal.timeframe;
+        baseSignal.action = signal.action;
+        baseSignal.comment = "";
+        
+        LogSignalToCSV("ScannerSignals.csv", baseSignal, true);
         return true;
     }
     

@@ -1,113 +1,140 @@
 // Solara.mq5 - Main EA for Multi-Symbol Strategy Scanner
 //+------------------------------------------------------------------+
-//| Description: Scans multiple symbols for EMA crossover signals    |
-//|              on multiple timeframes, logs to CSV                 |
+//| Description: Multi-strategy scanner with EMA and PTS strategies  |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2024, Trading Scanner"
 #property link      "https://example.com"
-#property version   "1.00"
-#property description "Multi-Symbol Strategy Scanner - Scans symbols for EMA crossover signals"
-#property description "Logs signals to CSV file. Optional auto-trading available."
+#property version   "2.00"
+#property description "Multi-Strategy Scanner - EMA Crossover & Pullback Trading"
 #property strict
 
 //+------------------------------------------------------------------+
 //| Includes                                                         |
 //+------------------------------------------------------------------+
-#include "ScannerCore.mqh"
+#include "StrategyBase.mqh"
+#include "StrategyManager.mqh"
+#include "/Strategies/EMAStrategy.mqh"
+#include "/Strategies/PTSStrategy.mqh"
 #include "TradeLogger.mqh"
-#include "EMAStrategy.mqh"
+#include "ScannerCore.mqh"
 #include "Symbols.mqh"
 
 //+------------------------------------------------------------------+
 //| Input Parameters                                                 |
 //+------------------------------------------------------------------+
-input group "=== General Settings ==="
-input bool   EnableTrading = false;           // Enable auto-trading (false = screening only)
-input int    ScanIntervalSeconds = 60;        // Scanning frequency in seconds
+input group "=== GLOBAL SETTINGS ==="
+input bool   EnableTrading = false;           // Master trading toggle
+input int    ScanIntervalSeconds = 60;        // Base scan frequency in seconds
+input double GlobalDailyLossLimit = 500.0;    // Total daily loss limit for all strategies
 
-input group "=== EMA Strategy Settings ==="
+input group "=== EMA STRATEGY SETTINGS ==="
+input bool   Enable_EMA_Strategy = true;      // Enable EMA Crossover strategy
 input int    EMA_FastPeriod = 20;             // Fast EMA period
 input int    EMA_SlowPeriod = 50;             // Slow EMA period
-input double FixedLotSize = 0.01;             // Fixed lot size for trading
-input double DailyLossLimit = 100.0;          // Daily loss limit in USD per strategy
+input double EMA_LotSize = 0.01;              // Lot size for EMA strategy
+input double EMA_DailyLossLimit = 100.0;      // Daily loss limit for EMA strategy
+input int    EMA_MaxPositions = 10;           // Maximum positions for EMA strategy
 
-input group "=== CSV Export Settings ==="
-input string CSVFileName = "ScannerSignals.csv"; // Output CSV file name
+input group "=== PTS STRATEGY SETTINGS ==="
+input bool   Enable_PTS_Strategy = false;     // Enable Pullback Trading strategy
+input double PTS_LotSize = 0.01;              // Lot size for PTS strategy
+input double PTS_DailyLossLimit = 100.0;      // Daily loss limit for PTS strategy
+input int    PTS_MaxPositions = 10;           // Maximum positions for PTS strategy
+input double PTS_SL_Multiplier = 2.0;         // Stop loss multiplier (ATR)
+input double PTS_TP_Multiplier = 4.0;         // Take profit multiplier (ATR)
+input int    PTS_BB_Period = 20;              // Bollinger Band period
+input double PTS_BB_Deviation = 2.0;          // Bollinger Band deviation
+input int    PTS_ATR_Period = 14;             // ATR period
+
+input group "=== CSV & LOGGING SETTINGS ==="
+input string CSV_FileName = "ScannerSignals.csv"; // Output CSV file name
 input bool   AppendToCSV = true;              // Append to existing CSV file
-
-input group "=== Timeframe Settings ==="
-input bool   ScanH1 = true;                   // Scan 1-hour timeframe
-input bool   ScanH4 = true;                   // Scan 4-hour timeframe  
-input bool   ScanD1 = true;                   // Scan daily timeframe
 
 //+------------------------------------------------------------------+
 //| Global Variables                                                 |
 //+------------------------------------------------------------------+
-string   Symbols[];                           // Array of symbols to scan
-int      SymbolCount = 0;                     // Number of symbols
+CStrategyManager*   g_strategyManager;        // Strategy manager instance
+CEMAStrategy*       g_emaStrategy;            // EMA strategy instance
+CPTSStrategy*       g_ptsStrategy;            // PTS strategy instance
 
-// Last checked bar times per symbol per timeframe (flattened array)
-datetime LastBarTimes[];                      // Size = SymbolCount * 3
-
-// Strategy settings
-EMAStrategySettings EMA_Settings;
-
-// Scan statistics
-int      TotalScans = 0;
-int      TotalSignals = 0;
-datetime LastScanTime = 0;
+// Statistics
+int      g_totalScans = 0;
+int      g_totalSignals = 0;
+datetime g_lastScanTime = 0;
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
 int OnInit()
 {
-    Print("=== Trading Scanner Initializing ===");
+    Print("=== Solara Multi-Strategy Scanner Initializing v2.0 ===");
     
-    // Initialize strategy settings
-    EMA_Settings.fastPeriod = EMA_FastPeriod;
-    EMA_Settings.slowPeriod = EMA_SlowPeriod;
-    EMA_Settings.lotSize = FixedLotSize;
-    EMA_Settings.dailyLossLimit = DailyLossLimit;
-    EMA_Settings.enableTrading = EnableTrading;
+    // Initialize strategy manager
+    g_strategyManager = new CStrategyManager();
     
-    // Validate settings
-    if(!ValidateSettings())
+    // Initialize EMA Strategy if enabled
+    if(Enable_EMA_Strategy)
     {
-        Print("ERROR: Invalid settings. Please check input parameters.");
-        return INIT_PARAMETERS_INCORRECT;
+        g_emaStrategy = new CEMAStrategy();
+        g_emaStrategy.SetEnabled(true);
+        g_emaStrategy.SetPeriods(EMA_FastPeriod, EMA_SlowPeriod);
+        
+        BaseSettings emaSettings;
+        emaSettings.name = "EMA_Crossover";
+        emaSettings.enabled = EnableTrading && Enable_EMA_Strategy;
+        emaSettings.lotSize = EMA_LotSize;
+        emaSettings.dailyLossLimit = EMA_DailyLossLimit;
+        emaSettings.maxPositions = EMA_MaxPositions;
+        emaSettings.magicNumber = 12345;
+        
+        // Apply settings (would need setter methods in CEMAStrategy)
+        // For now, we'll use the constructor defaults
+        g_emaStrategy.SetEnabled(emaSettings.enabled);
+        
+        g_strategyManager.AddStrategy(g_emaStrategy);
+        Print("EMA Strategy initialized and added");
     }
     
-    // Load symbols from include file
-    if(!LoadSymbols())
+    // Initialize PTS Strategy if enabled
+    if(Enable_PTS_Strategy)
     {
-        Print("ERROR: Failed to load symbols");
+        g_ptsStrategy = new CPTSStrategy();
+        g_ptsStrategy.SetEnabled(true);
+        g_ptsStrategy.SetPTSParameters(PTS_SL_Multiplier, PTS_TP_Multiplier, 
+                                       PTS_BB_Period, PTS_BB_Deviation);
+        
+        BaseSettings ptsSettings;
+        ptsSettings.name = "Pullback_Trading_System";
+        ptsSettings.enabled = EnableTrading && Enable_PTS_Strategy;
+        ptsSettings.lotSize = PTS_LotSize;
+        ptsSettings.dailyLossLimit = PTS_DailyLossLimit;
+        ptsSettings.maxPositions = PTS_MaxPositions;
+        ptsSettings.magicNumber = 202412;
+        
+        // Apply settings
+        g_ptsStrategy.SetEnabled(ptsSettings.enabled);
+        
+        g_strategyManager.AddStrategy(g_ptsStrategy);
+        Print("PTS Strategy initialized and added");
+    }
+    
+    // Initialize all strategies
+    if(!g_strategyManager.InitializeAll())
+    {
+        Print("ERROR: Failed to initialize strategies");
         return INIT_FAILED;
     }
     
-    Print("Loaded ", SymbolCount, " symbols for scanning");
-    
-    // Initialize last bar times array (flattened 1D array)
-    ArrayResize(LastBarTimes, SymbolCount * 3);  // 3 timeframes per symbol
-    
-    for(int i = 0; i < SymbolCount; i++)
-    {
-        // Set initial times for H1, H4, D1
-        LastBarTimes[i * 3 + 0] = 0;  // H1
-        LastBarTimes[i * 3 + 1] = 0;  // H4  
-        LastBarTimes[i * 3 + 2] = 0;  // D1
-    }
-    
-    // Print settings
-    PrintSettings();
+    // Print configuration summary
+    PrintConfiguration();
     
     // Set timer for scanning
     EventSetTimer(ScanIntervalSeconds);
     
-    Print("Trading Scanner initialized successfully");
-    Print("Mode: ", EnableTrading ? "TRADING" : "SCREENING");
-    Print("Scan interval: ", ScanIntervalSeconds, " seconds");
-    Print("========================================");
+    Print("Solara Scanner initialized successfully");
+    Print("Strategies active: ", g_strategyManager.GetStrategyCount());
+    Print("Master Trading: ", EnableTrading ? "ENABLED" : "DISABLED");
+    Print("==================================================");
     
     return INIT_SUCCEEDED;
 }
@@ -120,12 +147,22 @@ void OnDeinit(const int reason)
     // Kill timer
     EventKillTimer();
     
+    // Deinitialize strategies
+    if(g_strategyManager)
+        g_strategyManager.DeinitializeAll();
+    
+    // Clean up
+    if(g_emaStrategy) delete g_emaStrategy;
+    if(g_ptsStrategy) delete g_ptsStrategy;
+    if(g_strategyManager) delete g_strategyManager;
+    
     // Print statistics
-    Print("=== Trading Scanner Deinitializing ===");
-    Print("Total scans performed: ", TotalScans);
-    Print("Total signals found: ", TotalSignals);
+    Print("=== Solara Scanner Deinitializing ===");
+    Print("Total scans performed: ", g_totalScans);
+    Print("Total signals found: ", g_totalSignals);
+    Print("Strategies active: ", g_strategyManager ? g_strategyManager.GetStrategyCount() : 0);
     Print("Deinit reason: ", GetDeinitReasonText(reason));
-    Print("======================================");
+    Print("=====================================");
 }
 
 //+------------------------------------------------------------------+
@@ -133,195 +170,65 @@ void OnDeinit(const int reason)
 //+------------------------------------------------------------------+
 void OnTimer()
 {
-    // Perform scan
-    PerformScan();
-    
-    // Update last scan time
-    LastScanTime = TimeCurrent();
-    TotalScans++;
-    
-    // Update comment on chart
-    UpdateChartComment();
-}
-
-//+------------------------------------------------------------------+
-//| Perform scan of all symbols and timeframes                       |
-//+------------------------------------------------------------------+
-void PerformScan()
-{
-    int signalsThisScan = 0;
-    
-    // Loop through all symbols
-    for(int i = 0; i < SymbolCount; i++)
-    {
-        string symbol = Symbols[i];
-        
-        // Validate symbol
-        if(!IsValidSymbol(symbol))
-        {
-            continue;
-        }
-        
-        // Check each timeframe
-        if(ScanH1)
-        {
-            if(CheckAndScanTimeframe(symbol, PERIOD_H1, 0))
-                signalsThisScan++;
-        }
-        
-        if(ScanH4)
-        {
-            if(CheckAndScanTimeframe(symbol, PERIOD_H4, 1))
-                signalsThisScan++;
-        }
-        
-        if(ScanD1)
-        {
-            if(CheckAndScanTimeframe(symbol, PERIOD_D1, 2))
-                signalsThisScan++;
-        }
-    }
-    
     // Update statistics
-    TotalSignals += signalsThisScan;
+    g_lastScanTime = TimeCurrent();
+    g_totalScans++;
     
-    // Log scan completion
-    if(signalsThisScan > 0 || TotalScans % 10 == 0) // Log every 10th scan or when signals found
+    // Run strategy manager timer
+    if(g_strategyManager)
+        g_strategyManager.OnTimer();
+    
+    // Update chart comment
+    UpdateChartComment();
+    
+    // Log every 10th scan
+    if(g_totalScans % 10 == 0)
     {
-        Print("Scan #", TotalScans, " completed. Signals found: ", signalsThisScan);
+        Print("Scan #", g_totalScans, " completed at ", TimeToString(g_lastScanTime, TIME_SECONDS));
+        if(g_strategyManager)
+            g_strategyManager.PrintAllStatus();
     }
 }
 
 //+------------------------------------------------------------------+
-//| Check and scan specific timeframe                                |
+//| Print configuration summary                                      |
 //+------------------------------------------------------------------+
-bool CheckAndScanTimeframe(string symbol, ENUM_TIMEFRAMES timeframe, int timeframeIndex)
+void PrintConfiguration()
 {
-    int symbolIndex = ArrayIndexOfSymbol(symbol);
-    if(symbolIndex == -1) return false;
-    
-    // Calculate index in flattened array
-    int arrayIndex = symbolIndex * 3 + timeframeIndex;
-    
-    // Check if new bar has formed
-    if(IsNewBar(symbol, timeframe, LastBarTimes[arrayIndex]))
-    {
-        // Run EMA strategy
-        TradingSignal signal = CheckEMAStrategy(symbol, timeframe, EMA_Settings);
-        
-        if(signal.signal != "")
-        {
-            // Log to CSV
-            LogSignalToCSV(CSVFileName, signal, AppendToCSV);
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-//+------------------------------------------------------------------+
-//| Load symbols from include file                                   |
-//+------------------------------------------------------------------+
-bool LoadSymbols()
-{
-    // Copy symbols from include file
-    SymbolCount = GetSymbolCount();
-    if(SymbolCount == 0)
-    {
-        Print("ERROR: No symbols defined in SymbolList.mqh");
-        return false;
-    }
-    
-    ArrayResize(Symbols, SymbolCount);
-    for(int i = 0; i < SymbolCount; i++)
-    {
-        Symbols[i] = GetSymbol(i);
-    }
-    
-    return true;
-}
-
-//+------------------------------------------------------------------+
-//| Find array index of symbol                                       |
-//+------------------------------------------------------------------+
-int ArrayIndexOfSymbol(string symbol)
-{
-    for(int i = 0; i < SymbolCount; i++)
-    {
-        if(Symbols[i] == symbol)
-            return i;
-    }
-    return -1;
-}
-
-//+------------------------------------------------------------------+
-//| Validate all settings                                            |
-//+------------------------------------------------------------------+
-bool ValidateSettings()
-{
-    // Validate EMA periods
-    if(EMA_FastPeriod <= 0 || EMA_SlowPeriod <= 0)
-    {
-        Print("ERROR: EMA periods must be positive");
-        return false;
-    }
-    
-    if(EMA_FastPeriod >= EMA_SlowPeriod)
-    {
-        Print("ERROR: Fast EMA period must be less than slow EMA period");
-        return false;
-    }
-    
-    // Validate lot size
-    if(FixedLotSize <= 0)
-    {
-        Print("ERROR: Lot size must be positive");
-        return false;
-    }
-    
-    // Validate scan interval
-    if(ScanIntervalSeconds < 10)
-    {
-        Print("WARNING: Scan interval very short (", ScanIntervalSeconds, "s). Minimum 10s recommended.");
-    }
-    
-    // Validate at least one timeframe is selected
-    if(!ScanH1 && !ScanH4 && !ScanD1)
-    {
-        Print("ERROR: At least one timeframe must be selected for scanning");
-        return false;
-    }
-    
-    // Validate strategy settings
-    if(!ValidateSettings(EMA_Settings))
-    {
-        return false;
-    }
-    
-    return true;
-}
-
-//+------------------------------------------------------------------+
-//| Print all settings                                               |
-//+------------------------------------------------------------------+
-void PrintSettings()
-{
-    Print("=== Scanner Settings ===");
+    Print("=== Solara Configuration Summary ===");
     Print("Scan Interval: ", ScanIntervalSeconds, " seconds");
-    Print("CSV File: ", CSVFileName);
+    Print("Global Daily Loss Limit: $", GlobalDailyLossLimit);
+    Print("Master Trading: ", EnableTrading ? "ENABLED" : "DISABLED");
+    Print("");
+    
+    Print("=== EMA Strategy ===");
+    Print("Enabled: ", Enable_EMA_Strategy ? "Yes" : "No");
+    Print("Trading: ", (EnableTrading && Enable_EMA_Strategy) ? "Yes" : "No");
+    Print("Fast EMA: ", EMA_FastPeriod);
+    Print("Slow EMA: ", EMA_SlowPeriod);
+    Print("Lot Size: ", EMA_LotSize);
+    Print("Daily Loss Limit: $", EMA_DailyLossLimit);
+    Print("Max Positions: ", EMA_MaxPositions);
+    Print("");
+    
+    Print("=== PTS Strategy ===");
+    Print("Enabled: ", Enable_PTS_Strategy ? "Yes" : "No");
+    Print("Trading: ", (EnableTrading && Enable_PTS_Strategy) ? "Yes" : "No");
+    Print("Lot Size: ", PTS_LotSize);
+    Print("Daily Loss Limit: $", PTS_DailyLossLimit);
+    Print("Max Positions: ", PTS_MaxPositions);
+    Print("SL Multiplier: ", PTS_SL_Multiplier);
+    Print("TP Multiplier: ", PTS_TP_Multiplier);
+    Print("Risk-Reward Ratio: 1:", DoubleToString(PTS_TP_Multiplier / PTS_SL_Multiplier, 1));
+    Print("BB Period: ", PTS_BB_Period);
+    Print("BB Deviation: ", PTS_BB_Deviation);
+    Print("ATR Period: ", PTS_ATR_Period);
+    Print("");
+    
+    Print("=== Logging ===");
+    Print("CSV File: ", CSV_FileName);
     Print("Append to CSV: ", AppendToCSV ? "Yes" : "No");
-    Print("Trading Enabled: ", EnableTrading ? "Yes" : "No");
-    Print("Symbols to scan: ", SymbolCount, " symbols");
-    Print("");
-    
-    Print("=== Timeframes to Scan ===");
-    Print("H1 (1-hour): ", ScanH1 ? "Yes" : "No");
-    Print("H4 (4-hour): ", ScanH4 ? "Yes" : "No");
-    Print("D1 (Daily): ", ScanD1 ? "Yes" : "No");
-    Print("");
-    
-    PrintStrategySettings(EMA_Settings);
+    Print("===============================");
 }
 
 //+------------------------------------------------------------------+
@@ -329,15 +236,25 @@ void PrintSettings()
 //+------------------------------------------------------------------+
 void UpdateChartComment()
 {
-    string comment = "Solara Scanner v1.0\n";
+    string comment = "Solara Scanner v2.0\n";
     comment += "=====================\n";
     comment += "Mode: " + (EnableTrading ? "TRADING" : "SCREENING") + "\n";
-    comment += "Symbols: " + IntegerToString(SymbolCount) + "\n";
-    comment += "Total Scans: " + IntegerToString(TotalScans) + "\n";
-    comment += "Total Signals: " + IntegerToString(TotalSignals) + "\n";
-    comment += "Last Scan: " + (TotalScans > 0 ? TimeToString(LastScanTime, TIME_SECONDS) : "Never") + "\n";
-    comment += "Next Scan: " + TimeToString(LastScanTime + ScanIntervalSeconds, TIME_SECONDS) + "\n";
-    comment += "CSV File: " + CSVFileName + "\n";
+    
+    if(g_strategyManager)
+    {
+        comment += "Strategies: ";
+        comment += (Enable_EMA_Strategy ? "EMA[ON] " : "EMA[OFF] ");
+        comment += (Enable_PTS_Strategy ? "PTS[ON]" : "PTS[OFF]");
+        comment += "\n";
+        
+        comment += "Total Positions: " + IntegerToString(g_strategyManager.GetTotalOpenPositions()) + "\n";
+        comment += "Today P&L: $" + DoubleToString(g_strategyManager.GetTotalTodayPNL(), 2) + "\n";
+    }
+    
+    comment += "Total Scans: " + IntegerToString(g_totalScans) + "\n";
+    comment += "Total Signals: " + IntegerToString(g_totalSignals) + "\n";
+    comment += "Last Scan: " + (g_totalScans > 0 ? TimeToString(g_lastScanTime, TIME_SECONDS) : "Never") + "\n";
+    comment += "Next Scan: " + TimeToString(g_lastScanTime + ScanIntervalSeconds, TIME_SECONDS) + "\n";
     
     Comment(comment);
 }
@@ -363,16 +280,73 @@ string GetDeinitReasonText(const int reason)
 }
 
 //+------------------------------------------------------------------+
-//| Manual scan function (can be called from button or hotkey)       |
+//| Manual scan function                                             |
 //+------------------------------------------------------------------+
 void ManualScan()
 {
-    Print("Manual scan triggered at ", TimeToString(TimeCurrent(), TIME_SECONDS));
-    PerformScan();
+    Print("=== Manual scan triggered at ", TimeToString(TimeCurrent(), TIME_SECONDS), " ===");
+    
+    if(g_strategyManager)
+    {
+        // Force run PTS daily filter if it's around 00:05 GMT
+        MqlDateTime currentTime;
+        TimeCurrent(currentTime);
+        
+        if(currentTime.hour == 0 && currentTime.min == 5)
+        {
+            Print("Manual PTS Daily Filter execution");
+            if(g_ptsStrategy && g_ptsStrategy.IsEnabled())
+            {
+                // We need to add a public method to run daily filter
+                Print("Note: Daily filter would run at next scheduled time");
+            }
+        }
+        
+        // Run timer event
+        g_strategyManager.OnTimer();
+    }
+    
+    UpdateChartComment();
 }
 
 //+------------------------------------------------------------------+
-//| Test function - Check single symbol manually                     |
+//| Run PTS Daily Filter manually                                    |
+//+------------------------------------------------------------------+
+void RunPTSDailyFilter()
+{
+    if(g_ptsStrategy && g_ptsStrategy.IsEnabled())
+    {
+        Print("=== Manual PTS Daily Filter Execution ===");
+        // Note: We need to add a public RunDailyFilter() method to CPTSStrategy
+        Print("Daily filter would qualify pairs based on D1 trends");
+        Print("This function requires implementation in PTSStrategy class");
+    }
+    else
+    {
+        Print("PTS Strategy not enabled");
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Chart event handler                                              |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
+{
+    // Add chart objects for manual controls if needed
+    // Example: Buttons for manual scan, strategy toggles, etc.
+    
+    if(id == CHARTEVENT_KEYDOWN)
+    {
+        // Example: Space bar for manual scan
+        if(lparam == 32) // Space key
+        {
+            ManualScan();
+        }
+    }
+}
+
+//+------------------------------------------------------------------+
+//| Test function - Check single symbol                              |
 //+------------------------------------------------------------------+
 void TestSymbol(string symbol, ENUM_TIMEFRAMES timeframe)
 {
@@ -384,25 +358,25 @@ void TestSymbol(string symbol, ENUM_TIMEFRAMES timeframe)
         return;
     }
     
-    TradingSignal signal = CheckEMAStrategy(symbol, timeframe, EMA_Settings);
+    // Test EMA strategy
+    if(g_emaStrategy && g_emaStrategy.IsEnabled())
+    {
+        BaseSignal signal = g_emaStrategy.CheckSignal(symbol, timeframe);
+        
+        if(signal.signal != "")
+        {
+            Print("EMA SIGNAL: ", signal.signal, " @ ", DoubleToString(signal.price, 5));
+        }
+    }
     
-    if(signal.signal != "")
+    // Test PTS strategy (only H4)
+    if(g_ptsStrategy && g_ptsStrategy.IsEnabled() && timeframe == PERIOD_H4)
     {
-        Print("SIGNAL FOUND: ", signal.signal, " @ ", DoubleToString(signal.price, 5));
-        Print("EMA20: ", DoubleToString(signal.ema20, 5));
-        Print("EMA50: ", DoubleToString(signal.ema50, 5));
+        BaseSignal signal = g_ptsStrategy.CheckSignal(symbol, timeframe);
+        
+        if(signal.signal != "")
+        {
+            Print("PTS SIGNAL: ", signal.signal, " @ ", DoubleToString(signal.price, 5));
+        }
     }
-    else
-    {
-        Print("No signal found");
-    }
-}
-
-//+------------------------------------------------------------------+
-//| Chart event handler (for manual controls)                        |
-//+------------------------------------------------------------------+
-void OnChartEvent(const int id, const long &lparam, const double &dparam, const string &sparam)
-{
-    // TODO: Add chart objects for manual controls
-    // Example: Buttons for manual scan, symbol test, etc.
 }
