@@ -12,8 +12,14 @@
 //| Indicator Utilities Class                                        |
 //+------------------------------------------------------------------+
 class CIndicatorUtils
+
 {
 public:
+
+   static uint GetUnixTimestamp()
+   {
+       return (uint)TimeCurrent();
+   }
     //+------------------------------------------------------------------+
     //| Check if new bar has formed                                      |
     //+------------------------------------------------------------------+
@@ -203,12 +209,34 @@ public:
         return NormalizeDouble(spreadPips / pipSize, 1);
     }
     
+
     //+------------------------------------------------------------------+
     //| Get ATR value in pips                                            |
     //+------------------------------------------------------------------+
     static double GetATRInPips(string symbol, ENUM_TIMEFRAMES timeframe, int period, int shift = 0)
     {
-        double atrValue = iATR(symbol, timeframe, period, shift);
+        // Get ATR handle
+        int atrHandle = iATR(symbol, timeframe, period);
+        if(atrHandle == INVALID_HANDLE)
+        {
+            Print("ERROR: Failed to create ATR handle for ", symbol);
+            return 0.0;
+        }
+        
+        // Get ATR value for specific shift
+        double atrBuffer[];
+        ArraySetAsSeries(atrBuffer, true);
+        
+        int copied = CopyBuffer(atrHandle, 0, shift, 1, atrBuffer);
+        IndicatorRelease(atrHandle); // Release handle
+        
+        if(copied <= 0 || ArraySize(atrBuffer) == 0)
+        {
+            Print("ERROR: Failed to copy ATR buffer for ", symbol);
+            return 0.0;
+        }
+        
+        double atrValue = atrBuffer[0];
         double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
         
         if(point == 0 || atrValue == 0) return 0.0;

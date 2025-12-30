@@ -28,22 +28,22 @@ struct FileHeader
     uint        reserved7;          // Reserved for future use
     uint        reserved8;          // Reserved for future use
     
-    FileHeader()
-    {
-        magicNumber = INDICATOR_MAGIC_NUMBER;
-        version = INDICATOR_FILE_VERSION;
-        entryCount = 0;
-        createdTimestamp = CIndicatorUtils::GetUnixTimestamp();
-        updatedTimestamp = createdTimestamp;
-        reserved1 = 0;
-        reserved2 = 0;
-        reserved3 = 0;
-        reserved4 = 0;
-        reserved5 = 0;
-        reserved6 = 0;
-        reserved7 = 0;
-        reserved8 = 0;
-    }
+   FileHeader()
+   {
+       magicNumber = INDICATOR_MAGIC_NUMBER;
+       version = INDICATOR_FILE_VERSION;
+       entryCount = 0;
+       createdTimestamp = (uint)TimeCurrent();  // Direct conversion
+       updatedTimestamp = createdTimestamp;
+       reserved1 = 0;
+       reserved2 = 0;
+       reserved3 = 0;
+       reserved4 = 0;
+       reserved5 = 0;
+       reserved6 = 0;
+       reserved7 = 0;
+       reserved8 = 0;
+   }
 };
 
 //+------------------------------------------------------------------+
@@ -112,6 +112,9 @@ public:
         m_indexSize = 0;
         m_fileHits = 0;
         m_fileMisses = 0;
+        
+        // Initialize PerformanceStats
+        m_stats = PerformanceStats();
         
         // Create directories if they don't exist
         CreateDirectories();
@@ -312,7 +315,7 @@ public:
             return 0;
             
         // Check each entry
-        for(int i = 0; i < header.entryCount; i++)
+        for(int i = 0; i < (int)header.entryCount; i++)
         {
             FileCacheEntry entry;
             if(!ReadEntry(i, entry))
@@ -324,7 +327,7 @@ public:
                 {
                     removed++;
                     i--; // Adjust index since entries shift
-                    header.entryCount = GetEntryCount();
+                    header.entryCount = (ushort)GetEntryCount();
                 }
             }
         }
@@ -381,7 +384,7 @@ public:
         
         // Read and validate file
         FileHeader header;
-        if(!ReadHeader(filename, header))
+        if(!ReadHeaderFromFile(filename, header))
         {
             Print("ERROR: Invalid cache file: ", filename);
             return false;
@@ -407,10 +410,10 @@ public:
         if(!ReadHeader(header))
             header = FileHeader();
             
-        header.entryCount = GetEntryCount();
+        header.entryCount = (ushort)GetEntryCount();
         header.updatedTimestamp = CIndicatorUtils::GetUnixTimestamp();
         
-        if(!WriteHeader(filename, header))
+        if(!WriteHeaderToFile(filename, header))
         {
             Print("ERROR: Failed to save cache file: ", filename);
             return false;
@@ -473,7 +476,7 @@ public:
         if(!ReadHeader(header))
             return 0;
             
-        return header.entryCount;
+        return (int)header.entryCount;
     }
     
     //+------------------------------------------------------------------+
@@ -496,8 +499,8 @@ public:
         
         Print("=== File Cache Contents (", header.entryCount, "/", m_maxEntries, " entries) ===");
         Print("File: ", m_filename);
-        Print("Created: ", TimeToString(header.createdTimestamp), 
-              ", Updated: ", TimeToString(header.updatedTimestamp));
+        Print("Created: ", TimeToString((datetime)header.createdTimestamp), 
+              ", Updated: ", TimeToString((datetime)header.updatedTimestamp));
         Print("Hits: ", m_fileHits, ", Misses: ", m_fileMisses, 
               ", Hit rate: ", GetHitRate(), "%");
         
@@ -505,7 +508,7 @@ public:
             return;
         
         // Print first few entries
-        int entriesToShow = MathMin(header.entryCount, 10);
+        int entriesToShow = MathMin((int)header.entryCount, 10);
         
         for(int i = 0; i < entriesToShow; i++)
         {
@@ -522,7 +525,7 @@ public:
         }
         
         if(header.entryCount > 10)
-            Print("... and ", header.entryCount - 10, " more entries");
+            Print("... and ", (int)header.entryCount - 10, " more entries");
             
         Print("=== End File Cache Contents ===");
     }
@@ -613,39 +616,43 @@ private:
     //+------------------------------------------------------------------+
     //| Build index from file                                            |
     //+------------------------------------------------------------------+
-    void BuildIndex()
-    {
-        // Clear existing index
-        ArrayInitialize(m_index, NULL);
-        m_indexSize = 0;
-        
-        if(!FileIsExist(m_filename))
-            return;
-            
-        FileHeader header;
-        if(!ReadHeader(header))
-            return;
-            
-        // Read all entries and build index
-        for(int i = 0; i < header.entryCount && m_indexSize < 1000; i++)
-        {
-            FileCacheEntry entry;
-            if(ReadEntry(i, entry))
-            {
-                string key = CharArrayToString(entry.key);
-                if(key != "")
-                {
-                    m_index[m_indexSize].key = key;
-                    m_index[m_indexSize].filePosition = i;
-                    m_index[m_indexSize].isValid = true;
-                    m_indexSize++;
-                }
-            }
-        }
-        
-        Print("Built index with ", m_indexSize, " entries");
-    }
-    
+   void BuildIndex()
+   {
+       // Clear existing index - FIXED: Cannot use ArrayInitialize with struct containing strings
+       for(int i = 0; i < 1000; i++)
+       {
+           m_index[i].key = "";
+           m_index[i].filePosition = 0;
+           m_index[i].isValid = false;
+       }
+       m_indexSize = 0;
+       
+       if(!FileIsExist(m_filename))
+           return;
+           
+       FileHeader header;
+       if(!ReadHeader(header))
+           return;
+           
+       // Read all entries and build index
+       for(int i = 0; i < (int)header.entryCount && m_indexSize < 1000; i++)
+       {
+           FileCacheEntry entry;
+           if(ReadEntry(i, entry))
+           {
+               string key = CharArrayToString(entry.key);
+               if(key != "")
+               {
+                   m_index[m_indexSize].key = key;
+                   m_index[m_indexSize].filePosition = i;
+                   m_index[m_indexSize].isValid = true;
+                   m_indexSize++;
+               }
+           }
+       }
+       
+       Print("Built index with ", m_indexSize, " entries");
+   }
     //+------------------------------------------------------------------+
     //| Find key in index                                                |
     //+------------------------------------------------------------------+
@@ -701,13 +708,18 @@ private:
     }
     
     //+------------------------------------------------------------------+
-    //| Read file header                                                 |
+    //| Read file header from default file                               |
     //+------------------------------------------------------------------+
-    bool ReadHeader(FileHeader &header, string filename = "")
+    bool ReadHeader(FileHeader &header)
     {
-        if(filename == "")
-            filename = m_filename;
-            
+        return ReadHeaderFromFile(m_filename, header);
+    }
+    
+    //+------------------------------------------------------------------+
+    //| Read file header from specific file                              |
+    //+------------------------------------------------------------------+
+    bool ReadHeaderFromFile(string filename, FileHeader &header)
+    {
         if(!FileIsExist(filename))
             return false;
             
@@ -730,9 +742,17 @@ private:
     }
     
     //+------------------------------------------------------------------+
-    //| Write file header                                                |
+    //| Write file header to default file                                |
     //+------------------------------------------------------------------+
-    bool WriteHeader(string filename, FileHeader &header)
+    bool WriteHeader(FileHeader &header)
+    {
+        return WriteHeaderToFile(m_filename, header);
+    }
+    
+    //+------------------------------------------------------------------+
+    //| Write file header to specific file                               |
+    //+------------------------------------------------------------------+
+    bool WriteHeaderToFile(string filename, FileHeader &header)
     {
         int handle = FileOpen(filename, FILE_WRITE|FILE_BIN|FILE_COMMON);
         if(handle == INVALID_HANDLE)
@@ -797,7 +817,7 @@ private:
             header.entryCount = 0;
         }
         
-        if(header.entryCount >= m_maxEntries)
+        if((int)header.entryCount >= m_maxEntries)
             return false;
             
         // Open file for appending
@@ -806,14 +826,14 @@ private:
             return false;
             
         // Seek to end of entries
-        int position = FILE_HEADER_SIZE + (header.entryCount * CACHE_ENTRY_SIZE);
+        int position = FILE_HEADER_SIZE + ((int)header.entryCount * CACHE_ENTRY_SIZE);
         FileSeek(handle, position, SEEK_SET);
         
         // Write new entry
         uint bytesWritten = FileWriteStruct(handle, entry);
         
         // Update header
-        header.entryCount++;
+        header.entryCount = (ushort)((int)header.entryCount + 1);
         header.updatedTimestamp = CIndicatorUtils::GetUnixTimestamp();
         
         FileSeek(handle, 0, SEEK_SET);
@@ -822,7 +842,7 @@ private:
         FileClose(handle);
         
         // Add to index
-        AddToIndex(CharArrayToString(entry.key), header.entryCount - 1);
+        AddToIndex(CharArrayToString(entry.key), (int)header.entryCount - 1);
         
         return (bytesWritten == sizeof(entry));
     }
@@ -836,14 +856,14 @@ private:
         if(!ReadHeader(header))
             return false;
             
-        if(index >= header.entryCount)
+        if(index >= (int)header.entryCount)
             return false;
             
         // If it's the last entry, just truncate
-        if(index == header.entryCount - 1)
+        if(index == (int)header.entryCount - 1)
         {
-            header.entryCount--;
-            WriteHeader(m_filename, header);
+            header.entryCount = (ushort)((int)header.entryCount - 1);
+            WriteHeader(header);
             RemoveFromIndexByPosition(index);
             return true;
         }
@@ -854,7 +874,7 @@ private:
             return false;
             
         // Read all entries after the one being removed
-        int entriesAfter = header.entryCount - index - 1;
+        int entriesAfter = (int)header.entryCount - index - 1;
         FileCacheEntry entries[];
         ArrayResize(entries, entriesAfter);
         
@@ -876,7 +896,7 @@ private:
         }
         
         // Update header
-        header.entryCount--;
+        header.entryCount = (ushort)((int)header.entryCount - 1);
         header.updatedTimestamp = CIndicatorUtils::GetUnixTimestamp();
         
         FileSeek(handle, 0, SEEK_SET);
@@ -904,7 +924,7 @@ private:
         int oldestIndex = -1;
         uint oldestTimestamp = 0xFFFFFFFF;
         
-        for(int i = 0; i < header.entryCount; i++)
+        for(int i = 0; i < (int)header.entryCount; i++)
         {
             FileCacheEntry entry;
             if(ReadEntry(i, entry))
@@ -966,9 +986,16 @@ private:
             
         int count = 1;
         while(FileFindNext(handle, filenames[count]))
+        {
             count++;
+            if(count >= ArraySize(filenames))
+                ArrayResize(filenames, count + 10);
+        }
             
         FileFindClose(handle);
+        
+        // Resize array to actual count
+        ArrayResize(filenames, count);
         
         // Sort by filename (which contains date)
         ArraySort(filenames);

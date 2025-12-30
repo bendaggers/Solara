@@ -399,6 +399,7 @@ public:
         return m_stats;
     }
     
+
     //+------------------------------------------------------------------+
     //| Print pool contents (for debugging)                              |
     //+------------------------------------------------------------------+
@@ -419,17 +420,17 @@ public:
         
         for(int i = 0; i < m_handleCount && i < 20; i++) // Limit output
         {
-            PoolHandle &h = m_handles[i];
+            // FIX: Direct array access instead of reference
             string age = CIndicatorUtils::FormatPercent(
-                (double)(TimeCurrent() - h.lastUsed) / (m_cleanupMinutes * 60));
+                (double)(TimeCurrent() - m_handles[i].lastUsed) / (m_cleanupMinutes * 60));
                 
-            string status = h.isValid ? "VALID" : "INVALID";
+            string status = m_handles[i].isValid ? "VALID" : "INVALID";
             
-            Print(i + 1, ". ", h.key, 
-                  " (Refs: ", h.refCount, ", Age: ", age, 
-                  ", Status: ", status, ", Handle: ", h.handle, ")");
+            Print(i + 1, ". ", m_handles[i].key, 
+                  " (Refs: ", m_handles[i].refCount, ", Age: ", age, 
+                  ", Status: ", status, ", Handle: ", m_handles[i].handle, ")");
             
-            refCountTotal += h.refCount;
+            refCountTotal += m_handles[i].refCount;
         }
         
         if(m_handleCount > 20)

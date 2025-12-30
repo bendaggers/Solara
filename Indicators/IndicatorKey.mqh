@@ -12,6 +12,96 @@
 //+------------------------------------------------------------------+
 class CIndicatorKey
 {
+
+    //+------------------------------------------------------------------+
+    //| Normalize symbol name                                            |
+    //+------------------------------------------------------------------+
+    static string NormalizeSymbol(string symbol)
+    {
+        if(symbol == "") 
+            return "";
+        
+        // Start with the original symbol
+        string result = symbol;
+        int replaceCount = 0;
+        
+        // Replace spaces with underscores - CORRECT WAY
+        replaceCount = StringReplace(result, " ", "_");
+        
+        // Replace forward slashes with underscores
+        replaceCount += StringReplace(result, "/", "_");
+        
+        // Replace backslashes with underscores  
+        replaceCount += StringReplace(result, "\\", "_");
+        
+        // Remove other problematic characters by replacing with empty string
+        replaceCount += StringReplace(result, "\"", "");
+        replaceCount += StringReplace(result, "*", "");
+        replaceCount += StringReplace(result, "?", "");
+        replaceCount += StringReplace(result, "<", "");
+        replaceCount += StringReplace(result, ">", "");
+        replaceCount += StringReplace(result, "|", "");
+        replaceCount += StringReplace(result, ":", "");
+        replaceCount += StringReplace(result, ";", "");
+        
+        // Trim whitespace - CORRECT WAY (modifies in place, returns count)
+        int trimLeftCount = StringTrimLeft(result);
+        int trimRightCount = StringTrimRight(result);
+        
+        // If we ended up with nothing after trimming, return a fallback
+        if(result == "")
+        {
+            // Create a simple fallback - just letters and numbers from original
+            string fallback = "";
+            for(int i = 0; i < StringLen(symbol); i++)
+            {
+                ushort c = StringGetCharacter(symbol, i);
+                if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || 
+                   (c >= '0' && c <= '9'))
+                {
+                    fallback += CharToString((uchar)c);
+                }
+                else if(c == ' ')
+                {
+                    fallback += "_";
+                }
+            }
+            
+            if(fallback == "")
+                fallback = "SYMBOL";
+                
+            return fallback;
+        }
+        
+        return result;
+    }
+    
+    //+------------------------------------------------------------------+
+    //| Validate symbol and timeframe                                    |
+    //+------------------------------------------------------------------+
+    static bool ValidateSymbolTimeframe(string symbol, ENUM_TIMEFRAMES timeframe)
+    {
+        if(StringLen(symbol) == 0)
+        {
+            Print("ERROR: Empty symbol");
+            return false;
+        }
+        
+        // Check if symbol exists (basic check)
+        if(StringFind(symbol, " ") != -1)
+        {
+            Print("WARNING: Symbol contains spaces: '", symbol, "'");
+        }
+        
+        // Validate timeframe
+        if(timeframe == PERIOD_CURRENT)
+        {
+            Print("WARNING: Using PERIOD_CURRENT in cache key - may cause issues");
+        }
+        
+        return true;
+    }
+    
 public:
     //+------------------------------------------------------------------+
     //| Create key for EMA indicator                                     |
@@ -122,23 +212,42 @@ public:
                           priceStr);
     }
     
-    //+------------------------------------------------------------------+
-    //| Create key for MACD indicator                                    |
-    //+------------------------------------------------------------------+
-    static string CreateMACDKey(string symbol, ENUM_TIMEFRAMES timeframe, 
-                               int fastEMA, int slowEMA, int signalSMA,
-                               ENUM_APPLIED_PRICE price = PRICE_CLOSE)
-    {
-        string priceStr = AppliedPriceToString(price);
-        
-        return StringFormat("%s_%s_MACD_%d_%d_%d_%s", 
-                          symbol, 
-                          TimeframeToString(timeframe), 
-                          fastEMA, 
-                          slowEMA, 
-                          signalSMA, 
-                          priceStr);
-    }
+   //+------------------------------------------------------------------+
+   //| Create key for MACD indicator                                    |
+   //+------------------------------------------------------------------+
+   static string CreateMACDKey(string symbol, ENUM_TIMEFRAMES timeframe, 
+                              int fastEMA, int slowEMA, int signalSMA,
+                              ENUM_APPLIED_PRICE price = PRICE_CLOSE)
+   {
+       // VALIDATE INPUTS (CRITICAL!)
+       if(!ValidateSymbolTimeframe(symbol, timeframe))
+           return "";
+           
+       if(fastEMA <= 0 || slowEMA <= 0 || signalSMA <= 0)
+       {
+           Print("ERROR: Invalid MACD parameters - Fast: ", fastEMA, 
+                 ", Slow: ", slowEMA, ", Signal: ", signalSMA);
+           return "";
+       }
+       
+       if(fastEMA >= slowEMA)
+       {
+           Print("ERROR: MACD fast EMA must be smaller than slow EMA");
+           return "";
+       }
+       
+       string priceStr = AppliedPriceToString(price);
+       string tfStr = TimeframeToString(timeframe);
+       string normalizedSymbol = NormalizeSymbol(symbol);  // IMPORTANT!
+       
+       return StringFormat("%s_%s_MACD_%d_%d_%d_%s", 
+                         normalizedSymbol, 
+                         tfStr, 
+                         fastEMA, 
+                         slowEMA, 
+                         signalSMA, 
+                         priceStr);
+   }
     
     //+------------------------------------------------------------------+
     //| Create key for custom indicator                                  |
@@ -285,22 +394,39 @@ public:
         return true;
     }
     
-    //+------------------------------------------------------------------+
-    //| Parse MACD key components                                        |
-    //+------------------------------------------------------------------+
-    static bool ParseMACDKey(string &parts[], int count, IndicatorParams &params)
-    {
-        if(count < 7) return false;
-        
-        params.type = INDICATOR_MACD;
-        params.period = (int)StringToInteger(parts[3]);  // Fast EMA
-        params.param1 = StringToInteger(parts[4]);       // Slow EMA
-        params.param2 = StringToInteger(parts[5]);       // Signal SMA
-        params.price = StringToAppliedPrice(parts[6]);
-        
-        return true;
-    }
-    
+   //+------------------------------------------------------------------+
+   //| Parse MACD key components                                        |
+   //+------------------------------------------------------------------+
+   static bool ParseMACDKey(string &parts[], int count, IndicatorParams &params)
+   {
+       if(count < 7) 
+       {
+           Print("ERROR: MACD key requires at least 7 parts");
+           return false;
+       }
+       
+       params.type = INDICATOR_MACD;
+       params.period = (int)StringToInteger(parts[3]);  // Fast EMA
+       params.param1 = (double)StringToInteger(parts[4]);       // Slow EMA
+       params.param2 = (double)StringToInteger(parts[5]);       // Signal SMA
+       params.price = StringToAppliedPrice(parts[6]);
+       
+       // Validate
+       if(params.period <= 0 || params.param1 <= 0 || params.param2 <= 0)
+       {
+           Print("ERROR: Invalid MACD parameters in key");
+           return false;
+       }
+       
+       if(params.period >= params.param1)
+       {
+           Print("ERROR: MACD fast EMA must be smaller than slow EMA");
+           return false;
+       }
+       
+       return true;
+   }
+
     //+------------------------------------------------------------------+
     //| Parse custom key components                                      |
     //+------------------------------------------------------------------+

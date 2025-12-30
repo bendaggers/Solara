@@ -10,25 +10,18 @@
 #include "IndicatorUtils.mqh"
 
 //+------------------------------------------------------------------+
-//| LRU Cache Node Structure                                         |
+//| Cache Node Structure (extends CacheEntry with LRU pointers)     |
 //+------------------------------------------------------------------+
 struct CacheNode
 {
-    string      key;            // Cache key
-    double      value;          // Indicator value
-    datetime    timestamp;      // When value was stored
-    int         accessCount;    // How many times accessed
-    CacheNode*  prev;           // Previous node in LRU list
-    CacheNode*  next;           // Next node in LRU list
+    CacheEntry  entry;          // Base cache entry from IndicatorTypes.mqh
+    int         prevIndex;      // Previous node index (-1 if none)
+    int         nextIndex;      // Next node index (-1 if none)
     
     CacheNode()
     {
-        key = "";
-        value = 0.0;
-        timestamp = 0;
-        accessCount = 0;
-        prev = NULL;
-        next = NULL;
+        prevIndex = -1;
+        nextIndex = -1;
     }
 };
 
@@ -39,25 +32,25 @@ class CIndicatorCache
 {
 private:
     // Cache storage
-    CacheNode*          m_head;                 // Most recently used
-    CacheNode*          m_tail;                 // Least recently used
-    int                 m_size;                 // Current cache size
-    int                 m_maxSize;              // Maximum cache size
-    int                 m_ttlSeconds;           // Time-to-live in seconds
-    ulong               m_hits;                 // Cache hits counter
-    ulong               m_misses;               // Cache misses counter
+    CacheNode   m_nodes[];              // Dynamic array of nodes
+    int         m_headIndex;           // Index of most recently used node
+    int         m_tailIndex;           // Index of least recently used node
+    int         m_freeIndices[];       // Stack of free indices
+    int         m_freeCount;           // Number of free indices
     
-    // Hash map for O(1) lookups (simulated with array for MQL5)
+    int         m_maxSize;             // Maximum cache size
+    int         m_ttlSeconds;          // Time-to-live in seconds
+    ulong       m_hits;                // Cache hits counter
+    ulong       m_misses;              // Cache misses counter
+    
+    // Hash map for O(1) lookups
     struct HashEntry
     {
         string key;
-        CacheNode* node;
+        int nodeIndex;  // Index in m_nodes array
     };
-    HashEntry           m_hashMap[1000];        // Simple hash table
-    int                 m_hashSize;
-    
-    // Statistics
-    PerformanceStats    m_stats;
+    HashEntry   m_hashMap[1000];       // Simple hash table
+    int         m_hashSize;
     
 public:
     //+------------------------------------------------------------------+
@@ -65,17 +58,32 @@ public:
     //+------------------------------------------------------------------+
     CIndicatorCache(int maxSize = MAX_MEMORY_CACHE_ENTRIES, int ttlSeconds = MEMORY_CACHE_TTL_SECONDS)
     {
-        m_head = NULL;
-        m_tail = NULL;
-        m_size = 0;
+        m_headIndex = -1;
+        m_tailIndex = -1;
         m_maxSize = maxSize;
         m_ttlSeconds = ttlSeconds;
         m_hits = 0;
         m_misses = 0;
         m_hashSize = 0;
+        m_freeCount = 0;
         
         // Initialize hash map
-        ArrayInitialize(m_hashMap, NULL);
+        for(int i = 0; i < 1000; i++)
+        {
+            m_hashMap[i].key = "";
+            m_hashMap[i].nodeIndex = -1;
+        }
+        
+        // Initialize free indices array
+        ArrayResize(m_freeIndices, maxSize);
+        for(int i = 0; i < maxSize; i++)
+        {
+            m_freeIndices[i] = i;
+        }
+        m_freeCount = maxSize;
+        
+        // Initialize nodes array
+        ArrayResize(m_nodes, maxSize);
         
         Print("IndicatorCache initialized. Max size: ", m_maxSize, 
               ", TTL: ", m_ttlSeconds, " seconds");
@@ -86,7 +94,6 @@ public:
     //+------------------------------------------------------------------+
     ~CIndicatorCache()
     {
-        Clear();
         Print("IndicatorCache destroyed. Final stats - Hits: ", m_hits, 
               ", Misses: ", m_misses, ", Hit rate: ", GetHitRate(), "%");
     }
@@ -96,41 +103,40 @@ public:
     //+------------------------------------------------------------------+
     bool Get(string key, double &value)
     {
-        // Start timing for performance stats
-        ulong startTime = GetMicrosecondCount();
-        
         // Find node in hash map
-        CacheNode* node = FindInHashMap(key);
+        int nodeIndex = FindInHashMap(key);
         
-        if(node == NULL)
+        if(nodeIndex == -1)
         {
             // Cache miss
             m_misses++;
-            UpdateStats(false, GetMicrosecondCount() - startTime);
             return false;
         }
         
+        // Get node
+        CacheNode node = m_nodes[nodeIndex];
+        
         // Check if entry is expired
-        if(IsEntryExpired(node))
+        if(IsEntryExpired(node.entry))
         {
             // Remove expired entry
-            RemoveNode(node);
+            RemoveNode(nodeIndex);
             m_misses++;
-            UpdateStats(false, GetMicrosecondCount() - startTime);
             return false;
         }
         
         // Cache hit - update access info
-        node->accessCount++;
-        node->timestamp = TimeCurrent();
+        node.entry.accessCount++;
+        node.entry.timestamp = TimeCurrent();
+        
+        // Update the node in array
+        m_nodes[nodeIndex] = node;
         
         // Move to front (most recently used)
-        MoveToFront(node);
+        MoveToFront(nodeIndex);
         
-        value = node->value;
+        value = node.entry.value;
         m_hits++;
-        
-        UpdateStats(true, GetMicrosecondCount() - startTime);
         
         return true;
     }
@@ -140,45 +146,53 @@ public:
     //+------------------------------------------------------------------+
     void Set(string key, double value)
     {
-        // Start timing
-        ulong startTime = GetMicrosecondCount();
-        
         // Check if key already exists
-        CacheNode* node = FindInHashMap(key);
+        int nodeIndex = FindInHashMap(key);
         
-        if(node != NULL)
+        if(nodeIndex != -1)
         {
-            // Update existing entry
-            node->value = value;
-            node->timestamp = TimeCurrent();
-            node->accessCount++;
-            MoveToFront(node);
+            // Update existing node
+            CacheNode node = m_nodes[nodeIndex];
+            node.entry.value = value;
+            node.entry.timestamp = TimeCurrent();
+            node.entry.accessCount++;
+            m_nodes[nodeIndex] = node;
             
-            UpdateStats(false, GetMicrosecondCount() - startTime); // Not a hit
+            MoveToFront(nodeIndex);
+            return;
+        }
+        
+        // Check if cache is full
+        if(IsFull())
+        {
+            // Remove least recently used node
+            RemoveLRU();
+        }
+        
+        // Get a free index
+        nodeIndex = GetFreeIndex();
+        if(nodeIndex == -1)
+        {
+            Print("ERROR: No free indices available");
             return;
         }
         
         // Create new node
-        node = new CacheNode();
-        node->key = key;
-        node->value = value;
-        node->timestamp = TimeCurrent();
-        node->accessCount = 1;
+        CacheNode node;
+        node.entry.key = key;
+        node.entry.value = value;
+        node.entry.timestamp = TimeCurrent();
+        node.entry.accessCount = 1;
+        node.prevIndex = -1;
+        node.nextIndex = -1;
+        
+        m_nodes[nodeIndex] = node;
         
         // Add to hash map
-        AddToHashMap(key, node);
+        AddToHashMap(key, nodeIndex);
         
         // Add to front of LRU list
-        AddToFront(node);
-        
-        // Check if cache is full
-        if(m_size > m_maxSize)
-        {
-            // Remove least recently used entry
-            RemoveLRU();
-        }
-        
-        UpdateStats(false, GetMicrosecondCount() - startTime);
+        AddToFront(nodeIndex);
     }
     
     //+------------------------------------------------------------------+
@@ -186,13 +200,14 @@ public:
     //+------------------------------------------------------------------+
     bool Has(string key)
     {
-        CacheNode* node = FindInHashMap(key);
+        int nodeIndex = FindInHashMap(key);
         
-        if(node == NULL)
+        if(nodeIndex == -1)
             return false;
             
         // Check if expired
-        return !IsEntryExpired(node);
+        CacheNode node = m_nodes[nodeIndex];
+        return !IsEntryExpired(node.entry);
     }
     
     //+------------------------------------------------------------------+
@@ -200,12 +215,12 @@ public:
     //+------------------------------------------------------------------+
     bool Remove(string key)
     {
-        CacheNode* node = FindInHashMap(key);
+        int nodeIndex = FindInHashMap(key);
         
-        if(node == NULL)
+        if(nodeIndex == -1)
             return false;
             
-        RemoveNode(node);
+        RemoveNode(nodeIndex);
         return true;
     }
     
@@ -217,26 +232,22 @@ public:
         // Clear hash map
         for(int i = 0; i < m_hashSize; i++)
         {
-            if(m_hashMap[i].node != NULL)
-            {
-                delete m_hashMap[i].node;
-                m_hashMap[i].node = NULL;
-            }
+            m_hashMap[i].key = "";
+            m_hashMap[i].nodeIndex = -1;
         }
         m_hashSize = 0;
         
-        // Clear linked list
-        CacheNode* current = m_head;
-        while(current != NULL)
-        {
-            CacheNode* next = current->next;
-            delete current;
-            current = next;
-        }
+        // Reset LRU list
+        m_headIndex = -1;
+        m_tailIndex = -1;
         
-        m_head = NULL;
-        m_tail = NULL;
-        m_size = 0;
+        // Reset free indices
+        m_freeCount = m_maxSize;
+        for(int i = 0; i < m_maxSize; i++)
+        {
+            m_freeIndices[i] = i;
+            m_nodes[i] = CacheNode();
+        }
         
         Print("Cache cleared");
     }
@@ -247,19 +258,20 @@ public:
     int CleanupExpired()
     {
         int removed = 0;
-        CacheNode* current = m_head;
+        int currentIndex = m_headIndex;
         
-        while(current != NULL)
+        while(currentIndex != -1)
         {
-            CacheNode* next = current->next;
+            CacheNode node = m_nodes[currentIndex];
+            int nextIndex = node.nextIndex;
             
-            if(IsEntryExpired(current))
+            if(IsEntryExpired(node.entry))
             {
-                RemoveNode(current);
+                RemoveNode(currentIndex);
                 removed++;
             }
             
-            current = next;
+            currentIndex = nextIndex;
         }
         
         if(removed > 0)
@@ -276,16 +288,8 @@ public:
         hits = (int)m_hits;
         misses = (int)m_misses;
         hitRate = GetHitRate();
-        size = m_size;
+        size = m_maxSize - m_freeCount;
         maxSize = m_maxSize;
-    }
-    
-    //+------------------------------------------------------------------+
-    //| Get performance statistics                                       |
-    //+------------------------------------------------------------------+
-    PerformanceStats GetPerformanceStats()
-    {
-        return m_stats;
     }
     
     //+------------------------------------------------------------------+
@@ -293,7 +297,8 @@ public:
     //+------------------------------------------------------------------+
     void PrintCacheContents(bool detailed = false)
     {
-        Print("=== Cache Contents (", m_size, "/", m_maxSize, " entries) ===");
+        int currentSize = m_maxSize - m_freeCount;
+        Print("=== Cache Contents (", currentSize, "/", m_maxSize, " entries) ===");
         Print("Hits: ", m_hits, ", Misses: ", m_misses, ", Hit rate: ", GetHitRate(), "%");
         
         if(!detailed)
@@ -303,24 +308,31 @@ public:
         }
         
         // Detailed print
-        CacheNode* current = m_head;
+        int currentIndex = m_headIndex;
         int count = 0;
         
-        while(current != NULL && count < 20) // Limit output
+        while(currentIndex != -1 && count < 20)
         {
-            string age = CIndicatorUtils::FormatPercent(
-                (double)(TimeCurrent() - current->timestamp) / m_ttlSeconds);
+            CacheNode node = m_nodes[currentIndex];
+            double agePercent = 0.0;
+            if(m_ttlSeconds > 0)
+            {
+                agePercent = (double)(TimeCurrent() - node.entry.timestamp) / m_ttlSeconds;
+            }
             
-            Print(count + 1, ". ", current->key, 
-                  " = ", DoubleToString(current->value, 5),
-                  " (Age: ", age, ", Accesses: ", current->accessCount, ")");
+            string ageStr = CIndicatorUtils::FormatPercent(agePercent);
             
-            current = current->next;
+            Print(count + 1, ". ", node.entry.key, 
+                  " = ", DoubleToString(node.entry.value, 5),
+                  " (Age: ", ageStr, ", Accesses: ", node.entry.accessCount, 
+                  ", Index: ", currentIndex, ")");
+            
+            currentIndex = node.nextIndex;
             count++;
         }
         
-        if(m_size > 20)
-            Print("... and ", m_size - 20, " more entries");
+        if(currentSize > 20)
+            Print("... and ", currentSize - 20, " more entries");
             
         Print("=== End Cache Contents ===");
     }
@@ -331,19 +343,21 @@ public:
     string GetKeysAsString()
     {
         string keys = "";
-        CacheNode* current = m_head;
+        int currentIndex = m_headIndex;
         int count = 0;
         
-        while(current != NULL && count < 10)
+        while(currentIndex != -1 && count < 10)
         {
+            CacheNode node = m_nodes[currentIndex];
             if(keys != "") keys += ", ";
-            keys += current->key;
+            keys += node.entry.key;
             
-            current = current->next;
+            currentIndex = node.nextIndex;
             count++;
         }
         
-        if(m_size > 10)
+        int currentSize = m_maxSize - m_freeCount;
+        if(currentSize > 10)
             keys += ", ...";
             
         return keys;
@@ -354,7 +368,7 @@ public:
     //+------------------------------------------------------------------+
     int GetSize()
     {
-        return m_size;
+        return m_maxSize - m_freeCount;
     }
     
     //+------------------------------------------------------------------+
@@ -366,41 +380,13 @@ public:
     }
     
     //+------------------------------------------------------------------+
-    //| Set maximum cache size                                           |
-    //+------------------------------------------------------------------+
-    void SetMaxSize(int maxSize)
-    {
-        if(maxSize < 10) maxSize = 10;
-        if(maxSize > 1000) maxSize = 1000;
-        
-        m_maxSize = maxSize;
-        
-        // Trim cache if necessary
-        while(m_size > m_maxSize)
-        {
-            RemoveLRU();
-        }
-    }
-    
-    //+------------------------------------------------------------------+
-    //| Set cache TTL (Time-To-Live)                                     |
-    //+------------------------------------------------------------------+
-    void SetTTL(int ttlSeconds)
-    {
-        if(ttlSeconds < 1) ttlSeconds = 1;
-        if(ttlSeconds > 3600) ttlSeconds = 3600;
-        
-        m_ttlSeconds = ttlSeconds;
-    }
-    
-    //+------------------------------------------------------------------+
     //| Test cache functionality                                         |
     //+------------------------------------------------------------------+
     static void TestCache()
     {
         Print("=== Testing Memory Cache ===");
         
-        CIndicatorCache cache(5, 10); // Small cache for testing
+        CIndicatorCache cache(5, 10);
         
         // Test Set and Get
         cache.Set("TEST_KEY_1", 1.23456);
@@ -415,7 +401,7 @@ public:
             
         // Test cache hit
         cache.Get("TEST_KEY_2", value);
-        cache.Get("TEST_KEY_2", value); // Second access
+        cache.Get("TEST_KEY_2", value);
         
         // Test cache miss
         if(!cache.Get("NON_EXISTENT_KEY", value))
@@ -424,7 +410,7 @@ public:
         // Test LRU eviction
         cache.Set("TEST_KEY_4", 4.56789);
         cache.Set("TEST_KEY_5", 5.67890);
-        cache.Set("TEST_KEY_6", 6.78901); // Should evict TEST_KEY_1
+        cache.Set("TEST_KEY_6", 6.78901);
         
         if(!cache.Get("TEST_KEY_1", value))
             Print("TEST_KEY_1 was evicted (LRU) - PASS");
@@ -445,22 +431,22 @@ public:
     
 private:
     //+------------------------------------------------------------------+
-    //| Find node in hash map (simple implementation)                    |
+    //| Find node in hash map                                           |
     //+------------------------------------------------------------------+
-    CacheNode* FindInHashMap(string key)
+    int FindInHashMap(string key)
     {
         for(int i = 0; i < m_hashSize; i++)
         {
             if(m_hashMap[i].key == key)
-                return m_hashMap[i].node;
+                return m_hashMap[i].nodeIndex;
         }
-        return NULL;
+        return -1;
     }
     
     //+------------------------------------------------------------------+
-    //| Add node to hash map                                             |
+    //| Add node to hash map                                            |
     //+------------------------------------------------------------------+
-    void AddToHashMap(string key, CacheNode* node)
+    void AddToHashMap(string key, int nodeIndex)
     {
         if(m_hashSize >= 1000)
         {
@@ -469,12 +455,12 @@ private:
         }
         
         m_hashMap[m_hashSize].key = key;
-        m_hashMap[m_hashSize].node = node;
+        m_hashMap[m_hashSize].nodeIndex = nodeIndex;
         m_hashSize++;
     }
     
     //+------------------------------------------------------------------+
-    //| Remove node from hash map                                        |
+    //| Remove node from hash map                                       |
     //+------------------------------------------------------------------+
     void RemoveFromHashMap(string key)
     {
@@ -494,100 +480,165 @@ private:
     }
     
     //+------------------------------------------------------------------+
-    //| Add node to front of LRU list                                    |
+    //| Add node to front of LRU list                                   |
     //+------------------------------------------------------------------+
-    void AddToFront(CacheNode* node)
+    void AddToFront(int nodeIndex)
     {
-        node->prev = NULL;
-        node->next = m_head;
+        CacheNode node = m_nodes[nodeIndex];
         
-        if(m_head != NULL)
-            m_head->prev = node;
-            
-        m_head = node;
+        node.prevIndex = -1;
+        node.nextIndex = m_headIndex;
         
-        if(m_tail == NULL)
-            m_tail = node;
-            
-        m_size++;
+        if(m_headIndex != -1)
+        {
+            CacheNode headNode = m_nodes[m_headIndex];
+            headNode.prevIndex = nodeIndex;
+            m_nodes[m_headIndex] = headNode;
+        }
+        
+        m_headIndex = nodeIndex;
+        
+        if(m_tailIndex == -1)
+        {
+            m_tailIndex = nodeIndex;
+        }
+        
+        m_nodes[nodeIndex] = node;
     }
     
     //+------------------------------------------------------------------+
-    //| Remove node from LRU list                                        |
+    //| Remove node from LRU list                                       |
     //+------------------------------------------------------------------+
-    void RemoveNode(CacheNode* node)
+    void RemoveNode(int nodeIndex)
     {
-        if(node == NULL) return;
+        if(nodeIndex < 0 || nodeIndex >= m_maxSize)
+            return;
+            
+        CacheNode node = m_nodes[nodeIndex];
         
         // Update neighbors
-        if(node->prev != NULL)
-            node->prev->next = node->next;
+        if(node.prevIndex != -1)
+        {
+            CacheNode prevNode = m_nodes[node.prevIndex];
+            prevNode.nextIndex = node.nextIndex;
+            m_nodes[node.prevIndex] = prevNode;
+        }
         else
-            m_head = node->next;
+        {
+            m_headIndex = node.nextIndex;
+        }
             
-        if(node->next != NULL)
-            node->next->prev = node->prev;
+        if(node.nextIndex != -1)
+        {
+            CacheNode nextNode = m_nodes[node.nextIndex];
+            nextNode.prevIndex = node.prevIndex;
+            m_nodes[node.nextIndex] = nextNode;
+        }
         else
-            m_tail = node->prev;
+        {
+            m_tailIndex = node.prevIndex;
+        }
         
         // Remove from hash map
-        RemoveFromHashMap(node->key);
+        RemoveFromHashMap(node.entry.key);
         
-        // Delete node
-        delete node;
-        m_size--;
+        // Clear node
+        m_nodes[nodeIndex] = CacheNode();
+        
+        // Add to free indices
+        m_freeIndices[m_freeCount] = nodeIndex;
+        m_freeCount++;
     }
     
     //+------------------------------------------------------------------+
-    //| Move node to front (most recently used)                          |
+    //| Move node to front (most recently used)                         |
     //+------------------------------------------------------------------+
-    void MoveToFront(CacheNode* node)
+    void MoveToFront(int nodeIndex)
     {
-        if(node == m_head) return;
+        if(nodeIndex == m_headIndex) return;
         
-        // Remove from current position
-        if(node->prev != NULL)
-            node->prev->next = node->next;
+        // First remove the node from its current position
+        CacheNode node = m_nodes[nodeIndex];
+        
+        if(node.prevIndex != -1)
+        {
+            CacheNode prevNode = m_nodes[node.prevIndex];
+            prevNode.nextIndex = node.nextIndex;
+            m_nodes[node.prevIndex] = prevNode;
+        }
             
-        if(node->next != NULL)
-            node->next->prev = node->prev;
+        if(node.nextIndex != -1)
+        {
+            CacheNode nextNode = m_nodes[node.nextIndex];
+            nextNode.prevIndex = node.prevIndex;
+            m_nodes[node.nextIndex] = nextNode;
+        }
         else
-            m_tail = node->prev;
+        {
+            m_tailIndex = node.prevIndex;
+        }
         
-        // Add to front
-        node->prev = NULL;
-        node->next = m_head;
+        // Now add to front
+        node.prevIndex = -1;
+        node.nextIndex = m_headIndex;
         
-        if(m_head != NULL)
-            m_head->prev = node;
+        if(m_headIndex != -1)
+        {
+            CacheNode headNode = m_nodes[m_headIndex];
+            headNode.prevIndex = nodeIndex;
+            m_nodes[m_headIndex] = headNode;
+        }
             
-        m_head = node;
+        m_headIndex = nodeIndex;
         
-        if(m_tail == NULL)
-            m_tail = node;
+        if(m_tailIndex == -1)
+        {
+            m_tailIndex = nodeIndex;
+        }
+        
+        m_nodes[nodeIndex] = node;
     }
     
     //+------------------------------------------------------------------+
-    //| Remove least recently used node                                  |
+    //| Remove least recently used node                                 |
     //+------------------------------------------------------------------+
     void RemoveLRU()
     {
-        if(m_tail == NULL) return;
+        if(m_tailIndex == -1) return;
         
-        RemoveNode(m_tail);
+        RemoveNode(m_tailIndex);
     }
     
     //+------------------------------------------------------------------+
     //| Check if cache entry is expired                                  |
     //+------------------------------------------------------------------+
-    bool IsEntryExpired(CacheNode* node)
+    bool IsEntryExpired(CacheEntry &entry)
     {
         if(m_ttlSeconds <= 0) return false;
         
         datetime now = TimeCurrent();
-        datetime expiryTime = node->timestamp + m_ttlSeconds;
+        datetime expiryTime = entry.timestamp + m_ttlSeconds;
         
         return (now > expiryTime);
+    }
+    
+    //+------------------------------------------------------------------+
+    //| Check if cache is full                                           |
+    //+------------------------------------------------------------------+
+    bool IsFull()
+    {
+        return (m_freeCount == 0);
+    }
+    
+    //+------------------------------------------------------------------+
+    //| Get a free index from the pool                                   |
+    //+------------------------------------------------------------------+
+    int GetFreeIndex()
+    {
+        if(m_freeCount == 0) return -1;
+        
+        m_freeCount--;
+        return m_freeIndices[m_freeCount];
     }
     
     //+------------------------------------------------------------------+
@@ -599,37 +650,6 @@ private:
         if(total == 0) return 0.0;
         
         return (double)m_hits / total * 100.0;
-    }
-    
-    //+------------------------------------------------------------------+
-    //| Update performance statistics                                    |
-    //+------------------------------------------------------------------+
-    void UpdateStats(bool isHit, ulong responseTimeMicros)
-    {
-        if(isHit)
-        {
-            m_stats.memoryHits++;
-            
-            // Update average response time for hits
-            double responseTimeMs = responseTimeMicros / 1000.0;
-            if(m_stats.memoryHits == 1)
-                m_stats.avgMemoryTime = responseTimeMs;
-            else
-                m_stats.avgMemoryTime = (m_stats.avgMemoryTime * (m_stats.memoryHits - 1) + 
-                                        responseTimeMs) / m_stats.memoryHits;
-        }
-        else
-        {
-            m_stats.memoryMisses++;
-        }
-    }
-    
-    //+------------------------------------------------------------------+
-    //| Get current time in microseconds (for timing)                    |
-    //+------------------------------------------------------------------+
-    ulong GetMicrosecondCount()
-    {
-        return GetTickCount() * 1000; // Convert milliseconds to microseconds
     }
 };
 
