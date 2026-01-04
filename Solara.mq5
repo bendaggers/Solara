@@ -23,12 +23,12 @@
 //| Input Parameters                                                 |
 //+------------------------------------------------------------------+
 input group "=== GLOBAL SETTINGS ==="
-input bool   EnableTrading = false;           // Master trading toggle
+input bool   EnableTrading = true;           // Master trading toggle
 input int    ScanIntervalSeconds = 60;        // Base scan frequency in seconds
 input double GlobalDailyLossLimit = 500.0;    // Total daily loss limit for all strategies
 
 input group "=== EMA STRATEGY SETTINGS ==="
-input bool   Enable_EMA_Strategy = true;      // Enable EMA Crossover strategy
+input bool   Enable_EMA_Strategy = false;      // Enable EMA Crossover strategy
 input int    EMA_FastPeriod = 20;             // Fast EMA period
 input int    EMA_SlowPeriod = 50;             // Slow EMA period
 input double EMA_LotSize = 0.01;              // Lot size for EMA strategy
@@ -36,7 +36,7 @@ input double EMA_DailyLossLimit = 100.0;      // Daily loss limit for EMA strate
 input int    EMA_MaxPositions = 10;           // Maximum positions for EMA strategy
 
 input group "=== PTS STRATEGY SETTINGS ==="
-input bool   Enable_PTS_Strategy = false;     // Enable Pullback Trading strategy
+input bool   Enable_PTS_Strategy = true;     // Enable Pullback Trading strategy
 input double PTS_LotSize = 0.01;              // Lot size for PTS strategy
 input double PTS_DailyLossLimit = 100.0;      // Daily loss limit for PTS strategy
 input int    PTS_MaxPositions = 10;           // Maximum positions for PTS strategy
@@ -173,6 +173,44 @@ void OnTimer()
     // Update statistics
     g_lastScanTime = TimeCurrent();
     g_totalScans++;
+    
+    // ========== ADDED: TIME CHECKING FOR PTS STRATEGY ==========
+    MqlDateTime timeNow;
+    TimeCurrent(timeNow);
+    
+    // 1. DEBUG: Print time for verification
+    if(g_totalScans % 30 == 0) // Every 30 scans (30 minutes)
+    {
+        Print("Current Time: ", TimeToString(TimeCurrent(), TIME_DATE|TIME_SECONDS),
+              " | Hour: ", timeNow.hour, " | Minute: ", timeNow.min);
+    }
+    
+    // 2. Check for 00:05 GMT for PTS Daily Filter
+    if(timeNow.hour == 0 && timeNow.min == 5 && timeNow.sec < 10)
+    {
+        Print("=== 00:05 GMT DETECTED - Running PTS Daily Filter ===");
+        if(g_ptsStrategy && g_ptsStrategy.IsEnabled())
+        {
+            g_ptsStrategy.RunDailyFilter();
+            Print("=== Immediate H4 Scan after Daily Filter ===");
+            g_ptsStrategy.RunH4Scan();
+        }
+    }
+    
+    // 3. Check for H4 scan times (04:00, 08:00, 12:00, 16:00, 20:00 GMT)
+    int h4_times[] = {4, 8, 12, 16, 20};
+    for(int i = 0; i < ArraySize(h4_times); i++)
+    {
+        if(timeNow.hour == h4_times[i] && timeNow.min == 0 && timeNow.sec < 10)
+        {
+            Print("=== H4 Scan Time ", h4_times[i], ":00 GMT ===");
+            if(g_ptsStrategy && g_ptsStrategy.IsEnabled())
+            {
+                g_ptsStrategy.RunH4Scan();
+            }
+        }
+    }
+    // ========== END OF ADDED CODE ==========
     
     // Run strategy manager timer
     if(g_strategyManager)

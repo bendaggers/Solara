@@ -80,7 +80,7 @@ public:
         m_settings.magicNumber = 202412;
         
         // Build CSV file path
-        m_csvFilePath = "Files\\" + m_csvFileName;
+        m_csvFilePath = m_csvFileName;
     }
     
     // Destructor
@@ -245,19 +245,68 @@ public:
         return false;
     }
     
-    // Timer event - PTS specific timing logic
-    virtual void OnTimer() override
-    {
-        if(!m_settings.enabled)
-            return;
-        
-        // Check if we need to run daily filter (00:05 GMT)
-        MqlDateTime currentTime;
-        TimeCurrent(currentTime);
-        
-        // Run H4 scan for qualified pairs
-        RunH4Scan();
-    }
+   // Timer event - PTS specific timing logic
+   virtual void OnTimer() override
+   {
+       if(!m_settings.enabled)
+           return;
+       
+       MqlDateTime currentTime;
+       TimeCurrent(currentTime);
+       
+       // DEBUG: Print time occasionally
+       static int debugCounter = 0;
+       debugCounter++;
+       if(debugCounter % 30 == 0)
+       {
+           Print("PTS Timer: ", currentTime.hour, ":", currentTime.min, 
+                 ":", currentTime.sec, " | Total calls: ", debugCounter);
+       }
+       
+       // 1. Check for 00:05 GMT for Daily Filter
+       if(currentTime.hour == 0 && currentTime.min == 5)
+       {
+           // Prevent running multiple times in same minute
+           static datetime lastDailyFilterRun = 0;
+           if(TimeCurrent() - lastDailyFilterRun > 60)
+           {
+               Print("=== PTS: 00:05 GMT - Running Daily Filter ===");
+               RunDailyFilter();
+               
+               // Immediate H4 scan after daily filter
+               Print("=== PTS: Immediate H4 Scan after Daily Filter ===");
+               RunH4Scan();
+               
+               lastDailyFilterRun = TimeCurrent();
+           }
+       }
+       
+       // 2. Check for H4 scan times (04:00, 08:00, 12:00, 16:00, 20:00 GMT)
+       int h4ScanTimes[] = {4, 8, 12, 16, 20};
+       bool isH4ScanTime = false;
+       
+       for(int i = 0; i < ArraySize(h4ScanTimes); i++)
+       {
+           if(currentTime.hour == h4ScanTimes[i] && currentTime.min == 0)
+           {
+               isH4ScanTime = true;
+               break;
+           }
+       }
+       
+       // Run H4 scan at the correct times
+       if(isH4ScanTime)
+       {
+           // Prevent running multiple times in same minute
+           static datetime lastH4ScanRun = 0;
+           if(TimeCurrent() - lastH4ScanRun > 60)
+           {
+               Print("=== PTS: H4 Scan Time ", currentTime.hour, ":00 GMT ===");
+               RunH4Scan();
+               lastH4ScanRun = TimeCurrent();
+           }
+       }
+   }
     
     // Run Daily Filter (Layer 1)
     bool RunDailyFilter()
