@@ -100,8 +100,15 @@ int OnInit()
     {
         g_ptsStrategy = new CPTSStrategy();
         g_ptsStrategy.SetEnabled(true);
-        g_ptsStrategy.SetPTSParameters(PTS_SL_Multiplier, PTS_TP_Multiplier, 
-                                       PTS_BB_Period, PTS_BB_Deviation);
+
+        g_ptsStrategy.SetPTSParameters(PTS_SL_Multiplier, PTS_TP_Multiplier,
+                                        0.00015,  // emaSlopeThreshold
+                                        0.35,     // longBBMin
+                                        0.75,     // longBBMax
+                                        0.25,     // shortBBMin
+                                        0.65,     // shortBBMax
+                                        0.5,      // atrRatioThreshold
+                                        18);      // adxMinValue
         
         BaseSettings ptsSettings;
         ptsSettings.name = "Pullback_Trading_System";
