@@ -1,270 +1,652 @@
-# SOLARA Multi-Symbol Strategy Scanner - Functional Specification
+# SOLARA MULTI-STRATEGY SCANNER
 
-## Overview
-A lightweight MQL5 Expert Advisor that scans multiple currency pairs for trading opportunities using simple EMA crossover strategy. The EA operates in screening mode (logging signals to CSV) with optional auto-trading capabilities.
+## Functional Specification v2.0
 
-## Core Architecture
-```
-TradingScanner.mq5 - Main EA file (timer-driven execution)
-Symbols.txt - Plain text file listing symbols to scan
-ScannerCore.mqh - Core scanning and symbol management functions
-EMAStrategy.mqh - EMA crossover strategy implementation  
-TradeLogger.mqh - CSV logging and trade execution functions
-```
+### Document Control
 
-## File Specifications
+- Document Title: Solara Multi-Strategy Scanner Specification
+- Version: 2.0
+- Date: December 2024
+- Status: Active Development
+- Based On: Current working Solara.mq5 codebase
+- Target: Integration with Pullback Trading System (PTS)
 
-### 1. TradingScanner.mq5 (Main EA)
-**Responsibilities:**
-- Timer event handler (runs every 60 seconds)
-- Coordinates scanning process
-- Manages EA lifecycle (OnInit, OnDeinit, OnTimer)
+## 1\. EXECUTIVE SUMMARY
 
-**Input Parameters:**
-```mql5
-// General Settings
-input bool EnableTrading = false;           // Enable auto-trading (false = screening only)
-input string SymbolListFile = "Symbols.txt"; // File containing symbols to scan
-input int ScanIntervalSeconds = 60;         // Scanning frequency in seconds
+Solara is a multi-strategy trading scanner for MetaTrader 5 that operates in two modes:
 
-// EMA Strategy Settings
-input int EMA_FastPeriod = 20;              // Fast EMA period
-input int EMA_SlowPeriod = 50;              // Slow EMA period
-input double FixedLotSize = 0.01;           // Fixed lot size for trading
-input double DailyLossLimit = 100.0;        // Daily loss limit in USD per strategy
+- SCANNING MODE: Screen symbols for trading signals and log to CSV
+- TRADING MODE: Automatically execute trades based on signals
 
-// CSV Export Settings
-input string CSVFileName = "ScannerSignals.csv"; // Output CSV file name
-input bool AppendToCSV = true;              // Append to existing CSV file
-```
+Current Status: Solara.mq5 is operational with EMA crossover strategy.  
+New Integration: Adding Pullback Trading System (PTS) as a second strategy.
 
-### 2. Symbols.txt (Symbol Configuration)
-**Format:**
-```
-# Multi-Symbol Scanner - Symbol List
-# Add one symbol per line
-# Comments start with #
-# Example symbols:
+Key Features (Current + Planned):
 
-EURUSD
-GBPUSD
-USDJPY
-XAUUSD
-BTCUSD
-# NAS100  # Commented out - not scanned
-```
+- ✅ EMA 20/50 Crossover Strategy (Existing)
+- ✅ Multi-symbol scanning (40+ forex pairs)
+- ✅ Multi-timeframe scanning (H1, H4, D1)
+- ✅ CSV logging of all signals
+- ✅ Daily loss limits
+- 🔄 PULLBACK TRADING STRATEGY (New)
+- 🔄 Strategy toggle system (On/Off per strategy)
+- 🔄 Independent configuration per strategy
 
-**Rules:**
-- One symbol per line
-- Comments start with #
-- Blank lines are ignored
-- Symbols must be valid and available in Market Watch
+## 2\. CURRENT ARCHITECTURE (As Built)
 
-### 3. ScannerCore.mqh (Core Functions)
-**Functions:**
-```mql5
-// Reads symbols from text file
-bool ReadSymbolsFromFile(string filename, string &symbols[])
+### 2.1 File Structure (ACTUAL)
 
-// Checks if new bar has formed for given symbol/timeframe
-bool IsNewBar(string symbol, ENUM_TIMEFRAMES timeframe, datetime &lastBarTime)
+Solara/
 
-// Gets array of timeframes for strategy
-void GetStrategyTimeframes(ENUM_TIMEFRAMES &timeframes[])
+├── Solara.mq5 (MAIN EA - Working)
 
-// Validates if symbol exists and is tradeable
-bool IsValidSymbol(string symbol)
-```
+├── EMAStrategy.mqh (EMA Crossover Strategy)
 
-### 4. EMAStrategy.mqh (Strategy Logic)
-**Entry Conditions (ALL must be true):**
-1. **Current Price Position:**
-   - Current close price > EMA20
-   - Current close price > EMA50
+├── TradeLogger.mqh (CSV Logging & Trade Execution)
 
-2. **EMA Crossover (Previous Bar):**
-   - On previous bar (bar index 1):
-     - EMA20 > EMA50 (fast above slow)
-   - On bar before previous (bar index 2):
-     - EMA20 <= EMA50 (fast was below or equal to slow)
-   - This confirms crossover happened on previous bar
+├── ScannerCore.mqh (Utility Functions)
 
-3. **Crossover Freshness:**
-   - Crossover must have occurred exactly on previous bar
-   - Not older than 1 bar
+└── SymbolList.mqh (Symbol Definitions)
 
-**Exit Conditions (ANY triggers exit):**
-1. **Price Below EMA20:**
-   - Current close price < EMA20 value
-   - AND candle body does not touch EMA20 line
-   - Candle body defined as: (open + close) / 2
+### 2.2 Current Component Overview
 
-2. **Stop Loss (if trading enabled):**
-   - Fixed percentage or ATR-based stop loss
+| Component | Status | Purpose |
+| --- | --- | --- |
+| Solara.mq5 | ✅ Working | Main EA with timer-based scanning |
+| EMAStrategy.mqh | ✅ Working | EMA 20/50 crossover logic |
+| TradeLogger.mqh | ✅ Working | CSV logging & trade execution |
+| ScannerCore.mqh | ✅ Working | Symbol validation & new bar detection |
+| SymbolList.mqh | ✅ Working | List of symbols to scan |
 
-**Strategy Logic Flow:**
-```
-For each symbol in symbol list:
-  For each timeframe in [PERIOD_H1, PERIOD_H4, PERIOD_D1]:
-    If new bar formed:
-      Calculate EMA20 and EMA50 for current and previous bars
-      Check entry conditions
-      If entry signal:
-        Log signal to CSV
-        If trading enabled AND risk limits allow:
-          Place buy order with stop loss
-```
+## 3\. TARGET ARCHITECTURE (After PTS Integration)
 
-### 5. TradeLogger.mqh (Logging & Execution)
-**Functions:**
-```mql5
-// Logs signal to CSV file
-void LogSignalToCSV(string csvFile, string symbol, string strategy, 
-                   string signal, double price, double ema20, 
-                   double ema50, string timeframe, bool append = true)
+### 3.1 Revised File Structure
 
-// Executes trade if conditions met
-bool ExecuteTrade(string symbol, string strategy, ENUM_ORDER_TYPE type, 
-                 double lotSize, double slPoints, double tpPoints)
+Solara/
 
-// Checks daily loss limits
-bool CheckDailyLossLimit(string strategy, double dailyLossLimit)
+├── Solara.mq5 (MAIN EA - Enhanced)
 
-// Formats CSV row
-string FormatCSVRow(datetime timestamp, string symbol, string strategy, 
-                   string signal, double price, double ema20, 
-                   double ema50, string timeframe)
-```
+├── StrategyBase.mqh (NEW - Abstract base class)
 
-## CSV Output Format
-**File Location:** `MQL5/Files/ScannerSignals.csv`
+├── StrategyManager.mqh (NEW - Strategy orchestration)
 
-**Columns:**
-```
-Timestamp,Symbol,Strategy,Signal,Price,EMA20,EMA50,Timeframe,Action
-```
+├── Configuration.mqh (NEW - Central config)
 
-**Example Row:**
-```
-2024-01-15 14:30:00,EURUSD,EMA_Crossover,BUY,1.09542,1.09480,1.09320,H1,SCREENED
-```
+├── TradeLogger.mqh (Enhanced for multi-strategy)
 
-**Column Details:**
-- `Timestamp`: Signal detection time (YYYY-MM-DD HH:MM:SS)
-- `Symbol`: Currency pair (e.g., EURUSD)
-- `Strategy`: Strategy name (e.g., EMA_Crossover)
-- `Signal`: BUY or SELL (currently only BUY for this strategy)
-- `Price`: Entry price at signal detection
-- `EMA20`: EMA20 value at signal bar
-- `EMA50`: EMA50 value at signal bar  
-- `Timeframe`: Chart timeframe (H1, H4, D1, etc.)
-- `Action`: SCREENED (logged) or TRADED (if trading enabled)
+├── ScannerCore.mqh (Enhanced)
 
-## Timeframe Handling
-The strategy checks three timeframes independently:
-1. **H1 (1-hour)** - Checks every hour at minute 00
-2. **H4 (4-hour)** - Checks every 4 hours at hours 00, 04, 08, 12, 16, 20
-3. **D1 (Daily)** - Checks daily at 00:00
+├── SymbolList.mqh (No change)
 
-**New Bar Detection Logic:**
-- Each symbol/timeframe combination maintains last checked bar time
-- On each scan, compare current bar open time with last checked time
-- If different, new bar has formed and strategy should be evaluated
+└── Strategies/ (NEW - Strategy implementations)
 
-## Risk Management (When Trading Enabled)
-**Per-Strategy Limits:**
-1. **Fixed Lot Size:** Each trade uses predefined lot size
-2. **Daily Loss Limit:** Stops trading for strategy if daily loss exceeds limit
-3. **Maximum Open Positions:** 1 position per symbol per strategy
+├── EMAStrategy.mqh (Refactored to extend StrategyBase)
 
-**Daily Loss Tracking:**
-- Resets at 00:00 server time
-- Tracks net profit/loss per strategy
-- If loss > DailyLossLimit, strategy is disabled for rest of day
+└── PTSStrategy.mqh (NEW - Pullback Trading Strategy)
 
-## Error Handling
-**Critical Errors (EA stops):**
-- Symbol list file not found
-- No valid symbols to scan
-- File system errors (cannot write CSV)
+### 3.2 Component Relationships
 
-**Non-Critical Errors (Continue scanning):**
-- Individual symbol not available
-- Indicator calculation errors
-- Temporary connectivity issues
+text
 
-**Error Logging:**
-All errors logged to Experts journal with timestamp and details.
+┌─────────────────────────────────────────────┐
 
-## Performance Considerations
-**Scanning Efficiency:**
-- Scans only when new bar forms (not every tick)
-- 60-second timer interval (configurable)
-- Parallel symbol processing (not sequential)
+│ Solara.mq5 (Main EA) │
 
-**Resource Usage:**
-- Minimal memory footprint
-- No database dependencies
-- Simple file-based operations
+│ • Timer-based execution │
 
-## Setup Instructions
-1. **Prepare Symbol List:**
-   - Create `Symbols.txt` in `MQL5/Files/` folder
-   - Add one symbol per line
+│ • User input management │
 
-2. **Configure EA:**
-   - Attach EA to any chart (timeframe irrelevant)
-   - Set input parameters
-   - Enable/disable trading as needed
+│ • Chart event handling │
 
-3. **Monitor Output:**
-   - Check Experts tab for logs
-   - Review `ScannerSignals.csv` for signals
-   - Monitor trades if trading enabled
+└─────────────────────┬───────────────────────┘
 
-## Future Enhancement Placeholders
-**Marked with `// TODO:` comments in code:**
-1. **SMS Integration:** `// TODO: Implement SMS notification`
-2. **Additional Strategies:** `// TODO: Add more strategy modules`
-3. **Advanced Risk Management:** `// TODO: Implement dynamic position sizing`
-4. **Webhook Notifications:** `// TODO: Add webhook support`
-5. **Performance Analytics:** `// TODO: Add strategy performance tracking`
+│
 
-## Testing Protocol
-**Unit Tests:**
-1. Symbol list reading
-2. New bar detection
-3. EMA crossover logic
-4. CSV logging
+┌─────────────▼─────────────┐
 
-**Integration Tests:**
-1. Full scanning cycle
-2. Multiple symbol processing
-3. CSV file creation/append
-4. Trading execution (if enabled)
+│ StrategyManager.mqh │
 
-**Manual Tests:**
-1. Verify signals against manual chart analysis
-2. Check CSV format and data accuracy
-3. Test error handling scenarios
+│ • Strategy lifecycle │
 
-## Limitations
-1. **Single Strategy:** Currently implements only EMA crossover
-2. **Fixed Timeframes:** Hardcoded to H1, H4, D1 (configurable in code)
-3. **Basic Risk Management:** Simple fixed lot and daily loss limits
-4. **No Backtesting:** Designed for live scanning only
+│ • Risk coordination │
 
-## Support & Maintenance
-**Log Files:**
-- `ScannerSignals.csv` - All trading signals
-- Experts Journal - Error and operation logs
+│ • Performance tracking │
 
-**Troubleshooting:**
-1. No signals: Check symbol list and Market Watch
-2. CSV not updating: Check file permissions
-3. EA not running: Check timer events and errors
+└─────────────┬─────────────┘
 
-**Version History:**
-- v1.0: Initial release with EMA crossover strategy
-- v1.1: Added multi-timeframe support
-- v1.2: Enhanced CSV logging format
+│
+
+┌─────────────▼─────────────┐
+
+│ StrategyBase.mqh │
+
+│ (Abstract Interface) │
+
+└─────────────┬─────────────┘
+
+│
+
+┌─────────────────┼─────────────────┐
+
+▼ ▼ ▼
+
+┌─────────┐ ┌─────────┐ ┌─────────┐
+
+│ EMA │ │ PTS │ │ Future │
+
+│ Strategy│ │ Strategy│ │ Strategy│
+
+└─────────┘ └─────────┘ └─────────┘
+
+## 4\. STRATEGY TOGGLE SYSTEM (NEW FEATURE)
+
+### 4.1 User Interface Design
+
+// In Solara.mq5 Input Parameters
+
+input group "=== STRATEGY SELECTION ==="
+
+input bool Enable_EMA_Strategy = true; // \[✔\] Enable EMA Crossover
+
+input bool Enable_PTS_Strategy = false; // \[ \] Enable Pullback Trading
+
+input group "=== EMA STRATEGY SETTINGS ==="
+
+input int EMA_FastPeriod = 20;
+
+input int EMA_SlowPeriod = 50;
+
+// ... existing EMA inputs
+
+input group "=== PTS STRATEGY SETTINGS ==="
+
+input double PTS_LotSize = 0.01;
+
+input int PTS_MaxPositions = 10;
+
+input string PTS_CSVFile = "QualifiedPairs.csv";
+
+// ... PTS-specific inputs
+
+### 4.2 Toggle Behavior
+
+| State | Description |
+| --- | --- |
+| EMA ON, PTS OFF | Current behavior (backward compatible) |
+| EMA OFF, PTS ON | Test PTS strategy in isolation |
+| BOTH ON | Both strategies active (max positions apply) |
+| BOTH OFF | Scanner runs but no trades (monitoring only) |
+
+4.3 Magic Number Allocation
+
+| Strategy | Magic Number | Comment Format |
+| --- | --- | --- |
+| EMA | 12345 | "EMA_Crossover" |
+| PTS | 202412 | "PTS: H4 Pullback \[LONG/SHORT\]" |
+
+## 5\. EMA STRATEGY (CURRENT - To Be Refactored)
+
+### 5.1 Current Logic (As Coded)
+
+// Entry Conditions:
+
+1\. Previous bar: EMA20 > EMA50 (crossover)
+
+2\. Current bar: Close OR body midpoint > EMA20
+
+// Exit Conditions:
+
+1\. Current close < EMA20
+
+// Timeframes: H1, H4, D1 (user selectable)
+
+// Scanning: Every ScanIntervalSeconds
+
+### 5.2 Refactoring Requirements
+
+- Extend StrategyBase class
+- Maintain backward compatibility
+- Add toggle support
+- Separate configuration from logic
+
+## 6\. PTS STRATEGY (NEW - Based on PTS Spec)
+
+### 6.1 Core Logic
+
+// TWO-LAYER SYSTEM:
+
+// LAYER 1: Daily Filter (00:05 GMT)
+
+1\. Check D1 EMA50 trend (price above/below)
+
+2\. Check volatility (ATR > 50% of average)
+
+3\. Output: QualifiedPairs.csv
+
+// LAYER 2: 4-Hour Entry (6 times daily)
+
+1\. Read qualified pairs from CSV
+
+2\. Check Bollinger Band touch
+
+3\. Check reversal candle pattern
+
+4\. Enter with 1:2 risk-reward (2×ATR SL, 4×ATR TP)
+
+6.2 Schedule
+
+| Time (GMT) | Action |
+| --- | --- |
+| 00:05 | Daily Filter + Immediate H4 Scan |
+| 04:00 | H4 Scan |
+| 08:00 | H4 Scan |
+| 12:00 | H4 Scan |
+| 16:00 | H4 Scan |
+| 20:00 | H4 Scan |
+
+### 6.3 Entry Conditions
+
+For LONG (Buy dips in uptrend):
+
+- H4 price touches lower Bollinger Band
+- Bullish reversal candle (Engulfing/Hammer/Strong Close)
+
+For SHORT (Sell rallies in downtrend):
+
+- H4 price touches upper Bollinger Band
+- Bearish reversal candle (Engulfing/Shooting Star/Strong Close)
+
+### 6.4 Risk Management
+
+- Stop Loss: Entry ± 2×ATR
+- Take Profit: Entry ± 4×ATR (1:2 ratio)
+- Max Positions: 10 concurrent
+- One position per pair
+
+## 7\. CONFIGURATION SYSTEM
+
+### 7.1 Input Parameter Groups
+
+// Group 1: Global Settings (Apply to all strategies)
+
+input group "=== GLOBAL SETTINGS ==="
+
+input bool EnableTrading = false; // Master trading toggle
+
+input int ScanIntervalSeconds = 60; // Base scan frequency
+
+input double GlobalDailyLossLimit = 500.0; // Total daily loss limit
+
+// Group 2: EMA Strategy
+
+input group "=== EMA STRATEGY ==="
+
+input bool Enable_EMA_Strategy = true;
+
+// ... EMA-specific inputs
+
+// Group 3: PTS Strategy
+
+input group "=== PTS STRATEGY ==="
+
+input bool Enable_PTS_Strategy = false;
+
+// ... PTS-specific inputs
+
+7.2 CSV Files Management
+
+| File | Purpose | Strategy |
+| --- | --- | --- |
+| ScannerSignals.csv | All trade signals | Both |
+| QualifiedPairs.csv | Daily qualified pairs | PTS only |
+| TradeLog.csv | Executed trades | Both |
+
+## 8\. RISK MANAGEMENT SYSTEM
+
+### 8.1 Multi-Level Risk Controls
+
+text
+
+┌─────────────────────────────────────┐
+
+│ GLOBAL RISK MANAGER │
+
+│ • Total daily loss limit │
+
+│ • Max total positions (20) │
+
+│ • Symbol blacklisting │
+
+└───────────────┬─────────────────────┘
+
+│
+
+┌───────────┼───────────┐
+
+▼ ▼ ▼
+
+┌───────┐ ┌───────┐ ┌───────┐
+
+│ EMA │ │ PTS │ │ Future│
+
+│ Risk │ │ Risk │ │ Risk │
+
+└───────┘ └───────┘ └───────┘
+
+• Daily • Daily • Daily
+
+loss loss loss
+
+• Max • Max • Max
+
+positions positions positions
+
+### 8.2 Position Counting
+
+// Per Strategy: Count by magic number
+
+int EMA_Positions = CountPositionsByMagic(12345);
+
+int PTS_Positions = CountPositionsByMagic(202412);
+
+// Global: Sum of all strategies
+
+int Total_Positions = EMA_Positions + PTS_Positions;
+
+### 8.3 Loss Tracking
+
+// Separate tracking per strategy
+
+double EMA_DailyLoss = 0.0;
+
+double PTS_DailyLoss = 0.0;
+
+// Global tracking
+
+double Global_DailyLoss = EMA_DailyLoss + PTS_DailyLoss;
+
+## 9\. EXECUTION FLOW
+
+### 9.1 Initialization Sequence
+
+mql5
+
+OnInit()
+
+↓
+
+Load SymbolList.mqh
+
+↓
+
+Initialize TradeLogger
+
+↓
+
+Initialize StrategyManager
+
+↓
+
+IF Enable_EMA_Strategy → Load EMAStrategy
+
+↓
+
+IF Enable_PTS_Strategy → Load PTSStrategy
+
+↓
+
+Set Timer (ScanIntervalSeconds)
+
+↓
+
+Start Strategies
+
+9.2 Timer Execution Flow
+
+mql5
+
+OnTimer()
+
+↓
+
+StrategyManager.OnTimer()
+
+↓
+
+├── IF 00:05 GMT → PTS.DailyFilter()
+
+│ └── Create QualifiedPairs.csv
+
+│
+
+├── IF H4 Scan Time → PTS.H4Scan()
+
+│ └── Check qualified pairs for entries
+
+│
+
+├── EMA Strategy Scan
+
+│ └── Check all symbols on selected timeframes
+
+│
+
+└── Update Statistics & Chart Comment
+
+### 9.3 Trade Execution Flow
+
+Strategy Generates Signal
+
+↓
+
+Check: Is strategy enabled? (Toggle)
+
+↓
+
+Check: Daily loss limit not exceeded
+
+↓
+
+Check: Max positions not reached
+
+↓
+
+Check: No existing position on symbol
+
+↓
+
+Execute Trade via TradeLogger
+
+↓
+
+Log to CSV & Update Statistics
+
+## 10\. ERROR HANDLING
+
+### 10.1 Error Categories
+
+| Category | Examples | Response |
+| --- | --- | --- |
+| Configuration | Invalid period, lot size | Log error, disable strategy |
+| Market Data | Symbol not available | Skip symbol, log warning |
+| File I/O | Cannot open CSV | Retry, log error |
+| Trade Execution | Order rejected | Log error, no retry |
+
+### 10.2 Recovery Procedures
+
+- CSV File Missing: Recreate file on next daily filter
+- Indicator Failure: Release handles, recreate
+- Broker Disconnect: Pause trading until reconnected
+- Memory Issue: Clear cache, restart timer
+
+## 11\. PERFORMANCE MONITORING
+
+### 11.1 Real-time Statistics
+
+// Per Strategy Metrics
+
+struct StrategyMetrics {
+
+string name;
+
+int signals_today;
+
+int trades_today;
+
+int wins_today;
+
+int losses_today;
+
+double pnl_today;
+
+double pnl_total;
+
+};
+
+// Global Metrics
+
+int TotalScans = 0;
+
+int TotalSignals = 0;
+
+int TotalTrades = 0;
+
+datetime LastScanTime = 0;
+
+11.2 Chart Comment Display
+
+Solara Scanner v2.0
+
+\====================
+
+Mode: TRADING | SCANNING: ON
+
+Strategies: EMA\[ON\] PTS\[OFF\]
+
+Symbols: 40 | Scans: 1245
+
+Signals: 45 | Trades: 12
+
+Daily P&L: EMA: +\$45 | PTS: \$0
+
+Total P&L: +\$320
+
+Last Scan: 14:32:05
+
+Next Scan: 14:33:05
+
+## 12\. TESTING REQUIREMENTS
+
+### 12.1 Unit Tests
+
+- EMA Strategy: Verify crossover logic, exit conditions
+- PTS Strategy: Verify daily filter, H4 entry logic
+- Toggle System: Verify enable/disable functionality
+- Risk Management: Verify position counting, loss limits
+
+### 12.2 Integration Tests
+
+- Both Strategies ON: Verify no interference
+- CSV Operations: Verify file creation/reading
+- Timer Accuracy: Verify 00:05 GMT execution
+- Trade Execution: Verify correct magic numbers
+
+### 12.3 Backtesting Requirements
+
+| Strategy | Minimum Period | Pairs | Win Rate Target |
+| --- | --- | --- | --- |
+| EMA | 2 years | All in SymbolList | \>35% |
+| PTS | 3 years | All in SymbolList | \>35% |
+| Combined | 2 years | All in SymbolList | \>35% |
+
+## 13\. MIGRATION PATH
+
+### 13.1 Phase 1: Preparation (Week 1)
+
+- ✅ Analyze current code (DONE)
+- ✅ Update functional specs (THIS DOCUMENT)
+- Create StrategyBase.mqh
+- Create StrategyManager.mqh
+- Create Configuration.mqh
+
+### 13.2 Phase 2: Refactoring (Week 2)
+
+- Refactor EMAStrategy to extend StrategyBase
+- Update TradeLogger for multi-strategy support
+- Add toggle system to Solara.mq5
+- Test EMA strategy still works
+
+### 13.3 Phase 3: PTS Development (Week 3)
+
+- Create PTSStrategy.mqh
+- Implement daily filter (00:05 GMT)
+- Implement H4 scanning schedule
+- Implement 1:2 risk-reward exits
+
+### 13.4 Phase 4: Integration (Week 4)
+
+- Integrate PTS into StrategyManager
+- Test both strategies together
+- Verify risk management across strategies
+- Demo testing (2 weeks minimum)
+
+### 13.5 Phase 5: Optimization (Future)
+
+- Add advanced risk management
+- Add performance reporting
+- Add additional strategies
+
+## 14\. SUCCESS CRITERIA
+
+### 14.1 Functional Requirements
+
+- EMA strategy works exactly as before
+- Users can toggle strategies on/off
+- PTS strategy executes per specification
+- Both strategies can run simultaneously
+- Risk limits are enforced per strategy
+- CSV logging works for both strategies
+
+### 14.2 Performance Requirements
+
+- No degradation in scanning speed
+- Memory usage within limits
+- Accurate 00:05 GMT execution for PTS
+- Trade execution within 5 seconds
+
+### 14.3 Quality Requirements
+
+- No crashes in 30-day demo test
+- Backtest shows positive expectancy
+- All errors properly logged
+- Configuration persists across restarts
+
+## 15\. GLOSSARY
+
+| Term | Definition |
+| --- | --- |
+| EMA Strategy | Existing EMA 20/50 crossover system |
+| PTS Strategy | Pullback Trading System (new) |
+| Qualified Pairs | Pairs that pass daily trend filter (PTS) |
+| Magic Number | Unique ID for strategy's trades |
+| Toggle System | On/Off switch for each strategy |
+| Daily Filter | PTS process that runs at 00:05 GMT |
+| H4 Scan | PTS entry check that runs 6x daily |
+
+## 16\. APPENDICES
+
+Appendix A: Current Code Summary
+
+- Solara.mq5: 500+ lines, timer-based, working
+- EMAStrategy.mqh: 300+ lines, crossover logic
+- TradeLogger.mqh: 400+ lines, CSV and execution
+- ScannerCore.mqh: 100+ lines, utilities
+- SymbolList.mqh: 50+ lines, 40+ symbols
+
+Appendix B: PTS Specification Summary
+
+- Strategy: Pullback trading in trends
+- Timeframes: D1 for trend, H4 for entry
+- Entry: BB touch + reversal candle
+- Exit: Fixed 1:2 risk-reward ratio
+- Schedule: Daily filter at 00:05, H4 scans every 4 hours
