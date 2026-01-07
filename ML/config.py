@@ -16,35 +16,35 @@ CONFIG = {
         # Core BB Features
         'bb_touch_strength',      # How close to lower BB (low/lower_band)
         'bb_position',            # Position in BB channel ((close-lower)/(upper-lower))
-        'bb_width_pct',           # BB width as % ((upper-lower)/middle*100)
+        # 'bb_width_pct',           # BB width as % ((upper-lower)/middle*100)
         
         # RSI Features
         'rsi_value',              # RSI value
         'rsi_divergence',         # Bullish divergence (0/1)
         
         # Volume & Candle Features
-        'volume_ratio',           # Current volume / 20-period average
+        # 'volume_ratio',           # Current volume / 20-period average
         'candle_rejection',       # Lower wick / candle body
         'candle_body_pct',        # (close-open)/close*100
         
         # Volatility & Trend
-        'atr_pct',                # ATR as % of price
-        'trend_strength',         # Higher timeframe trend
+        # 'atr_pct',                # ATR as % of price
+        # 'trend_strength',         # Higher timeframe trend
         
         # Previous Candle Context (CRITICAL!)
         'prev_candle_body_pct',   # Previous candle body %
         'prev_volume_ratio',      # Previous volume ratio
-        'gap_from_prev_close',    # Gap from previous close
+        # 'gap_from_prev_close',    # Gap from previous close
         'price_momentum',         # New low momentum
-        'prev_was_selloff',       # Was previous a selloff? (0/1)
+        # 'prev_was_selloff',       # Was previous a selloff? (0/1)
         
         # Support & History
-        'previous_touches',       # Recent BB touches count
+        # 'previous_touches',       # Recent BB touches count
         'time_since_last_touch',  # Candles since last touch
-        'support_distance_pct',   # Distance to support
+        # 'support_distance_pct',   # Distance to support
         
         # Session
-        'session',                # Trading session
+        # 'session',                # Trading session
     ],
     
     # Model settings
@@ -52,16 +52,17 @@ CONFIG = {
         'type': 'random_forest',
         'params': {
             'n_estimators': 100,
-            'max_depth': 5,
-            'min_samples_split': 20,
+            'max_depth': 3,
+            'min_samples_split': 30,
             'class_weight': 'balanced',
             'random_state': 42,
+            'min_samples_leaf': 10
         }
     },
     
     # Trading rules
     'trading': {
-        'min_confidence': 0.60,      # Only trade if probability > 60%
+        'min_confidence': 0.65,      # Only trade if probability > 65%
         'reward_risk_ratio': 3.0,    # Assume 3:1 reward:risk (BB width)
         'max_daily_trades': 2,
         'position_size_pct': 2.0,    # Risk 2% per trade
@@ -69,8 +70,8 @@ CONFIG = {
     
     # Validation thresholds
     'thresholds': {
-        'min_precision': 0.40,       # At least 40% of signals should win
-        'min_recall': 0.50,          # Catch at least 50% of opportunities
-        'min_accuracy': 0.55,        # At least 55% overall accuracy
+        'min_precision': 0.45,       # At least 40% of signals should win
+        'min_recall': 0.55,          # Catch at least 50% of opportunities
+        'min_accuracy': 0.60,        # At least 55% overall accuracy
     }
 }
