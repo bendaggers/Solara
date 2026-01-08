@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "generated_at": "2026-01-08T10:28:37.908081",
+    "total_rows": 1485,
+    "raw_signals_count": 263,
+    "raw_signal_rate": 0.1771043771043771,
+    "filtered_signals_count": 263,
+    "filtered_signal_rate": 0.1771043771043771,
+    "average_confidence": 0.7387185593467984,
+    "min_confidence": 0.65,
+    "min_signal_strength": "Medium"
+  },
+  "signal_distribution": {
+    "strong": 95,
+    "medium": 168,
+    "weak": 396,
+    "none": 826,
+    "raw_signals": 263,
+    "filtered_signals": 263
+  },
+  "confidence_thresholds": {
+    "strong": 0.75,
+    "medium": 0.65,
+    "weak": 0.5,
+    "none": 0.0
+  }
+}
