@@ -37,8 +37,8 @@ public:
     // Constructor
     CEMAStrategy() : CStrategyBase()
     {
-        m_strategyName = "EMA_Crossover";
-        m_type = STRATEGY_TYPE_EMA;
+        m_strategyName = "BB_REVERSAL";
+        m_type = STRATEGY_TYPE_BBREVERSAL;
         m_fastPeriod = 20;
         m_slowPeriod = 50;
         m_stateCount = 0;

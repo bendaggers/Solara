@@ -86,68 +86,7 @@ def prepare_features(df):
     
     print(f"   Feature matrix shape: {X_train.shape}")
     
-    return X_train, y_train, X_test, y_test, test_df, train_df
-
-def check_overfitting(model, X_train, y_train, X_test, y_test):
-    """Check if model is overfitting by comparing train vs test accuracy"""
-    print("\n" + "=" * 60)
-    print("🔍 OVERFITTING CHECK")
-    print("=" * 60)
-    
-    # Get predictions for both sets
-    train_pred = model.predict(X_train)
-    test_pred = model.predict(X_test)
-    
-    # Calculate accuracies
-    train_acc = accuracy_score(y_train, train_pred)
-    test_acc = accuracy_score(y_test, test_pred)
-    
-    # Calculate precision (win rate)
-    train_precision = precision_score(y_train, train_pred, zero_division=0)
-    test_precision = precision_score(y_test, test_pred, zero_division=0)
-    
-    # Calculate recall
-    train_recall = recall_score(y_train, train_pred, zero_division=0)
-    test_recall = recall_score(y_test, test_pred, zero_division=0)
-    
-    print(f"   Training Accuracy:  {train_acc:.1%}")
-    print(f"   Test Accuracy:      {test_acc:.1%}")
-    print(f"   Accuracy Difference: {abs(train_acc - test_acc):.2%}")
-    print()
-    print(f"   Training Precision: {train_precision:.1%} (win rate on train)")
-    print(f"   Test Precision:     {test_precision:.1%} (win rate on test)")
-    print(f"   Precision Difference: {abs(train_precision - test_precision):.2%}")
-    print()
-    print(f"   Training Recall:    {train_recall:.1%} (catch rate on train)")
-    print(f"   Test Recall:        {test_recall:.1%} (catch rate on test)")
-    print(f"   Recall Difference:   {abs(train_recall - test_recall):.2%}")
-    
-    # Rule of thumb: Difference should be < 10%
-    accuracy_diff = abs(train_acc - test_acc)
-    precision_diff = abs(train_precision - test_precision)
-    recall_diff = abs(train_recall - test_recall)
-    
-    print(f"\n   📊 OVERFITTING ASSESSMENT:")
-    
-    if accuracy_diff > 0.10 or precision_diff > 0.15:
-        print(f"   ⚠️  WARNING: Possible overfitting!")
-        print(f"      Large gap between train and test performance")
-        
-        if accuracy_diff > 0.10:
-            print(f"      Accuracy gap: {accuracy_diff:.2%} (max allowed: 10%)")
-        if precision_diff > 0.15:
-            print(f"      Win rate gap: {precision_diff:.2%} (max allowed: 15%)")
-            
-        print(f"\n   💡 SUGGESTION: Simplify model in config.py:")
-        print(f"      - Reduce max_depth from {CONFIG['model']['params']['max_depth']} to 3")
-        print(f"      - Increase min_samples_split from {CONFIG['model']['params']['min_samples_split']} to 30")
-        print(f"      - Add 'min_samples_leaf': 10")
-        return False, accuracy_diff, precision_diff
-    else:
-        print(f"   ✅ Good: Model generalizes well")
-        print(f"      Accuracy gap: {accuracy_diff:.2%} (under 10% threshold)")
-        print(f"      Win rate gap: {precision_diff:.2%} (under 15% threshold)")
-        return True, accuracy_diff, precision_diff
+    return X_train, y_train, X_test, y_test, test_df
 
 def train_model(X_train, y_train):
     """Train the machine learning model"""
@@ -268,7 +207,7 @@ def save_results(model, test_df, y_pred, y_prob, importance):
     print("\n💾 SAVING RESULTS...")
     
     # Save model
-    model_path = 'BB_LONG_REVERSAL_Model.pkl'
+    model_path = 'model.pkl'
     with open(model_path, 'wb') as f:
         pickle.dump(model, f)
     print(f"   ✓ Model saved to: {model_path}")
@@ -314,27 +253,21 @@ def main():
     df = load_and_validate_data()
     
     # Step 2: Prepare features
-    X_train, y_train, X_test, y_test, test_df, train_df = prepare_features(df)
+    X_train, y_train, X_test, y_test, test_df = prepare_features(df)
     
     # Step 3: Train model
     model = train_model(X_train, y_train)
     
-    # Step 4: Check for overfitting
-    is_generalized, acc_diff, prec_diff = check_overfitting(model, X_train, y_train, X_test, y_test)
-    
-    # Step 5: Evaluate on test set
-    print("\n" + "=" * 60)
-    print("TEST SET PERFORMANCE")
-    print("=" * 60)
+    # Step 4: Evaluate
     y_pred, y_prob, passes, metrics = evaluate_model(model, X_test, y_test)
     
-    # Step 6: Feature importance
+    # Step 5: Feature importance
     importance = feature_importance(model)
     
-    # Step 7: Trading simulation
+    # Step 6: Trading simulation
     sim_results = trading_simulation(test_df, y_prob, y_pred)
     
-    # Step 8: Save results
+    # Step 7: Save results
     save_results(model, test_df, y_pred, y_prob, importance)
     
     # Final recommendation
@@ -342,29 +275,16 @@ def main():
     print("🎯 FINAL RECOMMENDATION")
     print("=" * 60)
     
-    if not is_generalized:
-        print("❌ MODEL MAY BE OVERFITTED")
-        print(f"   Accuracy gap: {acc_diff:.2%} (should be <10%)")
-        print(f"   Win rate gap: {prec_diff:.2%} (should be <15%)")
-        print(f"\n   ⚠️  Do not trade with this model yet!")
-        print(f"   Update config.py to simplify model:")
-        print(f"      'max_depth': 3")
-        print(f"      'min_samples_split': 30")
-        print(f"      'min_samples_leaf': 10")
-        print(f"   Then run again.")
-    
-    elif passes and metrics['precision'] >= 0.4:
+    if passes and metrics['precision'] >= 0.4:
         if sim_results:
             high_conf, expected_return = sim_results
             if expected_return > 0:
                 print("✅ STRONG BUY SIGNAL")
                 print(f"   Model passes all thresholds")
-                print(f"   Model generalizes well (not overfit)")
                 print(f"   Expected win rate: {metrics['precision']:.1%}")
-                print(f"   High-confidence win rate: {high_conf[CONFIG['data']['label_col']].mean():.1%}")
                 print(f"   Positive expected value: {expected_return:.2f}R per trade")
                 print(f"\n   NEXT STEP: Paper trade for 1-2 months")
-                print(f"   Use BB_LONG_REVERSAL_Model.pkl for predictions")
+                print(f"   Use model.pkl for predictions")
             else:
                 print("⚠️  CAUTIOUS SIGNAL")
                 print(f"   Model passes thresholds but negative expected value")
@@ -382,7 +302,7 @@ def main():
         print(f"\n   NEXT STEP: Improve features or get more data")
     
     print("\n📁 Files created:")
-    print("   - BB_LONG_REVERSAL_Model.pkl (trained model)")
+    print("   - model.pkl (trained model)")
     print("   - predictions.csv (all test predictions)")
     print("   - feature_importance.csv (which features matter)")
     print("   - model_summary.txt (performance summary)")

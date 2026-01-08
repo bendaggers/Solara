@@ -14,8 +14,9 @@
 enum ENUM_STRATEGY_TYPE
 {
     STRATEGY_TYPE_NONE = 0,
-    STRATEGY_TYPE_EMA = 1,
+    STRATEGY_TYPE_BBREVERSAL = 1,
     STRATEGY_TYPE_PTS = 2
+    
 };
 
 //+------------------------------------------------------------------+
@@ -84,7 +85,7 @@ protected:
     
 public:
     // Constructor
-    CStrategyBase() { m_strategyName = "BaseStrategy"; m_type = STRATEGY_TYPE_EMA; } 
+    CStrategyBase() { m_strategyName = "BaseStrategy"; m_type = STRATEGY_TYPE_BBREVERSAL; } 
     
     // Virtual destructor
     virtual ~CStrategyBase() {}

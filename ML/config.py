@@ -16,35 +16,34 @@ CONFIG = {
         # Core BB Features
         'bb_touch_strength',      # How close to lower BB (low/lower_band)
         'bb_position',            # Position in BB channel ((close-lower)/(upper-lower))
-        # 'bb_width_pct',           # BB width as % ((upper-lower)/middle*100)
         
         # RSI Features
         'rsi_value',              # RSI value
         'rsi_divergence',         # Bullish divergence (0/1)
         
         # Volume & Candle Features
-        # 'volume_ratio',           # Current volume / 20-period average
         'candle_rejection',       # Lower wick / candle body
         'candle_body_pct',        # (close-open)/close*100
-        
-        # Volatility & Trend
-        # 'atr_pct',                # ATR as % of price
-        # 'trend_strength',         # Higher timeframe trend
         
         # Previous Candle Context (CRITICAL!)
         'prev_candle_body_pct',   # Previous candle body %
         'prev_volume_ratio',      # Previous volume ratio
-        # 'gap_from_prev_close',    # Gap from previous close
         'price_momentum',         # New low momentum
-        # 'prev_was_selloff',       # Was previous a selloff? (0/1)
-        
+
         # Support & History
-        # 'previous_touches',       # Recent BB touches count
         'time_since_last_touch',  # Candles since last touch
+
+        # Volatility & Trend
+        # 'atr_pct',                # ATR as % of price
+        # 'trend_strength',         # Higher timeframe trend
+        # 'volume_ratio',           # Current volume / 20-period average
+        # 'bb_width_pct',           # BB width as % ((upper-lower)/middle*100)
+        # 'gap_from_prev_close',    # Gap from previous close
+        # 'prev_was_selloff',       # Was previous a selloff? (0/1)
+        # 'previous_touches',       # Recent BB touches count
         # 'support_distance_pct',   # Distance to support
-        
-        # Session
         # 'session',                # Trading session
+
     ],
     
     # Model settings
