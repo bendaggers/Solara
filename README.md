@@ -7,7 +7,7 @@ This system automates trading decisions using a machine learning model to identi
 ## Workflow
 
 ### Stage 1: Data Collection (MT5)
-- **Tool**: `DataExporter.ex5` (MetaTrader 5 Expert Advisor)
+- **Tool**: `MarketDataExporter.ex5` (MetaTrader 5 Expert Advisor)
 - **Action**: Exports current market data to a CSV file
 - **Output Location**:
 `C:\Users\<your username>\AppData\Roaming\MetaQuotes\Terminal\<terminal id>\MQL5\Files`
@@ -111,3 +111,7 @@ This setup does not require a virtual environment. Packages will be installed sy
 Using the exact Python version (3.11.7) ensures compatibility with pre-trained models and avoids pickle issues.
 
 For reproducibility or deployment to other machines, keep the requirements.txt file updated.
+
+## Glossary
+
+**MarketDataExporter EA** - The MarketDataExporter EA automatically exports comprehensive market data (28+ technical features including Bollinger Bands, RSI, volume analysis, trend strength, and session detection) for multiple currency pairs in real-time. After each candle closes on the selected timeframe, it waits a configurable delay (15-300 seconds), calculates all indicators using proven sequential methods, then exports the data to both JSON (marketdata_[TF].json) and timestamped CSV files in the MQL5/Files directory, providing accurate 6-decimal precision for prices and 2-decimal precision for RSI values for integration with trading systems, analysis tools, or machine learning models.
