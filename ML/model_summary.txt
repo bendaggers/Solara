@@ -1,7 +1,0 @@
-Bollinger Band Reversal Model Summary
-====================================
-Training samples: 856
-Test samples: 214
-Accuracy: 80.4%
-Precision: 66.7%
-Recall: 83.3%
