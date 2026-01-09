@@ -1,0 +1,11 @@
+feature,importance
+candle_body_pct,0.534086385822937
+price_momentum,0.11580184280424302
+candle_rejection,0.07996277119705607
+prev_candle_body_pct,0.07405831512258533
+bb_position,0.07192027380996795
+time_since_last_touch,0.03405904400057217
+bb_touch_strength,0.03303447020508987
+prev_volume_ratio,0.028014266541213383
+rsi_value,0.02084480468051691
+rsi_divergence,0.008217825815818336

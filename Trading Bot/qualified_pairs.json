@@ -1,0 +1,82 @@
+{
+  "timestamp": "2026-01-09T11:47:03.401230",
+  "timeframe": "H4",
+  "predictions": {
+    "EURUSD": {
+      "prediction": 0,
+      "probability": 0.9691354043066689,
+      "confidence": 0.9382708086133381,
+      "timestamp": "2010.02.25 04:00:00",
+      "price": 1.34646,
+      "features_used": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ]
+    },
+    "AUDUSD": {
+      "prediction": 1,
+      "probability": 0.9435572149723197,
+      "confidence": 0.8871144299446394,
+      "timestamp": "2010.01.04 04:00:00",
+      "price": 1.43004,
+      "features_used": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ]
+    },
+    "USDJPY": {
+      "prediction": 0,
+      "probability": 0.959397243769729,
+      "confidence": 0.9187944875394586,
+      "timestamp": "2010.01.08 04:00:00",
+      "price": 1.42926,
+      "features_used": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ]
+    },
+    "GBPUSD": {
+      "prediction": 1,
+      "probability": 0.9041593944893159,
+      "confidence": 0.8083187889786319,
+      "timestamp": "2010.01.08 08:00:00",
+      "price": 1.43221,
+      "features_used": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ]
+    }
+  }
+}

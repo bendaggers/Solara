@@ -1,4 +1,4 @@
-# SOLARA Machine Learning Trading System (Version 3)
+# SOLARA Machine Learning Trading System
 
 ## Overview
 

@@ -249,6 +249,9 @@ def main():
     print("BOLLINGER BAND REVERSAL TRADING MODEL")
     print("=" * 60)
     
+    # TEMPORARY
+    analyze_training_data_distributions()
+
     # Step 1: Load data
     df = load_and_validate_data()
     
@@ -307,6 +310,107 @@ def main():
     print("   - feature_importance.csv (which features matter)")
     print("   - model_summary.txt (performance summary)")
     print("\nGood luck with your trading! 🚀")
+
+def analyze_training_data_distributions():
+    """
+    ONE-TIME ANALYSIS: Check feature distributions in training data
+    This tells us EXACTLY what the model was trained on
+    """
+    print("=" * 60)
+    print("📊 TRAINING DATA FEATURE ANALYSIS (One-time check)")
+    print("=" * 60)
+    
+    # Load the data
+    df = pd.read_csv(CONFIG['data']['file_path'])
+    
+    print(f"\nAnalyzing {len(CONFIG['features'])} features from: {CONFIG['data']['file_path']}")
+    print(f"Total samples: {len(df)}")
+    
+    # Create analysis table
+    analysis_data = []
+    
+    for feature in CONFIG['features']:
+        if feature in df.columns:
+            values = df[feature].dropna()
+            if len(values) > 0:
+                min_val = values.min()
+                max_val = values.max()
+                mean_val = values.mean()
+                std_val = values.std()
+                
+                # Determine if normalized (0-1 range)
+                is_normalized = (min_val >= 0 and max_val <= 1.1)  # Allow slight overflow
+                
+                # Determine data type
+                if feature in ['rsi_divergence', 'prev_was_selloff']:
+                    data_type = 'Binary (0/1)'
+                elif feature == 'rsi_value':
+                    data_type = 'RSI (0-100)'
+                elif feature == 'time_since_last_touch':
+                    data_type = f'Count (max {int(max_val)})'
+                elif min_val >= 0 and max_val <= 1:
+                    data_type = 'Normalized (0-1)'
+                else:
+                    data_type = 'Raw value'
+                
+                analysis_data.append({
+                    'Feature': feature,
+                    'Min': f"{min_val:.4f}",
+                    'Max': f"{max_val:.4f}",
+                    'Mean': f"{mean_val:.4f}",
+                    'Std': f"{std_val:.4f}",
+                    'Type': data_type,
+                    'Normalized?': '✓' if is_normalized else '✗'
+                })
+    
+    # Create and display analysis table
+    analysis_df = pd.DataFrame(analysis_data)
+    print("\n" + analysis_df.to_string(index=False))
+    
+    # Specific checks for critical features
+    print("\n🔍 CRITICAL FEATURE CHECKS:")
+    
+    # Check RSI
+    if 'rsi_value' in df.columns:
+        rsi_min = df['rsi_value'].min()
+        rsi_max = df['rsi_value'].max()
+        print(f"RSI Value: {rsi_min:.1f} to {rsi_max:.1f}")
+        if rsi_min >= 0 and rsi_max <= 100:
+            print("  → Model trained on RAW RSI (0-100)")
+        elif rsi_min >= 0 and rsi_max <= 1:
+            print("  → Model trained on NORMALIZED RSI (0-1)")
+        else:
+            print("  ⚠️  RSI in unusual range!")
+    
+    # Check time_since_last_touch
+    if 'time_since_last_touch' in df.columns:
+        time_min = df['time_since_last_touch'].min()
+        time_max = df['time_since_last_touch'].max()
+        time_mean = df['time_since_last_touch'].mean()
+        print(f"Time Since Last Touch: {time_min:.1f} to {time_max:.1f} (mean: {time_mean:.1f})")
+        
+        if time_max <= 20:
+            print(f"  → Likely raw count (0-{int(time_max)})")
+        elif time_max <= 1:
+            print(f"  → Already normalized (0-1)")
+        else:
+            print(f"  ⚠️  Unusual range - check calculation")
+    
+    # Check binary features
+    binary_features = ['rsi_divergence']
+    for feature in binary_features:
+        if feature in df.columns:
+            unique = sorted(df[feature].dropna().unique())
+            print(f"{feature}: Unique values {unique}")
+    
+    print("\n✅ ANALYSIS COMPLETE")
+    print("   Use these findings to configure Solara preprocessor")
+    
+    # Save analysis to file for reference
+    analysis_df.to_csv('training_data_analysis.csv', index=False)
+    print("   📄 Saved detailed analysis to: training_data_analysis.csv")
+    
+    return analysis_df
 
 if __name__ == "__main__":
     main()

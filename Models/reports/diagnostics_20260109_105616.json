@@ -1,0 +1,65 @@
+{
+  "timestamp": "2026-01-09T10:56:16.449071",
+  "model_path": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Models\\BB_LONG_REVERSAL_Model.pkl",
+  "threshold": 0.7,
+  "results": {
+    "file_check": {
+      "exists": true,
+      "size": 145089,
+      "path": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Models\\BB_LONG_REVERSAL_Model.pkl",
+      "readable": true
+    },
+    "model_load": {
+      "loaded": true,
+      "type": "sklearn.ensemble._forest.RandomForestClassifier",
+      "features_in": 10
+    },
+    "feature_check": {
+      "has_feature_names": true,
+      "expected_features": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ],
+      "count_match": true,
+      "names_match": true,
+      "preprocessor_features": [
+        "bb_touch_strength",
+        "bb_position",
+        "rsi_value",
+        "rsi_divergence",
+        "candle_rejection",
+        "candle_body_pct",
+        "prev_candle_body_pct",
+        "prev_volume_ratio",
+        "price_momentum",
+        "time_since_last_touch"
+      ]
+    },
+    "threshold_check": {
+      "current_threshold": 0.7,
+      "recommended": null
+    },
+    "prediction_test": {
+      "samples_tested": 3,
+      "predictions_work": true
+    },
+    "metadata_check": {
+      "found": true,
+      "files": [
+        "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Models\\reports"
+      ]
+    },
+    "performance_sim": {
+      "simulation_run": true
+    }
+  },
+  "recommendations": []
+}

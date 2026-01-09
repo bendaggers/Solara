@@ -1,14 +1,5 @@
 """
 Data Loader - The Information Gatherer
-
-Think of this as your system's research assistant who visits the library of 
-market data. When the EA writes new market information to a JSON file, the 
-data loader is the first to arrive, carefully picking up this fresh data and 
-checking it for completeness. It ensures all the necessary information is 
-present (like checking you have all pages of a document), converts timestamps 
-into proper dates, and organizes everything neatly so the next stages can 
-work with clean, reliable information. Without this careful validation, the 
-entire system could make decisions based on incomplete or corrupted data.
 """
 
 import json
@@ -42,6 +33,29 @@ class DataLoader:
             raise Exception(f"Data file not found: {self.data_path}")
         except json.JSONDecodeError:
             raise Exception(f"Invalid JSON format in: {self.data_path}")
+    
+    def get_all_symbols(self, data):
+        """
+        Extract all symbols from the loaded data
+        Returns: List of symbol names
+        """
+        symbols = []
+        if 'data' in data:
+            for symbol_data in data['data']:
+                if 'pair' in symbol_data:
+                    symbols.append(symbol_data['pair'])
+        return symbols
+    
+    def get_symbol_data(self, data, symbol):
+        """
+        Get data for a specific symbol
+        Returns: Dictionary with symbol data or None if not found
+        """
+        if 'data' in data:
+            for symbol_data in data['data']:
+                if symbol_data.get('pair') == symbol:
+                    return symbol_data
+        return None
     
     def _validate_data(self, data):
         """Validate data structure and required fields"""

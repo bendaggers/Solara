@@ -5,7 +5,7 @@ Configuration file for Bollinger Band Reversal Trading Model
 CONFIG = {
     # Data settings
     'data': {
-        'file_path': 'data/EURUSD_v4.csv',
+        'file_path': 'Training Data/EURUSD_v4.csv',
         'timestamp_col': 'timestamp',
         'label_col': 'label',
         'train_test_split': 0.8,  # 80% train, 20% test
@@ -49,14 +49,39 @@ CONFIG = {
     # Model settings
     'model': {
         'type': 'random_forest',
+
+        # # Version 3
+        # 'params': {
+        #     'n_estimators': 300,
+        #     'max_depth': 4,
+        #     'min_samples_split': 15,
+        #     'class_weight': {0: 1, 1: 1.3},
+        #     'random_state': 42,
+        #     'min_samples_leaf': 8,
+        #     'max_features': 'log2'  # Try log2 for 10 features
+        # }
+
+        # Version 2
         'params': {
-            'n_estimators': 100,
-            'max_depth': 3,
-            'min_samples_split': 30,
-            'class_weight': 'balanced',
+            'n_estimators': 200,
+            'max_depth': 5,
+            'min_samples_split': 20,
+            'class_weight': 'balanced_subsample',
             'random_state': 42,
-            'min_samples_leaf': 10
+            'min_samples_leaf': 5,
+            'max_features': 'sqrt'
         }
+
+
+        # Version 1
+        # 'params': {
+        #     'n_estimators': 100,
+        #     'max_depth': 3,
+        #     'min_samples_split': 30,
+        #     'class_weight': 'balanced',
+        #     'random_state': 42,
+        #     'min_samples_leaf': 10
+        # }
     },
     
     # Trading rules
