@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "watch_settings": {
+    "mode": "watchdog",
+    "check_interval": 5,
+    "cooldown": 10
+  },
+  "files_to_watch": [
+    {
+      "path": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Files\\marketdata_PERIOD_M5.json",
+      "enabled": true,
+      "description": "M5 market data from MT5 EA"
+    }
+  ],
+  "solara_settings": {
+    "script_path": "solara.py",
+    "working_directory": ".",
+    "timeout_seconds": 300
+  },
+  "logging": {
+    "enabled": true,
+    "log_file": "solara_watcher.log",
+    "level": "INFO"
+  }
+}

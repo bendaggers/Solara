@@ -1,0 +1,11 @@
+Feature,Min,Max,Mean,Std,Type,Normalized?
+bb_touch_strength,0.9880,1.0073,0.9996,0.0020,Raw value,✓
+bb_position,-0.5330,1.0002,0.0904,0.1755,Raw value,✗
+rsi_value,12.2378,65.1419,36.2577,8.5048,RSI (0-100),✗
+rsi_divergence,0.0000,1.0000,0.0946,0.2928,Binary (0/1),✓
+candle_rejection,-126.0000,0.0000,-2.5319,8.3504,Raw value,✗
+candle_body_pct,-1.6606,0.8034,-0.0734,0.2503,Raw value,✗
+prev_candle_body_pct,-1.6606,0.6394,-0.1592,0.2316,Raw value,✗
+prev_volume_ratio,0.0001,3.0850,1.1101,0.4920,Raw value,✗
+price_momentum,-1.8318,0.5178,-0.1252,0.2294,Raw value,✗
+time_since_last_touch,0.0000,138.0000,5.4963,13.6173,Count (max 138),✗

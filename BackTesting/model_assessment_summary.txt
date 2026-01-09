@@ -1,0 +1,16 @@
+Model Assessment Summary
+=======================
+Date: 2026-01-08 10:28:37
+Input file: AUDUSD.csv
+Output files:
+  - CSV: model_assessments.csv
+  - Full JSON: model_assessments.json
+  - Signals JSON: trading_signals.json (Medium+ only)
+  - Summary JSON: model_summary.json
+
+Statistics:
+  Total rows: 1485
+  Raw signals (>= 0.65): 263 (17.7%)
+  Filtered signals (Medium+): 263 (17.7%)
+    - Strong signals: 95
+    - Medium signals: 168
