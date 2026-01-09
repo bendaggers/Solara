@@ -36,7 +36,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TERMINAL_PATH = r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075"
 
 # Correct path for EA output
-DATA_PATH = os.path.join(TERMINAL_PATH, "MQL5", "Files", "marketdata_PERIOD_H4.json")
+DATA_PATH = os.path.join(TERMINAL_PATH, "MQL5", "Files", "marketdata_PERIOD_M5.json")
 
 # Models are in the Solara project folder
 # Based on your BASE_DIR: C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Trading Bot
