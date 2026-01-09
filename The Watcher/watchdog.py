@@ -97,7 +97,11 @@ def main():
                             if result.returncode == 0:
                                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Solara completed")
                                 if result.stdout.strip():
-                                    print("Output:", result.stdout[:200])
+                                    print("\n" + "="*60)
+                                    print("SOLARA FULL OUTPUT:")
+                                    print("="*60)
+                                    print(result.stdout)
+                                    print("="*60 + "\n")
                             else:
                                 print(f"[{datetime.now().strftime('%H:%M:%S')}] Solara failed: {result.returncode}")
                                 if result.stderr:
