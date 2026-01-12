@@ -12,37 +12,98 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
-# ===== CONFIGURATION =====
-MT5_FILES_DIR = Path(
-    r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
-    r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files"
-)
+# ===== IMPORT CONFIG =====
+# Get absolute path to Trading Bot directory
+current_dir = Path(__file__).parent.absolute()
+trading_bot_dir = current_dir.parent / "Trading Bot"
 
+# Add to Python path
+sys.path.insert(0, str(trading_bot_dir))
+
+try:
+    import config
+    print(f"✓ Imported config from: {trading_bot_dir}")
+    
+    # Use config values directly
+    # Build MT5_FILES_DIR from TERMINAL_PATH
+    MT5_FILES_DIR = Path(config.TERMINAL_PATH) / "MQL5" / "Files"
+    
+    # Get the filename - check in order of preference
+    if hasattr(config, 'MARKET_DATA_FILE'):
+        WATCHED_FILE = config.MARKET_DATA_FILE
+        print(f"  Using MARKET_DATA_FILE: {WATCHED_FILE}")
+    elif hasattr(config, 'DATA_PATH'):
+        WATCHED_FILE = Path(config.DATA_PATH).name
+        print(f"  Using filename from DATA_PATH: {WATCHED_FILE}")
+    else:
+        WATCHED_FILE = "marketdata_PERIOD_H4.json"
+        print(f"  Using default: {WATCHED_FILE}")
+        
+    USE_CONFIG = True  # ADD THIS LINE!
+    
+except ImportError as e:
+    print(f"✗ Failed to import config: {e}")
+    # Fallback to original hardcoded values
+    MT5_FILES_DIR = Path(
+        r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
+        r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files"
+    )
+    WATCHED_FILE = "marketdata_PERIOD_H4.json"
+    USE_CONFIG = False  # ADD THIS LINE!
+# ========================
+
+# ===== WATCHER SETTINGS =====
 SOLARA_SCRIPT = Path(
     r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
     r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Trading Bot\solara.py"
 )
 
-WATCHED_FILE = "marketdata_PERIOD_H4.json"
 CHECK_INTERVAL = 5
 COOLDOWN = 10
 # =========================
+
+# REMOVE THIS DUPLICATE SECTION! Delete everything from here...
+# # Use config values for these two only
+# if USE_CONFIG:
+#     # Extract MT5_FILES_DIR from config.TERMINAL_PATH
+#     MT5_FILES_DIR = Path(config.TERMINAL_PATH) / "MQL5" / "Files"
+#     
+#     # Extract WATCHED_FILE from config.DATA_PATH
+#     if hasattr(config, 'DATA_PATH'):
+#         # Get just the filename from the full DATA_PATH
+#         WATCHED_FILE = Path(config.DATA_PATH).name
+#     else:
+#         WATCHED_FILE = "marketdata_PERIOD_H4.json"
+# else:
+#     # Fallback to original hardcoded values
+#     MT5_FILES_DIR = Path(
+#         r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
+#         r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files"
+#     )
+#     WATCHED_FILE = "marketdata_PERIOD_H4.json"
+# # =========================
+# ...to here!
 
 def main():
     print("\n" + "="*50)
     print("SOLARA FILE WATCHER")
     print("="*50)
     
-    # Setup paths
+    # Construct the full file path to watch
     file_path = MT5_FILES_DIR / WATCHED_FILE
+    
+    # Get solara directory for running the script
     solara_dir = SOLARA_SCRIPT.parent
     
+    print(f"Using config: {'YES' if USE_CONFIG else 'NO (fallback)'}")
     print(f"Watching: {file_path}")
-    print(f"Solara: {SOLARA_SCRIPT}")
+    print(f"Solara script: {SOLARA_SCRIPT}")
+    print(f"Solara directory: {solara_dir}")
     print(f"Check every: {CHECK_INTERVAL}s, Cooldown: {COOLDOWN}s")
     print("="*50)
     print("\nPress Ctrl+C to stop\n")
     
+    # Rest of your main() function remains exactly the same...
     last_hash = None
     last_run = 0
     check_count = 0
