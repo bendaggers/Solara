@@ -23,7 +23,7 @@ SOLARA_SCRIPT = Path(
     r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Trading Bot\solara.py"
 )
 
-WATCHED_FILE = "marketdata_PERIOD_H1.json"
+WATCHED_FILE = "marketdata_PERIOD_H4.json"
 CHECK_INTERVAL = 5
 COOLDOWN = 10
 # =========================
