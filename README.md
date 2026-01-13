@@ -51,25 +51,8 @@ This system automates trading decisions using a machine learning model to identi
 
 ## File Flow
 
-MT5 Terminal<br>
-│<br>
-↓ (exports CSV)<br>
-DataExporter.ex5<br>
-│<br>
-↓ (saves to folder)<br>
-raw_data.csv<br>
-│<br>
-↓ (Python loads)<br>
-preprocess.py → removes columns → formats data<br>
-│<br>
-↓ (model input)<br>
-predict.py → ML model → entry decisions<br>
-│<br>
-↓<br>
-qualified_pairs.json (backup)<br>
-│<br>
-↓<br>
-execute.py → MT5 API → Trade Execution<br>
+![SOLARA Machine Learning Trading System File Flow](https://raw.githubusercontent.com/bendaggers/Solara/refs/heads/version-3/Documentations/SOLARA.png?token=GHSAT0AAAAAADSS5KRCWEQES5CYFBDALVXA2LGDESQ)
+
 
 ## Running the System
 1. Start MT5 and activate DataExporter.ex5
