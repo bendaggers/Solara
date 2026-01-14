@@ -1,0 +1,154 @@
+{
+  "cycle_number": 1,
+  "start_time": "2026-01-14 15:02:14.504426",
+  "end_time": "2026-01-14 15:02:15.491981",
+  "duration_seconds": 0.987555,
+  "positions_checked": 19,
+  "missing_sl_count": 0,
+  "missing_tp_count": 0,
+  "updates_needed": 3,
+  "successful_updates": 3,
+  "stage_transitions": 2,
+  "safe_adjustments": 2,
+  "stage_distribution": {
+    "STAGE_2A": 1,
+    "STAGE_0": 1,
+    "STAGE_1A": 1
+  },
+  "stage_transition_details": [
+    {
+      "ticket": 224281676,
+      "transition": "STAGE_0 \u2192 STAGE_2A"
+    },
+    {
+      "ticket": 224870535,
+      "transition": "STAGE_0 \u2192 STAGE_1A"
+    }
+  ],
+  "safe_adjustment_details": [
+    {
+      "ticket": 224281676,
+      "symbol": "CADCHF",
+      "adjustment_pips": 1.7049999999996235,
+      "reason": "SL too close to price (needed 10.0 pips distance)"
+    },
+    {
+      "ticket": 224870535,
+      "symbol": "CADCHF",
+      "adjustment_pips": 1.3150000000006212,
+      "reason": "SL too close to price (needed 10.0 pips distance)"
+    }
+  ],
+  "errors": {
+    "no_change": 0,
+    "invalid_stops": 0,
+    "other": 0
+  },
+  "update_details": [
+    {
+      "ticket": 224281676,
+      "symbol": "CADCHF",
+      "previous_stage": "STAGE_0",
+      "current_stage": "STAGE_2A",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.57596,
+      "current_tp": 0.57756,
+      "new_sl": 0.57588,
+      "new_tp": null,
+      "safe_adjustment": {
+        "adjustment_pips": 1.7049999999996235,
+        "reason": "SL too close to price (needed 10.0 pips distance)",
+        "original_sl": 0.5760504999999999
+      },
+      "debug_info": {
+        "profit_ratio": 0.5950288727090153,
+        "profit_pips": 23.699999999999832,
+        "stage": "STAGE_2A",
+        "previous_stage": "STAGE_0",
+        "original_sl": 0.57596,
+        "original_tp": 0.57756,
+        "upper_bb": 0.577564,
+        "lower_bb": 0.573581,
+        "bb_width": 0.003982999999999959,
+        "bb_width_pips": 39.829999999999586,
+        "safe_adjustment_info": {
+          "adjustment_pips": 1.7049999999996235,
+          "reason": "SL too close to price (needed 10.0 pips distance)",
+          "original_sl": 0.5760504999999999
+        }
+      }
+    },
+    {
+      "ticket": 224284285,
+      "symbol": "CADCHF",
+      "previous_stage": "STAGE_0",
+      "current_stage": "STAGE_0",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.576,
+      "current_tp": 0.57756,
+      "new_sl": 0.57161,
+      "new_tp": 0.57861,
+      "safe_adjustment": null,
+      "debug_info": {
+        "profit_ratio": 0.569922169219186,
+        "profit_pips": 22.699999999999942,
+        "stage": "STAGE_0",
+        "previous_stage": "STAGE_0",
+        "original_sl": 0.576,
+        "original_tp": 0.57756,
+        "upper_bb": 0.577564,
+        "lower_bb": 0.573581,
+        "bb_width": 0.003982999999999959,
+        "bb_width_pips": 39.829999999999586,
+        "safe_adjustment_info": null
+      }
+    },
+    {
+      "ticket": 224870535,
+      "symbol": "CADCHF",
+      "previous_stage": "STAGE_0",
+      "current_stage": "STAGE_1A",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.57614,
+      "current_tp": 0.57756,
+      "new_sl": 0.57588,
+      "new_tp": null,
+      "safe_adjustment": {
+        "adjustment_pips": 1.3150000000006212,
+        "reason": "SL too close to price (needed 10.0 pips distance)",
+        "original_sl": 0.5760115
+      },
+      "debug_info": {
+        "profit_ratio": 0.4845593773537553,
+        "profit_pips": 19.299999999999873,
+        "stage": "STAGE_1A",
+        "previous_stage": "STAGE_0",
+        "original_sl": 0.57614,
+        "original_tp": 0.57756,
+        "upper_bb": 0.577564,
+        "lower_bb": 0.573581,
+        "bb_width": 0.003982999999999959,
+        "bb_width_pips": 39.829999999999586,
+        "safe_adjustment_info": {
+          "adjustment_pips": 1.3150000000006212,
+          "reason": "SL too close to price (needed 10.0 pips distance)",
+          "original_sl": 0.5760115
+        }
+      }
+    }
+  ],
+  "system_version": "2.2",
+  "hysteresis_config": {
+    "up_buffer": 0.02,
+    "down_buffer": 0.03,
+    "min_stage_time": 2
+  },
+  "safe_distance_config": {
+    "min_pips": 10,
+    "bb_percentage": 0.08,
+    "spread_multiplier": 2.0
+  }
+}

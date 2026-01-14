@@ -1,0 +1,147 @@
+{
+  "cycle_number": 1,
+  "start_time": "2026-01-14 08:48:01.133899",
+  "end_time": "2026-01-14 08:48:02.312902",
+  "duration_seconds": 1.179003,
+  "positions_checked": 54,
+  "missing_sl_count": 0,
+  "missing_tp_count": 0,
+  "updates_needed": 5,
+  "successful_updates": 5,
+  "stage_distribution": {
+    "STAGE_2C": 4,
+    "STAGE_0": 1
+  },
+  "errors": {
+    "no_change": 0,
+    "invalid_stops": 0,
+    "other": 0
+  },
+  "update_details": [
+    {
+      "ticket": 223699205,
+      "symbol": "AUDCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.53129,
+      "current_tp": 0.53829,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.8339768339768525,
+        "profit_pips": 10.799999999999699,
+        "stage": "STAGE_2C",
+        "original_sl": 0.53129,
+        "original_tp": 0.53829,
+        "upper_bb": 0.535724,
+        "lower_bb": 0.534429,
+        "bb_width": 0.001294999999999935,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 224852061,
+      "symbol": "EURCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.9272,
+      "current_tp": 0.9342,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.890921409214113,
+        "profit_pips": 26.30000000000021,
+        "stage": "STAGE_2C",
+        "original_sl": 0.9272,
+        "original_tp": 0.9342,
+        "upper_bb": 0.932731,
+        "lower_bb": 0.929779,
+        "bb_width": 0.0029519999999999547,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 224852124,
+      "symbol": "EURCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.92719,
+      "current_tp": 0.93419,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.894308943089474,
+        "profit_pips": 26.400000000000865,
+        "stage": "STAGE_2C",
+        "original_sl": 0.92719,
+        "original_tp": 0.93419,
+        "upper_bb": 0.932731,
+        "lower_bb": 0.929779,
+        "bb_width": 0.0029519999999999547,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 224870531,
+      "symbol": "EURCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.9273,
+      "current_tp": 0.9343,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.8570460704607287,
+        "profit_pips": 25.30000000000032,
+        "stage": "STAGE_2C",
+        "original_sl": 0.9273,
+        "original_tp": 0.9343,
+        "upper_bb": 0.932731,
+        "lower_bb": 0.929779,
+        "bb_width": 0.0029519999999999547,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 225272129,
+      "symbol": "AUDCHF",
+      "stage": "STAGE_0",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.53202,
+      "current_tp": 0.53902,
+      "new_sl": null,
+      "new_tp": 0.53942,
+      "debug_info": {
+        "profit_ratio": -0.03861003861003629,
+        "profit_pips": -0.49999999999994493,
+        "stage": "STAGE_0",
+        "original_sl": 0.53202,
+        "original_tp": 0.53902,
+        "upper_bb": 0.535724,
+        "lower_bb": 0.534429,
+        "bb_width": 0.001294999999999935,
+        "calculated_sl": null,
+        "calculated_tp": 0.53942,
+        "final_sl": null,
+        "final_tp": 0.53942
+      }
+    }
+  ]
+}

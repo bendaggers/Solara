@@ -5,16 +5,18 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Any
 import logging
 
-logging.basicConfig(level=logging.WARNING)  # Reduce default logging level
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
 class SLTPEngine:
-    """SIMPLE, RELIABLE SL/TP engine - NO COMPLEX LOGIC"""
+    """Enhanced SL/TP engine with stage-based definitions"""
     
-    def __init__(self, market_data_file: str):
+    def __init__(self, market_data_file: str, stage_hysteresis: Dict, safe_distance_config: Dict):
         self.market_data_file = market_data_file
         self.market_data = {}
+        self.stage_hysteresis = stage_hysteresis
+        self.safe_distance_config = safe_distance_config
         
         # Pip sizes
         self.pip_sizes = {
@@ -22,44 +24,221 @@ class SLTPEngine:
             'OIL': 0.01, 'CRYPTO': 1.0, 'INDICES': 1.0
         }
         
-        # Stage thresholds
+        # Enhanced 10-stage thresholds
         self.stage_thresholds = {
-            'STAGE_0': 0.25, 'STAGE_1': 0.50, 'STAGE_2A': 0.65,
-            'STAGE_2B': 0.80, 'STAGE_2C': 0.90, 'STAGE_3': 1.50,
-            'STAGE_4': float('inf')
+            'STAGE_0': 0.25,
+            'STAGE_1': 0.40,
+            'STAGE_1A': 0.50,
+            'STAGE_2A': 0.60,
+            'STAGE_2B': 0.70,
+            'STAGE_2C': 0.80,
+            'STAGE_3A': 0.90,
+            'STAGE_3B': 1.20,
+            'STAGE_4': 1.80,
+            'STAGE_5': float('inf')
+        }
+        
+        # Stage definitions (BUY and SELL versions)
+        self.stage_definitions = self._create_stage_definitions()
+        
+        # Load confirmed stages
+        self.confirmed_stages = self.load_confirmed_stages()
+        self.stage_entry_times = {}
+    
+    def _create_stage_definitions(self) -> Dict:
+        """Create stage definitions once"""
+        return {
+            'STAGE_0': {
+                'buy': {
+                    'sl_formula': 'entry - (30 × pip_size)',
+                    'tp_formula': 'entry + (40 × pip_size)',
+                    'profit_threshold': 0.25,
+                    'description': 'Initial position: profit < 25% of BB width'
+                },
+                'sell': {
+                    'sl_formula': 'entry + (30 × pip_size)',
+                    'tp_formula': 'entry - (40 × pip_size)',
+                    'profit_threshold': 0.25,
+                    'description': 'Initial position: profit < 25% of BB width'
+                }
+            },
+            'STAGE_1': {
+                'buy': {
+                    'sl_formula': 'entry + (0.40 × profit_pips × pip_size)',
+                    'tp_formula': 'upper_bollinger_band',
+                    'profit_threshold': 0.40,
+                    'protection_percent': 0.40,
+                    'description': '25-39% profit: protect 40% of gains'
+                },
+                'sell': {
+                    'sl_formula': 'entry - (0.40 × profit_pips × pip_size)',
+                    'tp_formula': 'lower_bollinger_band',
+                    'profit_threshold': 0.40,
+                    'protection_percent': 0.40,
+                    'description': '25-39% profit: protect 40% of gains'
+                }
+            },
+            'STAGE_1A': {
+                'buy': {
+                    'sl_formula': 'entry + (0.55 × profit_pips × pip_size)',
+                    'tp_formula': 'upper_bollinger_band',
+                    'profit_threshold': 0.50,
+                    'protection_percent': 0.55,
+                    'description': '40-49% profit: protect 55% of gains'
+                },
+                'sell': {
+                    'sl_formula': 'entry - (0.55 × profit_pips × pip_size)',
+                    'tp_formula': 'lower_bollinger_band',
+                    'profit_threshold': 0.50,
+                    'protection_percent': 0.55,
+                    'description': '40-49% profit: protect 55% of gains'
+                }
+            },
+            'STAGE_2A': {
+                'buy': {
+                    'sl_formula': 'max(entry + (0.65 × profit_pips × pip_size), middle_bb - (0.04 × bb_width))',
+                    'tp_formula': 'upper_bollinger_band',
+                    'profit_threshold': 0.60,
+                    'protection_percent': 0.65,
+                    'bb_buffer': -0.04,
+                    'description': '50-59% profit: 65% protection OR middle BB - 4%'
+                },
+                'sell': {
+                    'sl_formula': 'min(entry - (0.65 × profit_pips × pip_size), middle_bb + (0.04 × bb_width))',
+                    'tp_formula': 'lower_bollinger_band',
+                    'profit_threshold': 0.60,
+                    'protection_percent': 0.65,
+                    'bb_buffer': 0.04,
+                    'description': '50-59% profit: 65% protection OR middle BB + 4%'
+                }
+            },
+            'STAGE_2B': {
+                'buy': {
+                    'sl_formula': 'max(entry + (0.75 × profit_pips × pip_size), middle_bb + (0.05 × bb_width))',
+                    'tp_formula': 'upper_bollinger_band',
+                    'profit_threshold': 0.70,
+                    'protection_percent': 0.75,
+                    'bb_buffer': 0.05,
+                    'description': '60-69% profit: 75% protection OR middle BB + 5%'
+                },
+                'sell': {
+                    'sl_formula': 'min(entry - (0.75 × profit_pips × pip_size), middle_bb - (0.05 × bb_width))',
+                    'tp_formula': 'lower_bollinger_band',
+                    'profit_threshold': 0.70,
+                    'protection_percent': 0.75,
+                    'bb_buffer': -0.05,
+                    'description': '60-69% profit: 75% protection OR middle BB - 5%'
+                }
+            },
+            'STAGE_2C': {
+                'buy': {
+                    'sl_formula': 'max(entry + (0.80 × profit_pips × pip_size), current_price - (0.08 × bb_width))',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 0.80,
+                    'protection_percent': 0.80,
+                    'trailing_percent': 0.08,
+                    'description': '70-79% profit: 80% protection OR price - 8% trailing'
+                },
+                'sell': {
+                    'sl_formula': 'min(entry - (0.80 × profit_pips × pip_size), current_price + (0.08 × bb_width))',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 0.80,
+                    'protection_percent': 0.80,
+                    'trailing_percent': 0.08,
+                    'description': '70-79% profit: 80% protection OR price + 8% trailing'
+                }
+            },
+            'STAGE_3A': {
+                'buy': {
+                    'sl_formula': 'max(entry + (0.85 × profit_pips × pip_size), current_price - (0.06 × bb_width))',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 0.90,
+                    'protection_percent': 0.85,
+                    'trailing_percent': 0.06,
+                    'description': '80-89% profit: 85% protection OR price - 6% trailing'
+                },
+                'sell': {
+                    'sl_formula': 'min(entry - (0.85 × profit_pips × pip_size), current_price + (0.06 × bb_width))',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 0.90,
+                    'protection_percent': 0.85,
+                    'trailing_percent': 0.06,
+                    'description': '80-89% profit: 85% protection OR price + 6% trailing'
+                }
+            },
+            'STAGE_3B': {
+                'buy': {
+                    'sl_formula': 'current_price - (0.03 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 1.20,
+                    'trailing_percent': 0.03,
+                    'description': '90-119% profit: 3% trailing stop'
+                },
+                'sell': {
+                    'sl_formula': 'current_price + (0.03 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 1.20,
+                    'trailing_percent': 0.03,
+                    'description': '90-119% profit: 3% trailing stop'
+                }
+            },
+            'STAGE_4': {
+                'buy': {
+                    'sl_formula': 'current_price - (0.02 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 1.80,
+                    'trailing_percent': 0.02,
+                    'description': '120-179% profit: 2% trailing stop'
+                },
+                'sell': {
+                    'sl_formula': 'current_price + (0.02 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': 1.80,
+                    'trailing_percent': 0.02,
+                    'description': '120-179% profit: 2% trailing stop'
+                }
+            },
+            'STAGE_5': {
+                'buy': {
+                    'sl_formula': 'current_price - (0.015 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': float('inf'),
+                    'trailing_percent': 0.015,
+                    'description': '180%+ profit: 1.5% ultra-tight trailing'
+                },
+                'sell': {
+                    'sl_formula': 'current_price + (0.015 × bb_width)',
+                    'tp_formula': 'REMOVED',
+                    'profit_threshold': float('inf'),
+                    'trailing_percent': 0.015,
+                    'description': '180%+ profit: 1.5% ultra-tight trailing'
+                }
+            }
         }
     
-    # ========== SIMPLE HELPER METHODS ==========
+    def load_confirmed_stages(self) -> Dict:
+        """Load confirmed stages from file"""
+        state_file = "state/confirmed_stages.json"
+        if os.path.exists(state_file):
+            try:
+                with open(state_file, 'r') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
     
-    def load_market_data(self) -> bool:
-        """Load market data - SIMPLE"""
+    def save_confirmed_stages(self):
+        """Save confirmed stages to file"""
+        state_file = "state/confirmed_stages.json"
         try:
-            if not os.path.exists(self.market_data_file):
-                logger.error(f"Market data file not found: {self.market_data_file}")
-                return False
-            
-            with open(self.market_data_file, 'r') as f:
-                data = json.load(f)
-            
-            self.market_data = {}
-            for item in data.get('data', []):
-                symbol = item['pair']
-                self.market_data[symbol] = {
-                    'lower_band': item['lower_band'],
-                    'middle_band': item['middle_band'],
-                    'upper_band': item['upper_band'],
-                    'bb_width': item['upper_band'] - item['lower_band']
-                }
-            
-            logger.info(f"Loaded market data for {len(self.market_data)} symbols")
-            return True
-            
+            os.makedirs("state", exist_ok=True)
+            with open(state_file, 'w') as f:
+                json.dump(self.confirmed_stages, f, indent=2)
         except Exception as e:
-            logger.error(f"Error loading market data: {e}")
-            return False
+            logger.error(f"Failed to save confirmed stages: {e}")
     
     def get_pip_size(self, symbol: str) -> float:
-        """Get pip size - SIMPLE"""
+        """Get pip size"""
         symbol_upper = symbol.upper()
         
         if "JPY" in symbol_upper and not any(x in symbol_upper for x in ['XAUJPY', 'XAGJPY']):
@@ -74,7 +253,7 @@ class SLTPEngine:
         return 0.0001
     
     def calculate_profit_ratio(self, position: Dict, bb_data: Dict) -> float:
-        """Calculate profit ratio - SIMPLE"""
+        """Calculate profit ratio"""
         try:
             symbol = position['symbol']
             pip_size = self.get_pip_size(symbol)
@@ -99,233 +278,366 @@ class SLTPEngine:
             logger.error(f"Error calculating profit ratio: {e}")
             return 0.0
     
-    def determine_stage(self, profit_ratio: float) -> str:
-        """Determine stage - SIMPLE"""
-        if profit_ratio < self.stage_thresholds['STAGE_0']:
-            return 'STAGE_0'
-        elif profit_ratio < self.stage_thresholds['STAGE_1']:
-            return 'STAGE_1'
-        elif profit_ratio < self.stage_thresholds['STAGE_2A']:
-            return 'STAGE_2A'
-        elif profit_ratio < self.stage_thresholds['STAGE_2B']:
-            return 'STAGE_2B'
-        elif profit_ratio < self.stage_thresholds['STAGE_2C']:
-            return 'STAGE_2C'
-        elif profit_ratio < self.stage_thresholds['STAGE_3']:
-            return 'STAGE_3'
+    def determine_stage(self, profit_ratio: float, position_id: str) -> Tuple[str, str]:
+        """Determine stage with hysteresis"""
+        previous_stage = self.confirmed_stages.get(position_id, 'STAGE_0')
+        
+        # Find current stage based on profit ratio
+        current_stage = 'STAGE_0'
+        for stage_name, threshold in self.stage_thresholds.items():
+            if profit_ratio >= threshold:
+                current_stage = stage_name
+            else:
+                break
+        
+        # Apply hysteresis for stage changes
+        if current_stage != previous_stage:
+            # Check if we should actually change
+            if current_stage > previous_stage:  # Moving up
+                threshold = self.stage_thresholds[current_stage]
+                if profit_ratio >= threshold - self.stage_hysteresis['up_buffer']:
+                    new_stage = current_stage
+                else:
+                    new_stage = previous_stage
+            else:  # Moving down
+                threshold = self.stage_thresholds[previous_stage]
+                if profit_ratio <= threshold - self.stage_hysteresis['down_buffer']:
+                    new_stage = current_stage
+                else:
+                    new_stage = previous_stage
         else:
-            return 'STAGE_4'
+            new_stage = previous_stage
+        
+        self.confirmed_stages[position_id] = new_stage
+        return new_stage, previous_stage
     
-    # ========== CRITICAL: ALWAYS SET SL IF MISSING ==========
-    
-    def ensure_sl_exists(self, position: Dict, bb_data: Dict, stage: str, profit_pips: float = 0) -> Optional[float]:
-        """ENSURE SL EXISTS - ALWAYS returns an SL if missing"""
-        symbol = position['symbol']
-        entry_price = position['entry_price']
-        current_sl = position['sl']
+    def ensure_safe_distance(self, new_sl: float, current_price: float, 
+                            bb_width: float, position_type: str, 
+                            symbol: str, bb_width_pips: float) -> Tuple[float, Optional[Dict]]:
+        """Ensure SL is a safe distance from current price"""
         pip_size = self.get_pip_size(symbol)
         
-        # If SL already exists, return None (no change)
-        if abs(current_sl) > 0.00001:
-            return None
+        # Calculate dynamic safe distance
+        safe_distance_pips = max(
+            self.safe_distance_config['min_pips'],
+            bb_width_pips * self.safe_distance_config['bb_percentage']
+        )
         
-        logger.warning(f"🚨 {symbol} has NO SL! Initializing for Stage {stage}")
+        safe_distance = safe_distance_pips * pip_size
         
-        # Calculate SL based on stage
-        if stage == 'STAGE_0':
-            # Entry ± 30 pips
-            if position['type'] == 'BUY':
-                return entry_price - (30 * pip_size)
-            else:
-                return entry_price + (30 * pip_size)
+        if position_type == 'BUY':
+            min_allowed_sl = current_price - safe_distance
+            if new_sl > min_allowed_sl:
+                adjustment_pips = (new_sl - min_allowed_sl) / pip_size
+                new_sl = min_allowed_sl
+                return round(new_sl, 7), {
+                    'reason': f'SL too close to price. Added {adjustment_pips:.1f} pips buffer.',
+                    'adjustment_pips': round(adjustment_pips, 1)
+                }
+        else:  # SELL
+            max_allowed_sl = current_price + safe_distance
+            if new_sl < max_allowed_sl:
+                adjustment_pips = (max_allowed_sl - new_sl) / pip_size
+                new_sl = max_allowed_sl
+                return round(new_sl, 7), {
+                    'reason': f'SL too close to price. Added {adjustment_pips:.1f} pips buffer.',
+                    'adjustment_pips': round(adjustment_pips, 1)
+                }
         
-        elif stage == 'STAGE_1':
-            # 50% profit lock
-            protected_pips = 0.50 * profit_pips
-            protected_price = protected_pips * pip_size
-            
-            if position['type'] == 'BUY':
-                return entry_price + protected_price
-            else:
-                return entry_price - protected_price
-        
-        elif stage == 'STAGE_2A':
-            # Dual-option: 60% profit lock OR Middle BB - 3%
-            profit_lock_sl = entry_price + (0.60 * profit_pips * pip_size) if position['type'] == 'BUY' else entry_price - (0.60 * profit_pips * pip_size)
-            middle_bb_sl = bb_data['middle_band'] - (0.03 * bb_data['bb_width']) if position['type'] == 'BUY' else bb_data['middle_band'] + (0.03 * bb_data['bb_width'])
-            
-            if position['type'] == 'BUY':
-                return max(profit_lock_sl, middle_bb_sl)
-            else:
-                return min(profit_lock_sl, middle_bb_sl)
-        
-        elif stage == 'STAGE_2B':
-            # Dual-option with sign flip
-            profit_lock_sl = entry_price + (0.70 * profit_pips * pip_size) if position['type'] == 'BUY' else entry_price - (0.70 * profit_pips * pip_size)
-            middle_bb_sl = bb_data['middle_band'] + (0.05 * bb_data['bb_width']) if position['type'] == 'BUY' else bb_data['middle_band'] - (0.05 * bb_data['bb_width'])
-            
-            if position['type'] == 'BUY':
-                return max(profit_lock_sl, middle_bb_sl)
-            else:
-                return min(profit_lock_sl, middle_bb_sl)
-        
-        elif stage == 'STAGE_2C':
-            # Dual-option: 80% profit lock OR Price - 7%
-            profit_lock_sl = entry_price + (0.80 * profit_pips * pip_size) if position['type'] == 'BUY' else entry_price - (0.80 * profit_pips * pip_size)
-            price_based_sl = position['current_price'] - (0.07 * bb_data['bb_width']) if position['type'] == 'BUY' else position['current_price'] + (0.07 * bb_data['bb_width'])
-            
-            if position['type'] == 'BUY':
-                return max(profit_lock_sl, price_based_sl)
-            else:
-                return min(profit_lock_sl, price_based_sl)
-        
-        elif stage == 'STAGE_3':
-            # Price-based trailing with 2% buffer
-            if position['type'] == 'BUY':
-                return position['current_price'] - (0.02 * bb_data['bb_width'])
-            else:
-                return position['current_price'] + (0.02 * bb_data['bb_width'])
-        
-        elif stage == 'STAGE_4':
-            # Ultra-tight trailing with 1.5% buffer
-            if position['type'] == 'BUY':
-                return position['current_price'] - (0.015 * bb_data['bb_width'])
-            else:
-                return position['current_price'] + (0.015 * bb_data['bb_width'])
-        
-        # Fallback: Stage 0 SL
-        logger.error(f"Unknown stage {stage}, using Stage 0 SL")
-        if position['type'] == 'BUY':
-            return entry_price - (30 * pip_size)
-        else:
-            return entry_price + (30 * pip_size)
+        return round(new_sl, 7), None
     
-    def calculate_tp(self, position: Dict, bb_data: Dict, stage: str) -> Optional[float]:
+    def calculate_stage_sl(self, position: Dict, stage: str, 
+                          bb_data: Dict, profit_pips: float) -> float:
+        """Calculate SL based on stage"""
+        symbol = position['symbol']
+        entry_price = position['entry_price']
+        current_price = position['current_price']
+        position_type = position['type'].lower()  # 'buy' or 'sell'
+        pip_size = self.get_pip_size(symbol)
+        bb_width = bb_data['bb_width']
+        middle_bb = bb_data['middle_band']
+        
+        # Get stage definition
+        stage_def = self.stage_definitions[stage][position_type]
+        formula = stage_def['sl_formula']
+        
+        # Calculate based on formula
+        if stage in ['STAGE_0']:
+            if position_type == 'buy':
+                sl = entry_price - (30 * pip_size)
+            else:
+                sl = entry_price + (30 * pip_size)
+        
+        elif stage in ['STAGE_1', 'STAGE_1A']:
+            protection = stage_def['protection_percent']
+            if position_type == 'buy':
+                sl = entry_price + (protection * profit_pips * pip_size)
+            else:
+                sl = entry_price - (protection * profit_pips * pip_size)
+        
+        elif stage in ['STAGE_2A', 'STAGE_2B']:
+            protection = stage_def['protection_percent']
+            bb_buffer = stage_def['bb_buffer']
+            
+            option_a = entry_price + (protection * profit_pips * pip_size) if position_type == 'buy' else entry_price - (protection * profit_pips * pip_size)
+            option_b = middle_bb + (bb_buffer * bb_width)
+            
+            if position_type == 'buy':
+                sl = max(option_a, option_b)
+            else:
+                sl = min(option_a, option_b)
+        
+        elif stage in ['STAGE_2C', 'STAGE_3A']:
+            protection = stage_def['protection_percent']
+            trailing = stage_def['trailing_percent']
+            
+            option_a = entry_price + (protection * profit_pips * pip_size) if position_type == 'buy' else entry_price - (protection * profit_pips * pip_size)
+            option_b = current_price - (trailing * bb_width) if position_type == 'buy' else current_price + (trailing * bb_width)
+            
+            if position_type == 'buy':
+                sl = max(option_a, option_b)
+            else:
+                sl = min(option_a, option_b)
+        
+        elif stage in ['STAGE_3B', 'STAGE_4', 'STAGE_5']:
+            trailing = stage_def['trailing_percent']
+            if position_type == 'buy':
+                sl = current_price - (trailing * bb_width)
+            else:
+                sl = current_price + (trailing * bb_width)
+        
+        else:
+            # Fallback
+            if position_type == 'buy':
+                sl = entry_price - (30 * pip_size)
+            else:
+                sl = entry_price + (30 * pip_size)
+        
+        return round(sl, 7)
+    
+    def calculate_stage_tp(self, position: Dict, stage: str, bb_data: Dict) -> Optional[float]:
         """Calculate TP based on stage"""
         symbol = position['symbol']
-        entry_price = position['entry_price']
-        current_tp = position['tp']
-        pip_size = self.get_pip_size(symbol)
         current_price = position['current_price']
+        position_type = position['type'].lower()
+        pip_size = self.get_pip_size(symbol)
+        bb_width = bb_data['bb_width']
         
-        # For stages 2C-4: TP = REMOVED
-        if stage in ['STAGE_2C', 'STAGE_3', 'STAGE_4']:
-            # Only remove TP if it exists
-            if abs(current_tp) > 0.00001:
-                return 0.0  # Remove TP
-            return None  # TP already removed
+        # Get stage definition
+        stage_def = self.stage_definitions[stage][position_type]
         
-        # For stages 0-2B: Set TP based on rules
+        # Stages 2C and above: TP removed
+        if stage in ['STAGE_2C', 'STAGE_3A', 'STAGE_3B', 'STAGE_4', 'STAGE_5']:
+            return 0.0
         
-        # If TP already exists, check if we can improve it
-        tp_to_set = None
-        
-        if stage == 'STAGE_0':
-            # Entry ± 40 pips
-            if position['type'] == 'BUY':
-                tp_to_set = entry_price + (40 * pip_size)
+        elif stage in ['STAGE_0']:
+            if position_type == 'buy':
+                tp = position['entry_price'] + (40 * pip_size)
             else:
-                tp_to_set = entry_price - (40 * pip_size)
+                tp = position['entry_price'] - (40 * pip_size)
         
-        elif stage in ['STAGE_1', 'STAGE_2A', 'STAGE_2B']:
-            # TP = Upper BB for BUY, Lower BB for SELL
-            # But ensure TP is in correct direction
-            if position['type'] == 'BUY':
-                tp_to_set = bb_data['upper_band']
+        elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B']:
+            if position_type == 'buy':
+                tp = bb_data['upper_band']
                 # Ensure TP is above current price
-                if tp_to_set <= current_price:
-                    tp_to_set = current_price + (0.05 * bb_data['bb_width'])
+                if tp <= current_price:
+                    tp = current_price + (0.05 * bb_width)
             else:
-                tp_to_set = bb_data['lower_band']
+                tp = bb_data['lower_band']
                 # Ensure TP is below current price
-                if tp_to_set >= current_price:
-                    tp_to_set = current_price - (0.05 * bb_data['bb_width'])
+                if tp >= current_price:
+                    tp = current_price - (0.05 * bb_width)
         
-        # Check if TP needs to be set or improved
-        if abs(current_tp) < 0.00001:
-            # TP is missing, set it
-            return tp_to_set
         else:
-            # TP exists, only improve if better
-            if position['type'] == 'BUY' and tp_to_set > current_tp:
-                return tp_to_set
-            elif position['type'] == 'SELL' and tp_to_set < current_tp:
-                return tp_to_set
+            return None
         
-        return None
+        return round(tp, 7)
     
-    # ========== MAIN METHOD - SIMPLE AND RELIABLE ==========
+    def load_market_data(self) -> bool:
+        """Load market data"""
+        try:
+            if not os.path.exists(self.market_data_file):
+                logger.error(f"Market data file not found: {self.market_data_file}")
+                return False
+            
+            with open(self.market_data_file, 'r') as f:
+                data = json.load(f)
+            
+            self.market_data = {}
+            for item in data.get('data', []):
+                symbol = item['pair']
+                self.market_data[symbol] = {
+                    'lower_band': round(item['lower_band'], 7),
+                    'middle_band': round(item['middle_band'], 7),
+                    'upper_band': round(item['upper_band'], 7),
+                    'bb_width': round(item['upper_band'] - item['lower_band'], 7)
+                }
+            
+            logger.info(f"Loaded market data for {len(self.market_data)} symbols")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error loading market data: {e}")
+            return False
     
-    def calculate_new_sl_tp(self, position: Dict) -> Tuple[Optional[float], Optional[float], str, Dict]:
-        """SIMPLE MAIN METHOD - ALWAYS ensures SL exists"""
+    def create_position_log(self, position: Dict, stage: str, previous_stage: str,
+                           profit_ratio: float, profit_pips: float,
+                           bb_data: Dict, new_sl: Optional[float], new_tp: Optional[float],
+                           safe_adjustment: Optional[Dict]) -> Dict:
+        """Create a minimal position log entry with verification"""
+        
+        symbol = position['symbol']
+        pip_size = self.get_pip_size(symbol)
+        position_type = position['type'].lower()
+        stage_def = self.stage_definitions[stage][position_type]
+        
+        # Helper for rounding
+        def round7(val):
+            return round(float(val), 7) if val is not None else 0.0
+        
+        def round4(val):
+            return round(float(val), 4) if val is not None else 0.0
+        
+        # Calculate verification strings
+        sl_verification = ""
+        tp_verification = ""
+        
+        if new_sl is not None:
+            # Create human-readable verification
+            entry = position['entry_price']
+            current = position['current_price']
+            
+            if stage == 'STAGE_0':
+                if position['type'] == 'BUY':
+                    sl_verification = f"{entry:.5f} - (30 × {pip_size}) = {new_sl:.5f}"
+                else:
+                    sl_verification = f"{entry:.5f} + (30 × {pip_size}) = {new_sl:.5f}"
+            elif stage in ['STAGE_1', 'STAGE_1A']:
+                protection = stage_def['protection_percent']
+                if position['type'] == 'BUY':
+                    sl_verification = f"{entry:.5f} + ({protection} × {profit_pips:.1f} × {pip_size}) = {new_sl:.5f}"
+                else:
+                    sl_verification = f"{entry:.5f} - ({protection} × {profit_pips:.1f} × {pip_size}) = {new_sl:.5f}"
+        
+        if new_tp is not None and new_tp != 0.0:
+            if stage == 'STAGE_0':
+                if position['type'] == 'BUY':
+                    tp_verification = f"{position['entry_price']:.5f} + (40 × {pip_size}) = {new_tp:.5f}"
+                else:
+                    tp_verification = f"{position['entry_price']:.5f} - (40 × {pip_size}) = {new_tp:.5f}"
+            elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B']:
+                if position['type'] == 'BUY':
+                    tp_verification = f"Upper BB = {new_tp:.5f}"
+                else:
+                    tp_verification = f"Lower BB = {new_tp:.5f}"
+        
+        # Create minimal log entry
+        log_entry = {
+            'ticket': position['ticket'],
+            'symbol': symbol,
+            'type': position['type'],
+            'stage': stage,
+            'stage_changed': stage != previous_stage,
+            'previous_stage': previous_stage if stage != previous_stage else None,
+            
+            # Values needed for verification
+            'values': {
+                'entry': round7(position['entry_price']),
+                'current': round7(position['current_price']),
+                'pip_size': pip_size,
+                'profit_pips': round4(profit_pips),
+                'profit_ratio': round4(profit_ratio),
+                'bb_width_pips': round4(bb_data['bb_width'] / pip_size),
+                'stage_threshold': round4(stage_def.get('profit_threshold', 0)),
+                
+                'sl_before': round7(position['sl']),
+                'tp_before': round7(position['tp']),
+                'sl_after': round7(new_sl) if new_sl is not None else round7(position['sl']),
+                'tp_after': round7(new_tp) if new_tp is not None else round7(position['tp'])
+            },
+            
+            # Verification (key for backtracking)
+            'verification': {
+                'sl_formula': stage_def['sl_formula'],
+                'sl_calculation': sl_verification if sl_verification else "No change",
+                'tp_formula': stage_def['tp_formula'],
+                'tp_calculation': tp_verification if tp_verification else "No change",
+                'stage_reason': f"{profit_ratio:.4f} {'<' if profit_ratio < stage_def.get('profit_threshold', 0) else '>='} {stage_def.get('profit_threshold', 0):.4f}"
+            }
+        }
+        
+        # Add safety adjustment if any
+        if safe_adjustment:
+            log_entry['safety_adjustment'] = safe_adjustment
+        
+        return log_entry
+    
+    def calculate_new_sl_tp(self, position: Dict) -> Tuple[Optional[float], Optional[float], str, str, Dict]:
+        """Calculate new SL/TP"""
         symbol = position['symbol']
         
-        # Check market data
         if symbol not in self.market_data:
-            return None, None, 'NO_DATA', {}
+            return None, None, 'NO_DATA', 'NO_DATA', {}
         
         bb_data = self.market_data[symbol]
         
         # Calculate profit and stage
         profit_ratio = self.calculate_profit_ratio(position, bb_data)
-        stage = self.determine_stage(profit_ratio)
         
-        # Calculate profit in pips for SL calculations
+        # Generate position ID
+        position_id = f"{position['ticket']}_{symbol}"
+        
+        # Determine stage
+        stage, previous_stage = self.determine_stage(profit_ratio, position_id)
+        
+        # Calculate profit in pips
         pip_size = self.get_pip_size(symbol)
         if position['type'] == 'BUY':
             profit_pips = (position['current_price'] - position['entry_price']) / pip_size
         else:
             profit_pips = (position['entry_price'] - position['current_price']) / pip_size
         
-        # Debug info
-        debug_info = {
-            'profit_ratio': profit_ratio,
-            'profit_pips': profit_pips,
-            'stage': stage,
-            'original_sl': position['sl'],
-            'original_tp': position['tp'],
-            'upper_bb': bb_data['upper_band'],
-            'lower_bb': bb_data['lower_band'],
-            'bb_width': bb_data['bb_width']
-        }
+        # Calculate SL
+        new_sl = self.calculate_stage_sl(position, stage, bb_data, profit_pips)
         
-        # ===== CRITICAL: ALWAYS ENSURE SL EXISTS =====
-        new_sl = self.ensure_sl_exists(position, bb_data, stage, profit_pips)
+        # Apply safe distance
+        bb_width_pips = bb_data['bb_width'] / pip_size
+        new_sl, safe_adjustment = self.ensure_safe_distance(
+            new_sl, position['current_price'], bb_data['bb_width'],
+            position['type'], symbol, bb_width_pips
+        )
         
-        # ===== CALCULATE TP =====
-        new_tp = self.calculate_tp(position, bb_data, stage)
+        # Calculate TP
+        new_tp = self.calculate_stage_tp(position, stage, bb_data)
         
-        debug_info['calculated_sl'] = new_sl
-        debug_info['calculated_tp'] = new_tp
+        # Check if changes are needed
+        current_sl = position['sl'] if abs(position['sl']) > 0.00001 else 0.0
+        current_tp = position['tp'] if abs(position['tp']) > 0.00001 else 0.0
         
-        # Final values
-        final_sl = new_sl
-        final_tp = new_tp
+        sl_changed = abs(new_sl - current_sl) > 0.00001 if new_sl is not None else False
+        tp_changed = abs(new_tp - current_tp) > 0.00001 if new_tp is not None else False
         
-        debug_info['final_sl'] = final_sl
-        debug_info['final_tp'] = final_tp
+        # Only return changes if needed
+        final_sl = new_sl if sl_changed else None
+        final_tp = new_tp if tp_changed else None
         
-        # REMOVED: Individual log messages for each position
-        # The cycle summary will provide the necessary information
+        # Create log entry
+        log_entry = self.create_position_log(
+            position, stage, previous_stage,
+            profit_ratio, profit_pips,
+            bb_data, final_sl, final_tp,
+            safe_adjustment
+        )
         
-        return final_sl, final_tp, stage, debug_info
+        return final_sl, final_tp, stage, previous_stage, log_entry
     
     def process_positions(self, positions: List[Dict]) -> List[Dict]:
-        """Process all positions - SIMPLE"""
+        """Process all positions"""
         updates_needed = []
         
         if not self.market_data:
             logger.error("No market data loaded")
             return updates_needed
-        
-        # Count missing SL/TP
-        missing_sl = sum(1 for p in positions if abs(p['sl']) < 0.00001)
-        missing_tp = sum(1 for p in positions if abs(p['tp']) < 0.00001)
-        
-        if missing_sl > 0:
-            logger.warning(f"🚨 Found {missing_sl} positions WITHOUT SL")
-        if missing_tp > 0:
-            logger.warning(f"⚠️  Found {missing_tp} positions WITHOUT TP")
         
         for position in positions:
             symbol = position['symbol']
@@ -333,7 +645,7 @@ class SLTPEngine:
             if symbol not in self.market_data:
                 continue
             
-            new_sl, new_tp, stage, debug_info = self.calculate_new_sl_tp(position)
+            new_sl, new_tp, stage, previous_stage, log_entry = self.calculate_new_sl_tp(position)
             
             # Add to updates if anything changed
             if new_sl is not None or new_tp is not None:
@@ -342,12 +654,29 @@ class SLTPEngine:
                     'symbol': symbol,
                     'type': position['type'],
                     'stage': stage,
+                    'previous_stage': previous_stage,
                     'current_sl': position['sl'],
                     'current_tp': position['tp'],
                     'new_sl': new_sl,
                     'new_tp': new_tp,
-                    'debug_info': debug_info
+                    'log_entry': log_entry
                 }
+                
                 updates_needed.append(update_info)
         
         return updates_needed
+    
+    def get_stage_definitions(self) -> Dict:
+        """Get stage definitions for logging"""
+        # Return a simplified version for logging
+        simplified_defs = {}
+        for stage, directions in self.stage_definitions.items():
+            simplified_defs[stage] = {}
+            for direction, defs in directions.items():
+                simplified_defs[stage][direction] = {
+                    'sl_formula': defs['sl_formula'],
+                    'tp_formula': defs['tp_formula'],
+                    'profit_threshold': defs.get('profit_threshold', 0),
+                    'description': defs.get('description', '')
+                }
+        return simplified_defs

@@ -6,13 +6,14 @@ logger = logging.getLogger(__name__)
 
 
 class MT5Interface:
-    """BULLETPROOF MT5 interface - ALWAYS sets SL"""
+    """MT5 interface with enhanced safe distance protection"""
     
     def __init__(self, login: int, password: str, server: str):
         self.login = login
         self.password = password
         self.server = server
         self.connected = False
+        self.spread_cache = {}  # Cache for spreads to avoid repeated API calls
         
     def connect(self) -> bool:
         """Connect to MT5"""
@@ -41,6 +42,27 @@ class MT5Interface:
             mt5.shutdown()
             self.connected = False
             logger.info("Disconnected from MT5")
+    
+    def get_current_spread(self, symbol: str) -> float:
+        """Get current spread in pips"""
+        try:
+            if symbol in self.spread_cache:
+                return self.spread_cache[symbol]
+            
+            symbol_info = mt5.symbol_info(symbol)
+            if symbol_info:
+                spread = symbol_info.spread
+                # Convert spread to pips
+                pip_size = 0.0001 if symbol.find("JPY") == -1 else 0.01
+                spread_pips = spread * pip_size * 10  # Convert points to pips
+                
+                self.spread_cache[symbol] = spread_pips
+                return spread_pips
+        except:
+            pass
+        
+        # Return default if can't get spread
+        return 2.0  # Default 2 pips spread
     
     def get_open_positions(self) -> List[Dict]:
         """Get all open positions"""
@@ -78,7 +100,7 @@ class MT5Interface:
             return []
     
     def modify_position(self, ticket: int, sl: float, tp: float) -> Tuple[bool, str]:
-        """Modify position - BULLETPROOF"""
+        """Modify position with enhanced validation"""
         if not self.connected:
             return False, "Not connected to MT5"
         
@@ -89,12 +111,16 @@ class MT5Interface:
             
             position = position[0]
             current_price = position.price_current
+            symbol = position.symbol
             
-            # ALWAYS include both SL and TP in request
+            # Determine pip size
+            pip_size = 0.0001 if symbol.find("JPY") == -1 else 0.01
+            
+            # Build request
             request = {
                 "action": mt5.TRADE_ACTION_SLTP,
                 "position": ticket,
-                "symbol": position.symbol,
+                "symbol": symbol,
                 "magic": position.magic,
                 "comment": "Auto SL/TP Update"
             }
@@ -119,13 +145,15 @@ class MT5Interface:
                 if position.type == mt5.ORDER_TYPE_BUY:
                     if sl_to_check >= current_price:
                         # SL too close or above current price - adjust
-                        new_sl = current_price - (0.0001 if position.symbol.find("JPY") == -1 else 0.01)
+                        safe_distance = self.get_current_spread(symbol) * 2  # Double spread
+                        new_sl = current_price - (safe_distance * pip_size)
                         logger.warning(f"SL {sl_to_check} too high for BUY, adjusting to {new_sl}")
                         request["sl"] = new_sl
                 else:  # SELL
                     if sl_to_check <= current_price:
                         # SL too close or below current price - adjust
-                        new_sl = current_price + (0.0001 if position.symbol.find("JPY") == -1 else 0.01)
+                        safe_distance = self.get_current_spread(symbol) * 2  # Double spread
+                        new_sl = current_price + (safe_distance * pip_size)
                         logger.warning(f"SL {sl_to_check} too low for SELL, adjusting to {new_sl}")
                         request["sl"] = new_sl
             
@@ -135,13 +163,15 @@ class MT5Interface:
                 if position.type == mt5.ORDER_TYPE_BUY:
                     if tp_to_check <= current_price:
                         # TP below current price - adjust
-                        new_tp = current_price + (0.0001 if position.symbol.find("JPY") == -1 else 0.01)
+                        safe_distance = self.get_current_spread(symbol) * 2  # Double spread
+                        new_tp = current_price + (safe_distance * pip_size)
                         logger.warning(f"TP {tp_to_check} too low for BUY, adjusting to {new_tp}")
                         request["tp"] = new_tp
                 else:  # SELL
                     if tp_to_check >= current_price:
                         # TP above current price - adjust
-                        new_tp = current_price - (0.0001 if position.symbol.find("JPY") == -1 else 0.01)
+                        safe_distance = self.get_current_spread(symbol) * 2  # Double spread
+                        new_tp = current_price - (safe_distance * pip_size)
                         logger.warning(f"TP {tp_to_check} too high for SELL, adjusting to {new_tp}")
                         request["tp"] = new_tp
             
@@ -159,14 +189,13 @@ class MT5Interface:
             result = mt5.order_send(request)
             
             if result.retcode == mt5.TRADE_RETCODE_DONE:
-                # REMOVED: Success log message - cycle summary will show this
                 return True, "Success"
             else:
                 error_msg = f"{result.retcode} - {result.comment}"
                 logger.error(f"❌ FAILED: Position {ticket}: {error_msg}")
                 
                 # If failed due to invalid stops, try emergency fix
-                if "Invalid stops" in error_msg:
+                if "Invalid stops" in error_msg or "10027" in error_msg:
                     logger.warning(f"Attempting emergency fix for position {ticket}")
                     return self._emergency_fix(position, sl, tp)
                 
@@ -181,28 +210,34 @@ class MT5Interface:
         """Emergency fix for invalid stops"""
         try:
             current_price = position.price_current
-            pip_size = 0.0001 if position.symbol.find("JPY") == -1 else 0.01
+            symbol = position.symbol
+            pip_size = 0.0001 if symbol.find("JPY") == -1 else 0.01
+            
+            # Get current spread
+            spread = self.get_current_spread(symbol)
             
             # Build emergency request
             request = {
                 "action": mt5.TRADE_ACTION_SLTP,
                 "position": position.ticket,
-                "symbol": position.symbol,
+                "symbol": symbol,
                 "magic": position.magic,
                 "comment": "Emergency SL/TP Fix"
             }
             
-            # Emergency SL calculation
+            # Emergency SL calculation with safe distance
             if position.type == mt5.ORDER_TYPE_BUY:
-                # BUY: SL below current price
-                emergency_sl = current_price - (10 * pip_size)  # 10 pips below
+                # BUY: SL below current price with spread buffer
+                safe_distance = max(10, spread * 3)  # At least 10 pips or 3x spread
+                emergency_sl = current_price - (safe_distance * pip_size)
                 request["sl"] = emergency_sl
             else:
-                # SELL: SL above current price
-                emergency_sl = current_price + (10 * pip_size)  # 10 pips above
+                # SELL: SL above current price with spread buffer
+                safe_distance = max(10, spread * 3)  # At least 10 pips or 3x spread
+                emergency_sl = current_price + (safe_distance * pip_size)
                 request["sl"] = emergency_sl
             
-            # Emergency TP calculation
+            # Emergency TP handling
             if tp is not None and tp != 0.0:
                 if position.type == mt5.ORDER_TYPE_BUY and tp > current_price:
                     request["tp"] = tp

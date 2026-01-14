@@ -1,0 +1,117 @@
+{
+  "cycle_number": 1,
+  "start_time": "2026-01-14 18:00:10.056318",
+  "end_time": "2026-01-14 18:00:10.680276",
+  "duration_seconds": 0.623958,
+  "positions_checked": 18,
+  "missing_sl_count": 0,
+  "missing_tp_count": 0,
+  "updates_needed": 2,
+  "successful_updates": 2,
+  "stage_transitions": 0,
+  "safe_adjustments": 2,
+  "stage_distribution": {
+    "STAGE_0": 2
+  },
+  "stage_transition_details": [],
+  "safe_adjustment_details": [
+    {
+      "ticket": 223700617,
+      "symbol": "EURGBP",
+      "adjustment_pips": 1.80000000000069,
+      "reason": "SL too close to price (needed 10.0 pips distance)"
+    },
+    {
+      "ticket": 223704273,
+      "symbol": "EURGBP",
+      "adjustment_pips": 0.40000000000040004,
+      "reason": "SL too close to price (needed 10.0 pips distance)"
+    }
+  ],
+  "errors": {
+    "no_change": 0,
+    "invalid_stops": 0,
+    "other": 0
+  },
+  "update_details": [
+    {
+      "ticket": 223700617,
+      "symbol": "EURGBP",
+      "previous_stage": "STAGE_0",
+      "current_stage": "STAGE_0",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.86509,
+      "current_tp": 0.87209,
+      "new_sl": 0.86491,
+      "new_tp": null,
+      "safe_adjustment": {
+        "adjustment_pips": 1.80000000000069,
+        "reason": "SL too close to price (needed 10.0 pips distance)",
+        "original_sl": 0.86509
+      },
+      "debug_info": {
+        "profit_ratio": -0.5718782791186026,
+        "profit_pips": -21.800000000000708,
+        "stage": "STAGE_0",
+        "previous_stage": "STAGE_0",
+        "original_sl": 0.86509,
+        "original_tp": 0.87209,
+        "upper_bb": 0.868918,
+        "lower_bb": 0.865106,
+        "bb_width": 0.0038119999999999266,
+        "bb_width_pips": 38.119999999999266,
+        "safe_adjustment_info": {
+          "adjustment_pips": 1.80000000000069,
+          "reason": "SL too close to price (needed 10.0 pips distance)",
+          "original_sl": 0.86509
+        }
+      }
+    },
+    {
+      "ticket": 223704273,
+      "symbol": "EURGBP",
+      "previous_stage": "STAGE_0",
+      "current_stage": "STAGE_0",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.86495,
+      "current_tp": 0.87195,
+      "new_sl": 0.86491,
+      "new_tp": null,
+      "safe_adjustment": {
+        "adjustment_pips": 0.40000000000040004,
+        "reason": "SL too close to price (needed 10.0 pips distance)",
+        "original_sl": 0.86495
+      },
+      "debug_info": {
+        "profit_ratio": -0.5351521511018051,
+        "profit_pips": -20.400000000000418,
+        "stage": "STAGE_0",
+        "previous_stage": "STAGE_0",
+        "original_sl": 0.86495,
+        "original_tp": 0.87195,
+        "upper_bb": 0.868918,
+        "lower_bb": 0.865106,
+        "bb_width": 0.0038119999999999266,
+        "bb_width_pips": 38.119999999999266,
+        "safe_adjustment_info": {
+          "adjustment_pips": 0.40000000000040004,
+          "reason": "SL too close to price (needed 10.0 pips distance)",
+          "original_sl": 0.86495
+        }
+      }
+    }
+  ],
+  "system_version": "2.2",
+  "hysteresis_config": {
+    "up_buffer": 0.02,
+    "down_buffer": 0.03,
+    "min_stage_time": 2
+  },
+  "safe_distance_config": {
+    "min_pips": 10,
+    "bb_percentage": 0.08,
+    "spread_multiplier": 2.0
+  }
+}

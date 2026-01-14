@@ -24,7 +24,8 @@ def main():
     try:
         # 1. Load data
         print("Loading market data...")
-        data_loader = DataLoader(config.DATA_PATH)
+        temp_file = os.environ.get('MARKET_DATA_TEMP')
+        data_loader = DataLoader(config.get_data_path(temp_file))
         raw_data = data_loader.load_json()
         
         # 2. Preprocess

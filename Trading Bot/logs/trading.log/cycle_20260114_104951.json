@@ -1,0 +1,97 @@
+{
+  "cycle_number": 1,
+  "start_time": "2026-01-14 10:49:50.850101",
+  "end_time": "2026-01-14 10:49:51.675712",
+  "duration_seconds": 0.825611,
+  "positions_checked": 29,
+  "missing_sl_count": 0,
+  "missing_tp_count": 3,
+  "updates_needed": 3,
+  "successful_updates": 3,
+  "stage_distribution": {
+    "STAGE_3": 1,
+    "STAGE_2C": 2
+  },
+  "errors": {
+    "no_change": 0,
+    "invalid_stops": 0,
+    "other": 0
+  },
+  "update_details": [
+    {
+      "ticket": 224397154,
+      "symbol": "AUDCHF",
+      "stage": "STAGE_3",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.53207,
+      "current_tp": 0.53907,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.902527075812275,
+        "profit_pips": 12.499999999999734,
+        "stage": "STAGE_3",
+        "original_sl": 0.53207,
+        "original_tp": 0.53907,
+        "upper_bb": 0.53579,
+        "lower_bb": 0.534405,
+        "bb_width": 0.0013849999999999696,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 224397681,
+      "symbol": "AUDCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.53216,
+      "current_tp": 0.53916,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.837545126353845,
+        "profit_pips": 11.600000000000499,
+        "stage": "STAGE_2C",
+        "original_sl": 0.53216,
+        "original_tp": 0.53916,
+        "upper_bb": 0.53579,
+        "lower_bb": 0.534405,
+        "bb_width": 0.0013849999999999696,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    },
+    {
+      "ticket": 224398028,
+      "symbol": "AUDCHF",
+      "stage": "STAGE_2C",
+      "success": true,
+      "message": "Success",
+      "current_sl": 0.53214,
+      "current_tp": 0.53914,
+      "new_sl": null,
+      "new_tp": 0.0,
+      "debug_info": {
+        "profit_ratio": 0.8519855595668562,
+        "profit_pips": 11.800000000000699,
+        "stage": "STAGE_2C",
+        "original_sl": 0.53214,
+        "original_tp": 0.53914,
+        "upper_bb": 0.53579,
+        "lower_bb": 0.534405,
+        "bb_width": 0.0013849999999999696,
+        "calculated_sl": null,
+        "calculated_tp": 0.0,
+        "final_sl": null,
+        "final_tp": 0.0
+      }
+    }
+  ]
+}

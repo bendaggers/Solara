@@ -105,3 +105,15 @@ SYMBOL_PATTERNS = {
     "ETH": ["ETH"],
     "INDICES": ["US30", "NAS100", "SPX500", "DAX", "FTSE", "NIKKEI"],
 }
+
+# Add to config.py (at the end):
+def get_data_path(use_temp=None):
+    """
+    Get the data path to use.
+    If use_temp is provided and exists, use that temp file.
+    Otherwise, use the default DATA_PATH.
+    """
+    import os
+    if use_temp and os.path.exists(use_temp):
+        return use_temp
+    return DATA_PATH
