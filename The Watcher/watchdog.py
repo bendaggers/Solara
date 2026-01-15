@@ -107,10 +107,10 @@ class CleanWatcher:
         self.total_runs += 1
         
         # Show minimal header
-        print(f"\n{'='*60}")
+        print(f"\n")
         print(f"[{now.strftime('%H:%M:%S')}] TRADING CYCLE #{self.total_runs}")
         print(f"[Using temp file protection")
-        print(f"{'='*60}")
+        print(f"\n")
         
         # Get the original file path
         original_file = MT5_FILES_DIR / WATCHED_FILE
@@ -131,13 +131,13 @@ class CleanWatcher:
                 time.sleep(2)
                 
                 # Run SLTP with SAME temp file
-                print(f"\n{'-'*60}")
+                print(f"\n")
                 self.run_script_with_temp(SLTP_SCRIPT, "SLTP", temp_file)
             
             # Show footer
-            print(f"{'='*60}")
+            print(f"\n")
             print(f"[{now.strftime('%H:%M:%S')}] CYCLE COMPLETE")
-            print(f"{'='*60}\n")
+            print(f"\n")
             
         finally:
             # ALWAYS clean up temp file
@@ -196,14 +196,14 @@ def main():
     if sys.platform == "win32":
         os.system('chcp 65001 >nul')
     
-    print("\n============================================================")
+    print(f"\n")
     print("SOLARA WATCHDOG WITH TEMP PROTECTION")
     print(f"Watching: {MT5_FILES_DIR / WATCHED_FILE}")
     print(f"Cooldown: {COOLDOWN} seconds")
     print("Temp files: marketdata_TIMESTAMP_RANDOM.json")
-    print("============================================================")
+    print(f"\n")
     print("Monitoring... (Ctrl+C to stop)")
-    print("------------------------------------------------------------")
+    print(f"\n")
     
     file_path = MT5_FILES_DIR / WATCHED_FILE
     watcher = CleanWatcher()
@@ -243,11 +243,11 @@ def main():
     except KeyboardInterrupt:
         now = datetime.now()
         hours_up = (now - watcher.start_time).total_seconds() / 3600
-        print(f"\n{'='*60}")
+        print(f"\n")
         print(f"[{now.strftime('%H:%M:%S')}] WATCHDOG STOPPED")
         print(f"Uptime: {hours_up:.1f} hours")
         print(f"Total cycles: {watcher.total_runs}")
-        print(f"{'='*60}")
+        print(f"\n")
 
 if __name__ == "__main__":
     main()

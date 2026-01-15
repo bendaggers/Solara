@@ -1,0 +1,315 @@
+{
+  "cycle_number": 1,
+  "timestamp": "2026-01-15 09:56:14",
+  "duration_seconds": 1.94,
+  "positions_checked": 37,
+  "updates_needed": 5,
+  "successful_updates": 5,
+  "stage_distribution": {
+    "STAGE_0": 5
+  },
+  "position_updates": [
+    {
+      "ticket": 225787396,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "values": {
+        "entry": 1.16421,
+        "current": 1.16417,
+        "pip_size": 0.0001,
+        "profit_pips": -0.4,
+        "profit_ratio": -0.0063,
+        "bb_width_pips": 63.34,
+        "stage_threshold": 0.25,
+        "sl_before": 1.16123,
+        "tp_before": 1.16823,
+        "sl_after": 1.16121,
+        "tp_after": 1.16821
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16421 - (30 \u00d7 0.0001) = 1.16121",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16421 + (40 \u00d7 0.0001) = 1.16821",
+        "stage_reason": "-0.0063 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787397,
+      "symbol": "EURJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "values": {
+        "entry": 184.276,
+        "current": 184.268,
+        "pip_size": 0.01,
+        "profit_pips": -0.8,
+        "profit_ratio": -0.0037,
+        "bb_width_pips": 218.872,
+        "stage_threshold": 0.25,
+        "sl_before": 183.977,
+        "tp_before": 184.677,
+        "sl_after": 183.976,
+        "tp_after": 184.676
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "184.27600 - (30 \u00d7 0.01) = 183.97600",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "184.27600 + (40 \u00d7 0.01) = 184.67600",
+        "stage_reason": "-0.0037 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787400,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "values": {
+        "entry": 1.61627,
+        "current": 1.61615,
+        "pip_size": 0.0001,
+        "profit_pips": -1.2,
+        "profit_ratio": -0.0192,
+        "bb_width_pips": 62.46,
+        "stage_threshold": 0.25,
+        "sl_before": 1.61328,
+        "tp_before": 1.62028,
+        "sl_after": 1.61327,
+        "tp_after": 1.62027
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61627 - (30 \u00d7 0.0001) = 1.61327",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61627 + (40 \u00d7 0.0001) = 1.62027",
+        "stage_reason": "-0.0192 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787405,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "values": {
+        "entry": 1.86557,
+        "current": 1.8655,
+        "pip_size": 0.0001,
+        "profit_pips": -0.7,
+        "profit_ratio": -0.0081,
+        "bb_width_pips": 85.89,
+        "stage_threshold": 0.25,
+        "sl_before": 1.86258,
+        "tp_before": 1.86958,
+        "sl_after": 1.86258,
+        "tp_after": 1.86957
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86557 + (40 \u00d7 0.0001) = 1.86957",
+        "stage_reason": "-0.0081 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787408,
+      "symbol": "AUDJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "values": {
+        "entry": 105.771,
+        "current": 105.762,
+        "pip_size": 0.01,
+        "profit_pips": -0.9,
+        "profit_ratio": -0.0065,
+        "bb_width_pips": 137.7302,
+        "stage_threshold": 0.25,
+        "sl_before": 105.475,
+        "tp_before": 106.175,
+        "sl_after": 105.471,
+        "tp_after": 106.171
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "105.77100 - (30 \u00d7 0.01) = 105.47100",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "105.77100 + (40 \u00d7 0.01) = 106.17100",
+        "stage_reason": "-0.0065 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    }
+  ],
+  "stage_definitions": {
+    "STAGE_0": {
+      "buy": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "description": "Initial position: profit < 25% of BB width"
+      },
+      "sell": {
+        "sl_formula": "entry + (30 \u00d7 pip_size)",
+        "tp_formula": "entry - (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "description": "Initial position: profit < 25% of BB width"
+      }
+    },
+    "STAGE_1": {
+      "buy": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.4,
+        "description": "25-39% profit: protect 40% of gains"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.4,
+        "description": "25-39% profit: protect 40% of gains"
+      }
+    },
+    "STAGE_1A": {
+      "buy": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.5,
+        "description": "40-49% profit: protect 55% of gains"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.5,
+        "description": "40-49% profit: protect 55% of gains"
+      }
+    },
+    "STAGE_2A": {
+      "buy": {
+        "sl_formula": "max(entry + (0.65 \u00d7 profit_pips \u00d7 pip_size), middle_bb - (0.04 \u00d7 bb_width))",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.6,
+        "description": "50-59% profit: 65% protection OR middle BB - 4%"
+      },
+      "sell": {
+        "sl_formula": "min(entry - (0.65 \u00d7 profit_pips \u00d7 pip_size), middle_bb + (0.04 \u00d7 bb_width))",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.6,
+        "description": "50-59% profit: 65% protection OR middle BB + 4%"
+      }
+    },
+    "STAGE_2B": {
+      "buy": {
+        "sl_formula": "max(entry + (0.75 \u00d7 profit_pips \u00d7 pip_size), middle_bb + (0.05 \u00d7 bb_width))",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.7,
+        "description": "60-69% profit: 75% protection OR middle BB + 5%"
+      },
+      "sell": {
+        "sl_formula": "min(entry - (0.75 \u00d7 profit_pips \u00d7 pip_size), middle_bb - (0.05 \u00d7 bb_width))",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.7,
+        "description": "60-69% profit: 75% protection OR middle BB - 5%"
+      }
+    },
+    "STAGE_2C": {
+      "buy": {
+        "sl_formula": "max(entry + (0.80 \u00d7 profit_pips \u00d7 pip_size), current_price - (0.08 \u00d7 bb_width))",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "description": "70-79% profit: 80% protection OR price - 8% trailing"
+      },
+      "sell": {
+        "sl_formula": "min(entry - (0.80 \u00d7 profit_pips \u00d7 pip_size), current_price + (0.08 \u00d7 bb_width))",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "description": "70-79% profit: 80% protection OR price + 8% trailing"
+      }
+    },
+    "STAGE_3A": {
+      "buy": {
+        "sl_formula": "max(entry + (0.85 \u00d7 profit_pips \u00d7 pip_size), current_price - (0.06 \u00d7 bb_width))",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "description": "80-89% profit: 85% protection OR price - 6% trailing"
+      },
+      "sell": {
+        "sl_formula": "min(entry - (0.85 \u00d7 profit_pips \u00d7 pip_size), current_price + (0.06 \u00d7 bb_width))",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "description": "80-89% profit: 85% protection OR price + 6% trailing"
+      }
+    },
+    "STAGE_3B": {
+      "buy": {
+        "sl_formula": "current_price - (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "description": "90-119% profit: 3% trailing stop"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "description": "90-119% profit: 3% trailing stop"
+      }
+    },
+    "STAGE_4": {
+      "buy": {
+        "sl_formula": "current_price - (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "description": "120-179% profit: 2% trailing stop"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "description": "120-179% profit: 2% trailing stop"
+      }
+    },
+    "STAGE_5": {
+      "buy": {
+        "sl_formula": "current_price - (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "description": "180%+ profit: 1.5% ultra-tight trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "description": "180%+ profit: 1.5% ultra-tight trailing"
+      }
+    }
+  }
+}

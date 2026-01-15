@@ -76,7 +76,7 @@ class SLTPRunner:
     
     def initialize(self) -> bool:
         try:
-            # Clean minimal initialization
+            # Clean minimal initialization - NO CONSOLE OUTPUT HERE
             self.mt5_interface = MT5Interface(
                 login=MT5_LOGIN,
                 password=MT5_PASSWORD,
@@ -266,24 +266,26 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description='Dynamic Trailing SL/TP System',
+        description='Dynamic Trailing Stop & Profit Target System\nVolatility-Normalized Progressive Protection',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Usage:
-  python sltp.py                    # Run once
-  python sltp.py -c                # Run continuous (4h)
-  python sltp.py -c -i 60          # Run every hour
+Examples:
+  %(prog)s                      # Run once (default)
+  %(prog)s --mode once          # Run once (explicit)
+  %(prog)s --mode continuous    # Run continuously every 4 hours
+  %(prog)s --mode continuous --interval 60  # Run every hour (testing)
         """
     )
     
-    parser.add_argument('-c', '--continuous', action='store_true',
-                       help='Run continuously')
-    parser.add_argument('-i', '--interval', type=int, default=240,
-                       help='Interval in minutes (default: 240 = 4h)')
+    # RESTORED TO YOUR ORIGINAL ARGUMENT STRUCTURE
+    parser.add_argument('--mode', choices=['once', 'continuous'], default='once',
+                       help='Run mode: once or continuous (default: once)')
+    parser.add_argument('--interval', type=int, default=240,
+                       help='Interval in minutes for continuous mode (default: 240 = 4 hours)')
     parser.add_argument('--min-pips', type=int, default=None,
-                       help='Min safe distance in pips')
+                       help='Minimum safe distance in pips (overrides config)')
     parser.add_argument('--bb-percentage', type=float, default=None,
-                       help='Safe distance as % of BB width')
+                       help='Safe distance as percentage of BB width (overrides config)')
     
     args = parser.parse_args()
     
@@ -298,7 +300,8 @@ Usage:
     if not runner.initialize():
         return
     
-    if args.continuous:
+    # RESTORED TO YOUR ORIGINAL LOGIC
+    if args.mode == 'continuous':
         runner.run_continuous(args.interval)
     else:
         runner.run_once()

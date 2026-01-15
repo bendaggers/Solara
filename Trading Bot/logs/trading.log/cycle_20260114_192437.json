@@ -1,110 +1,41 @@
 {
   "cycle_number": 1,
-  "timestamp": "2026-01-14 19:00:44",
-  "duration_seconds": 1.52,
-  "positions_checked": 18,
-  "updates_needed": 4,
-  "successful_updates": 4,
+  "timestamp": "2026-01-14 19:24:37",
+  "duration_seconds": 0.58,
+  "positions_checked": 28,
+  "updates_needed": 2,
+  "successful_updates": 2,
   "stage_distribution": {
-    "STAGE_0": 2,
     "STAGE_1A": 1,
-    "STAGE_1": 1
+    "STAGE_0": 1
   },
   "position_updates": [
-    {
-      "ticket": 223700617,
-      "symbol": "EURGBP",
-      "type": "BUY",
-      "stage": "STAGE_0",
-      "stage_changed": false,
-      "previous_stage": null,
-      "values": {
-        "entry": 0.86809,
-        "current": 0.86629,
-        "pip_size": 0.0001,
-        "profit_pips": -18.0,
-        "profit_ratio": -0.4722,
-        "bb_width_pips": 38.12,
-        "stage_threshold": 0.25,
-        "sl_before": 0.86491,
-        "tp_before": 0.87209,
-        "sl_after": 0.86509,
-        "tp_after": 0.87209
-      },
-      "verification": {
-        "sl_formula": "entry - (30 \u00d7 pip_size)",
-        "sl_calculation": "0.86809 - (30 \u00d7 0.0001) = 0.86509",
-        "tp_formula": "entry + (40 \u00d7 pip_size)",
-        "tp_calculation": "No change",
-        "stage_reason": "-0.4722 < 0.2500"
-      },
-      "execution": {
-        "success": true,
-        "message": "Success"
-      }
-    },
-    {
-      "ticket": 223704273,
-      "symbol": "EURGBP",
-      "type": "BUY",
-      "stage": "STAGE_0",
-      "stage_changed": false,
-      "previous_stage": null,
-      "values": {
-        "entry": 0.86795,
-        "current": 0.86629,
-        "pip_size": 0.0001,
-        "profit_pips": -16.6,
-        "profit_ratio": -0.4355,
-        "bb_width_pips": 38.12,
-        "stage_threshold": 0.25,
-        "sl_before": 0.86491,
-        "tp_before": 0.87195,
-        "sl_after": 0.86495,
-        "tp_after": 0.87195
-      },
-      "verification": {
-        "sl_formula": "entry - (30 \u00d7 pip_size)",
-        "sl_calculation": "0.86795 - (30 \u00d7 0.0001) = 0.86495",
-        "tp_formula": "entry + (40 \u00d7 pip_size)",
-        "tp_calculation": "No change",
-        "stage_reason": "-0.4355 < 0.2500"
-      },
-      "execution": {
-        "success": true,
-        "message": "Success"
-      }
-    },
     {
       "ticket": 224284285,
       "symbol": "CADCHF",
       "type": "BUY",
       "stage": "STAGE_1A",
-      "stage_changed": true,
-      "previous_stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
       "values": {
         "entry": 0.57461,
-        "current": 0.57681,
+        "current": 0.5769,
         "pip_size": 0.0001,
-        "profit_pips": 22.0,
-        "profit_ratio": 0.5272,
+        "profit_pips": 22.9,
+        "profit_ratio": 0.5488,
         "bb_width_pips": 41.73,
         "stage_threshold": 0.5,
-        "sl_before": 0.57161,
-        "tp_before": 0.57861,
-        "sl_after": 0.57581,
-        "tp_after": 0.577695
+        "sl_before": 0.57592,
+        "tp_before": 0.5777,
+        "sl_after": 0.5758695,
+        "tp_after": 0.5777
       },
       "verification": {
         "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
-        "sl_calculation": "0.57461 + (0.55 \u00d7 22.0 \u00d7 0.0001) = 0.57581",
+        "sl_calculation": "0.57461 + (0.55 \u00d7 22.9 \u00d7 0.0001) = 0.57587",
         "tp_formula": "upper_bollinger_band",
-        "tp_calculation": "Upper BB = 0.57769",
-        "stage_reason": "0.5272 >= 0.5000"
-      },
-      "safety_adjustment": {
-        "reason": "SL too close to price. Added 0.1 pips buffer.",
-        "adjustment_pips": 0.1
+        "tp_calculation": "No change",
+        "stage_reason": "0.5488 >= 0.5000"
       },
       "execution": {
         "success": true,
@@ -112,31 +43,31 @@
       }
     },
     {
-      "ticket": 225429596,
+      "ticket": 225454325,
       "symbol": "EURAUD",
       "type": "BUY",
-      "stage": "STAGE_1",
-      "stage_changed": true,
-      "previous_stage": "STAGE_0",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
       "values": {
-        "entry": 1.74025,
-        "current": 1.7433,
+        "entry": 1.74383,
+        "current": 1.74379,
         "pip_size": 0.0001,
-        "profit_pips": 30.5,
-        "profit_ratio": 0.4679,
+        "profit_pips": -0.4,
+        "profit_ratio": -0.0061,
         "bb_width_pips": 65.18,
-        "stage_threshold": 0.4,
-        "sl_before": 1.73725,
-        "tp_before": 1.74425,
-        "sl_after": 1.74147,
-        "tp_after": 1.743579
+        "stage_threshold": 0.25,
+        "sl_before": 1.74082,
+        "tp_before": 1.74782,
+        "sl_after": 1.74083,
+        "tp_after": 1.74783
       },
       "verification": {
-        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
-        "sl_calculation": "1.74025 + (0.4 \u00d7 30.5 \u00d7 0.0001) = 1.74147",
-        "tp_formula": "upper_bollinger_band",
-        "tp_calculation": "Upper BB = 1.74358",
-        "stage_reason": "0.4679 >= 0.4000"
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.74383 - (30 \u00d7 0.0001) = 1.74083",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.74383 + (40 \u00d7 0.0001) = 1.74783",
+        "stage_reason": "-0.0061 < 0.2500"
       },
       "execution": {
         "success": true,

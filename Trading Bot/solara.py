@@ -19,7 +19,7 @@ import config
 def main():
     """Clean main execution"""
     print(f"🚀 Solara Trading Bot - {datetime.now().strftime('%H:%M:%S')}")
-    print("-" * 40)
+    print("\n")
     
     try:
         # 1. Load data
@@ -40,7 +40,7 @@ def main():
         
         # 4. Execute trades
         if predictions:
-            print("\n" + "-" * 40)
+            print("\n")
             print("Executing trades...")
             executor = TradeExecutor(
                 login=config.MT5_LOGIN,
