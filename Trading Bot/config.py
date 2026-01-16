@@ -119,24 +119,28 @@ def get_data_path(use_temp=None):
     return DATA_PATH
 
 
+# SAFE_DISTANCE - SURVIVOR'S EDITION (updated values)
 SAFE_DISTANCE = {
-    'min_pips': 10,
-    'bb_percentage': 0.08,
-    'spread_multiplier': 2.0,
-    'max_profit_giveback': 0.10,  # NEW: Max 10% profit giveback for safety
-    'stage_specific_mins': {      # NEW: Stage-specific minimum distances
-        'STAGE_0': 30,
-        'STAGE_1': 25,
-        'STAGE_1A': 20,
-        'STAGE_2A': 15,
-        'STAGE_2B': 12,
-        'STAGE_2C': 10,
-        'STAGE_3A': 8,
-        'STAGE_3B': 6,
-        'STAGE_4': 5,
-        'STAGE_5': 5
+    'min_pips': 12,                      # Increased from 10
+    'bb_percentage': 0.10,               # Increased from 0.08
+    'spread_multiplier': 3.0,            # Increased from 2.0
+    'max_profit_giveback': 0.07,         # 7% max giveback (tighter than 10%)
+    'trailing_max_giveback': 0.05,       # 5% for trailing stages (NEW)
+    'stage_specific_mins': {             # Increased buffers
+        'STAGE_0': 35,    # Increased from 30
+        'STAGE_1': 30,    # Increased from 25
+        'STAGE_1A': 25,   # Increased from 20
+        'STAGE_2A': 20,   # Increased from 15
+        'STAGE_2B': 15,   # Increased from 12
+        'STAGE_2C': 12,   # Increased from 10
+        'STAGE_3A': 10,   # Increased from 8
+        'STAGE_3B': 8,    # Increased from 6
+        'STAGE_4': 6,     # Increased from 5
+        'STAGE_5': 6      # Increased from 5
     }
 }
+
+
 
 # NEW: Stage protection ratios for reference (optional)
 STAGE_PROTECTION_RATIOS = {
@@ -151,3 +155,4 @@ STAGE_PROTECTION_RATIOS = {
     'STAGE_4': 0.02,   # 2% price trailing
     'STAGE_5': 0.015   # 1.5% price trailing
 }
+
