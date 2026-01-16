@@ -117,3 +117,37 @@ def get_data_path(use_temp=None):
     if use_temp and os.path.exists(use_temp):
         return use_temp
     return DATA_PATH
+
+
+SAFE_DISTANCE = {
+    'min_pips': 10,
+    'bb_percentage': 0.08,
+    'spread_multiplier': 2.0,
+    'max_profit_giveback': 0.10,  # NEW: Max 10% profit giveback for safety
+    'stage_specific_mins': {      # NEW: Stage-specific minimum distances
+        'STAGE_0': 30,
+        'STAGE_1': 25,
+        'STAGE_1A': 20,
+        'STAGE_2A': 15,
+        'STAGE_2B': 12,
+        'STAGE_2C': 10,
+        'STAGE_3A': 8,
+        'STAGE_3B': 6,
+        'STAGE_4': 5,
+        'STAGE_5': 5
+    }
+}
+
+# NEW: Stage protection ratios for reference (optional)
+STAGE_PROTECTION_RATIOS = {
+    'STAGE_0': 0.0,    # Static 30 pips
+    'STAGE_1': 0.40,   # 40% profit protection
+    'STAGE_1A': 0.55,  # 55% profit protection
+    'STAGE_2A': 0.65,  # 65% profit protection
+    'STAGE_2B': 0.75,  # 75% profit protection
+    'STAGE_2C': 0.80,  # 80% profit protection
+    'STAGE_3A': 0.85,  # 85% profit protection
+    'STAGE_3B': 0.03,  # 3% price trailing
+    'STAGE_4': 0.02,   # 2% price trailing
+    'STAGE_5': 0.015   # 1.5% price trailing
+}

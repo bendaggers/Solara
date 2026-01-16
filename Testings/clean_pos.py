@@ -8,8 +8,9 @@ import sys
 import time
 
 # ===== CREDENTIALS =====
-MT5_LOGIN = 61457079  # SOLARA DEV
-MT5_PASSWORD = "o!83Ot8U6c2N"
+# MT5_LOGIN = 61457079  # SOLARA DEV
+MT5_LOGIN = 61459155 # SOLARA v2
+MT5_PASSWORD = "df1U:o_I9~w0v$"
 MT5_SERVER = "Pepperstone-Demo"
 # =======================
 

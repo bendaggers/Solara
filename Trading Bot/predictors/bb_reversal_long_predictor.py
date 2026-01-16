@@ -185,7 +185,7 @@ class BBReversalLongPredictor:
             symbol = row['symbol']
             
             predictions[unique_key] = {
-                'prediction': int(row['model_prediction']),
+                'prediction': int(row['model_signal']),
                 'probability': float(row['model_confidence']),
                 'confidence': float(row['model_confidence']),
                 'signal_strength': row['signal_strength'],

@@ -5,7 +5,7 @@ Configuration file for Bollinger Band Reversal Trading Model
 CONFIG = {
     # Data settings
     'data': {
-        'file_path': 'Training Data/EURUSD_v4.csv',
+        'file_path': 'Meta Model Stacking XGBoost/GBPUSD_Stacking_Data.csv',
         'timestamp_col': 'timestamp',
         'label_col': 'label',
         'train_test_split': 0.8,  # 80% train, 20% test

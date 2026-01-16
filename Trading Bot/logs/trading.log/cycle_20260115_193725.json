@@ -1,0 +1,226 @@
+{
+  "cycle_number": 1,
+  "timestamp": "2026-01-15 19:37:25",
+  "duration_seconds": 0.01,
+  "positions_checked": 101,
+  "updates_needed": 0,
+  "successful_updates": 0,
+  "stage_distribution": {},
+  "position_updates": [],
+  "stage_definitions": {
+    "STAGE_0": {
+      "buy": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "protection_percent": 0.0,
+        "trailing_percent": 0,
+        "description": "Initial position: profit < 25% of BB width",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry + (30 \u00d7 pip_size)",
+        "tp_formula": "entry - (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "protection_percent": 0.0,
+        "trailing_percent": 0,
+        "description": "Initial position: profit < 25% of BB width",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_1": {
+      "buy": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.4,
+        "protection_percent": 0.4,
+        "trailing_percent": 0,
+        "description": "25-39% profit: protect 40% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.4,
+        "protection_percent": 0.4,
+        "trailing_percent": 0,
+        "description": "25-39% profit: protect 40% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_1A": {
+      "buy": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.5,
+        "protection_percent": 0.55,
+        "trailing_percent": 0,
+        "description": "40-49% profit: protect 55% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.5,
+        "protection_percent": 0.55,
+        "trailing_percent": 0,
+        "description": "40-49% profit: protect 55% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2A": {
+      "buy": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.6,
+        "protection_percent": 0.65,
+        "trailing_percent": 0,
+        "description": "50-59% profit: protect 65% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.6,
+        "protection_percent": 0.65,
+        "trailing_percent": 0,
+        "description": "50-59% profit: protect 65% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2B": {
+      "buy": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.7,
+        "protection_percent": 0.75,
+        "trailing_percent": 0,
+        "description": "60-69% profit: protect 75% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.7,
+        "protection_percent": 0.75,
+        "trailing_percent": 0,
+        "description": "60-69% profit: protect 75% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2C": {
+      "buy": {
+        "sl_formula": "entry + (0.80 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "protection_percent": 0.8,
+        "trailing_percent": 0,
+        "description": "70-79% profit: protect 80% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.80 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "protection_percent": 0.8,
+        "trailing_percent": 0,
+        "description": "70-79% profit: protect 80% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_3A": {
+      "buy": {
+        "sl_formula": "entry + (0.85 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "protection_percent": 0.85,
+        "trailing_percent": 0,
+        "description": "80-89% profit: protect 85% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.85 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "protection_percent": 0.85,
+        "trailing_percent": 0,
+        "description": "80-89% profit: protect 85% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_3B": {
+      "buy": {
+        "sl_formula": "current_price - (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "protection_percent": 0,
+        "trailing_percent": 0.03,
+        "description": "90-119% profit: 3% trailing stop from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "protection_percent": 0,
+        "trailing_percent": 0.03,
+        "description": "90-119% profit: 3% trailing stop from price",
+        "protection_phase": "price-trailing"
+      }
+    },
+    "STAGE_4": {
+      "buy": {
+        "sl_formula": "current_price - (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "protection_percent": 0,
+        "trailing_percent": 0.02,
+        "description": "120-179% profit: 2% trailing stop from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "protection_percent": 0,
+        "trailing_percent": 0.02,
+        "description": "120-179% profit: 2% trailing stop from price",
+        "protection_phase": "price-trailing"
+      }
+    },
+    "STAGE_5": {
+      "buy": {
+        "sl_formula": "current_price - (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "protection_percent": 0,
+        "trailing_percent": 0.015,
+        "description": "180%+ profit: 1.5% ultra-tight trailing from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "protection_percent": 0,
+        "trailing_percent": 0.015,
+        "description": "180%+ profit: 1.5% ultra-tight trailing from price",
+        "protection_phase": "price-trailing"
+      }
+    }
+  },
+  "stage_statistics": {
+    "total_positions": 101,
+    "stage_distribution": {
+      "STAGE_1A": 8,
+      "STAGE_1": 10,
+      "STAGE_0": 73,
+      "STAGE_2A": 4,
+      "STAGE_2B": 6
+    },
+    "phase_distribution": {
+      "profit_locking": 101,
+      "price_trailing": 0
+    }
+  }
+}

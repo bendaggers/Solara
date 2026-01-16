@@ -16,11 +16,11 @@ warnings.filterwarnings('ignore')
 
 # Configuration
 CONFIG = {
-    'model_path': '../ML/BB_LONG_REVERSAL_Model.pkl',
-    'input_csv': 'AUDUSD.csv',
-    'output_csv': 'model_assessments.csv',
-    'output_json': 'model_assessments.json',
-    'output_signals_json': 'trading_signals.json',
+    'model_path': '../Models/BB_LONG_REVERSAL_Model.pkl',
+    'input_csv': 'GBPUSD_Stacking_Data.csv',
+    'output_csv': 'model_assessments_GBPUSD.csv',
+    'output_json': 'model_assessments_GBPUSD.json',
+    'output_signals_json': 'trading_signals_GBPUSD.json',
     'timestamp_col': 'timestamp',
     'features': [
         'bb_touch_strength',

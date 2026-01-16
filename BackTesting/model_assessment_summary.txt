@@ -1,16 +1,17 @@
 Model Assessment Summary
 =======================
-Date: 2026-01-08 10:28:37
-Input file: AUDUSD.csv
+Date: 2026-01-15 15:37:16
+Input file: GBPUSD_Stacking_Data.csv
 Output files:
-  - CSV: model_assessments.csv
-  - Full JSON: model_assessments.json
-  - Signals JSON: trading_signals.json (Medium+ only)
+  - CSV: model_assessments_GBPUSD.csv
+  - Full JSON: model_assessments_GBPUSD.json
+  - Signals JSON: trading_signals_GBPUSD.json (Medium+ only)
   - Summary JSON: model_summary.json
 
 Statistics:
-  Total rows: 1485
-  Raw signals (>= 0.65): 263 (17.7%)
-  Filtered signals (Medium+): 263 (17.7%)
-    - Strong signals: 95
-    - Medium signals: 168
+  Total rows: 13970
+  Raw signals (>= 0.65): 1800 (12.9%)
+  Filtered signals (Medium+): 1800 (12.9%)
+    - Strong signals: 1072
+    - Medium signals: 728
+  Win rate on filtered signals: 0.0%

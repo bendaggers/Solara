@@ -104,6 +104,11 @@ class SLTPRunner:
             # Add stage definitions to cycle data
             if self.sltp_engine:
                 cycle_data['stage_definitions'] = self.sltp_engine.get_stage_definitions()
+                
+                # NEW: Add stage statistics
+                positions = self.mt5_interface.get_open_positions() if hasattr(self, 'mt5_interface') and self.mt5_interface else []
+                if positions:
+                    cycle_data['stage_statistics'] = self.sltp_engine.get_stage_statistics(positions)
             
             with open(log_file, 'w') as f:
                 json.dump(cycle_data, f, indent=2, default=str)

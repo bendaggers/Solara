@@ -1,0 +1,3781 @@
+{
+  "cycle_number": 1,
+  "timestamp": "2026-01-15 19:36:39",
+  "duration_seconds": 29.68,
+  "positions_checked": 101,
+  "updates_needed": 101,
+  "successful_updates": 101,
+  "stage_distribution": {
+    "STAGE_1A": 8,
+    "STAGE_1": 10,
+    "STAGE_0": 73,
+    "STAGE_2A": 4,
+    "STAGE_2B": 6
+  },
+  "position_updates": [
+    {
+      "ticket": 224197017,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53488,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 15.0,
+        "profit_ratio": 0.5064,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.5064 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 13.3 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224400232,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53513,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 12.5,
+        "profit_ratio": 0.422,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.4220 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 17.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224400263,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53514,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 12.4,
+        "profit_ratio": 0.4186,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.4186 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 17.6 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224494480,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53486,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 15.2,
+        "profit_ratio": 0.5132,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.5132 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 13.2 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224795209,
+      "symbol": "GBPCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.07474,
+        "current": 1.07479,
+        "pip_size": 0.0001,
+        "profit_pips": 0.5,
+        "profit_ratio": 0.0077,
+        "bb_width_pips": 65.14,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.07174,
+        "tp_after": 1.07874
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.07474 - (30 \u00d7 0.0001) = 1.07174",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.07474 + (40 \u00d7 0.0001) = 1.07874",
+        "stage_reason": "0.0077 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224929412,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86574,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 10.1,
+        "profit_ratio": 0.307,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86274,
+        "tp_after": 0.86974
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86574 - (30 \u00d7 0.0001) = 0.86274",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86574 + (40 \u00d7 0.0001) = 0.86974",
+        "stage_reason": "0.3070 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224949540,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86589,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 8.6,
+        "profit_ratio": 0.2614,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86289,
+        "tp_after": 0.86989
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86589 - (30 \u00d7 0.0001) = 0.86289",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86589 + (40 \u00d7 0.0001) = 0.86989",
+        "stage_reason": "0.2614 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224949602,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86591,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 8.4,
+        "profit_ratio": 0.2553,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86291,
+        "tp_after": 0.86991
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86591 - (30 \u00d7 0.0001) = 0.86291",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86591 + (40 \u00d7 0.0001) = 0.86991",
+        "stage_reason": "0.2553 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224951986,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86588,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 8.7,
+        "profit_ratio": 0.2644,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86288,
+        "tp_after": 0.86988
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86588 - (30 \u00d7 0.0001) = 0.86288",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86588 + (40 \u00d7 0.0001) = 0.86988",
+        "stage_reason": "0.2644 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224984871,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86555,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 12.0,
+        "profit_ratio": 0.3647,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86255,
+        "tp_after": 0.86955
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86555 - (30 \u00d7 0.0001) = 0.86255",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86555 + (40 \u00d7 0.0001) = 0.86955",
+        "stage_reason": "0.3647 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224991015,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86581,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 9.4,
+        "profit_ratio": 0.2857,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86281,
+        "tp_after": 0.86981
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86581 - (30 \u00d7 0.0001) = 0.86281",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86581 + (40 \u00d7 0.0001) = 0.86981",
+        "stage_reason": "0.2857 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224991051,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_2A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16207,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 30.5,
+        "profit_ratio": 0.6038,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.6,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.166321
+      },
+      "verification": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 1.16632",
+        "stage_reason": "0.6038 >= 0.6000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 4.3 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 224991057,
+      "symbol": "EURCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.93108,
+        "current": 0.93158,
+        "pip_size": 0.0001,
+        "profit_pips": 5.0,
+        "profit_ratio": 0.1072,
+        "bb_width_pips": 46.66,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.92808,
+        "tp_after": 0.93508
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.93108 - (30 \u00d7 0.0001) = 0.92808",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.93108 + (40 \u00d7 0.0001) = 0.93508",
+        "stage_reason": "0.1072 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013823,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86605,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 7.0,
+        "profit_ratio": 0.2128,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86305,
+        "tp_after": 0.87005
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86605 - (30 \u00d7 0.0001) = 0.86305",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86605 + (40 \u00d7 0.0001) = 0.87005",
+        "stage_reason": "0.2128 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013839,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16278,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 23.4,
+        "profit_ratio": 0.4633,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.166321
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 1.16632",
+        "stage_reason": "0.4633 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 11.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013841,
+      "symbol": "EURCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.93146,
+        "current": 0.93158,
+        "pip_size": 0.0001,
+        "profit_pips": 1.2,
+        "profit_ratio": 0.0257,
+        "bb_width_pips": 46.66,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.92846,
+        "tp_after": 0.93546
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.93146 - (30 \u00d7 0.0001) = 0.92846",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.93146 + (40 \u00d7 0.0001) = 0.93546",
+        "stage_reason": "0.0257 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013918,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86605,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 7.0,
+        "profit_ratio": 0.2128,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86305,
+        "tp_after": 0.87005
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86605 - (30 \u00d7 0.0001) = 0.86305",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86605 + (40 \u00d7 0.0001) = 0.87005",
+        "stage_reason": "0.2128 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013960,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16278,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 23.4,
+        "profit_ratio": 0.4633,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.166321
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 1.16632",
+        "stage_reason": "0.4633 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 11.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225013964,
+      "symbol": "EURCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.93146,
+        "current": 0.93158,
+        "pip_size": 0.0001,
+        "profit_pips": 1.2,
+        "profit_ratio": 0.0257,
+        "bb_width_pips": 46.66,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.92846,
+        "tp_after": 0.93546
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.93146 - (30 \u00d7 0.0001) = 0.92846",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.93146 + (40 \u00d7 0.0001) = 0.93546",
+        "stage_reason": "0.0257 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225266638,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53544,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 9.4,
+        "profit_ratio": 0.3174,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.53244,
+        "tp_after": 0.53944
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.53544 - (30 \u00d7 0.0001) = 0.53244",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.53544 + (40 \u00d7 0.0001) = 0.53944",
+        "stage_reason": "0.3174 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225293590,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66834,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 16.1,
+        "profit_ratio": 0.288,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66534,
+        "tp_after": 0.67234
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66834 - (30 \u00d7 0.0001) = 0.66534",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66834 + (40 \u00d7 0.0001) = 0.67234",
+        "stage_reason": "0.2880 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225293641,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66834,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 16.1,
+        "profit_ratio": 0.288,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66534,
+        "tp_after": 0.67234
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66834 - (30 \u00d7 0.0001) = 0.66534",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66834 + (40 \u00d7 0.0001) = 0.67234",
+        "stage_reason": "0.2880 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225518252,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86631,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 4.4,
+        "profit_ratio": 0.1337,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86331,
+        "tp_after": 0.87031
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86631 - (30 \u00d7 0.0001) = 0.86331",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86631 + (40 \u00d7 0.0001) = 0.87031",
+        "stage_reason": "0.1337 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225518382,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86633,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 4.2,
+        "profit_ratio": 0.1277,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86333,
+        "tp_after": 0.87033
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86633 - (30 \u00d7 0.0001) = 0.86333",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86633 + (40 \u00d7 0.0001) = 0.87033",
+        "stage_reason": "0.1277 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787395,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66798,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 19.7,
+        "profit_ratio": 0.3524,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66498,
+        "tp_after": 0.67198
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66798 - (30 \u00d7 0.0001) = 0.66498",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66798 + (40 \u00d7 0.0001) = 0.67198",
+        "stage_reason": "0.3524 >= 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787396,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16421,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.1,
+        "profit_ratio": 0.1802,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16121,
+        "tp_after": 1.16821
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16421 - (30 \u00d7 0.0001) = 1.16121",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16421 + (40 \u00d7 0.0001) = 1.16821",
+        "stage_reason": "0.1802 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787397,
+      "symbol": "EURJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 184.276,
+        "current": 184.385,
+        "pip_size": 0.01,
+        "profit_pips": 10.9,
+        "profit_ratio": 0.0626,
+        "bb_width_pips": 174.2054,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 183.976,
+        "tp_after": 184.676
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "184.27600 - (30 \u00d7 0.01) = 183.97600",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "184.27600 + (40 \u00d7 0.01) = 184.67600",
+        "stage_reason": "0.0626 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787398,
+      "symbol": "EURCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.93091,
+        "current": 0.93158,
+        "pip_size": 0.0001,
+        "profit_pips": 6.7,
+        "profit_ratio": 0.1436,
+        "bb_width_pips": 46.66,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.92791,
+        "tp_after": 0.93491
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.93091 - (30 \u00d7 0.0001) = 0.92791",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.93091 + (40 \u00d7 0.0001) = 0.93491",
+        "stage_reason": "0.1436 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787400,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61627,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 7.2,
+        "profit_ratio": 0.112,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61327,
+        "tp_after": 1.62027
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61627 - (30 \u00d7 0.0001) = 1.61327",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61627 + (40 \u00d7 0.0001) = 1.62027",
+        "stage_reason": "0.1120 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787402,
+      "symbol": "GBPCHF",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.07452,
+        "current": 1.07479,
+        "pip_size": 0.0001,
+        "profit_pips": 2.7,
+        "profit_ratio": 0.0414,
+        "bb_width_pips": 65.14,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.07152,
+        "tp_after": 1.07852
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.07452 - (30 \u00d7 0.0001) = 1.07152",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.07452 + (40 \u00d7 0.0001) = 1.07852",
+        "stage_reason": "0.0414 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787405,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86557,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 0.1,
+        "profit_ratio": 0.0013,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.86257,
+        "tp_after": 1.86957
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.86557 - (30 \u00d7 0.0001) = 1.86257",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86557 + (40 \u00d7 0.0001) = 1.86957",
+        "stage_reason": "0.0013 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787409,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53433,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.5,
+        "profit_ratio": 0.6921,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.6921 < 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.9 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787413,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.9277,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 33.2,
+        "profit_ratio": 0.5045,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.5045 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.1 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787416,
+      "symbol": "NZDJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 90.858,
+        "current": 91.114,
+        "pip_size": 0.01,
+        "profit_pips": 25.6,
+        "profit_ratio": 0.2274,
+        "bb_width_pips": 112.5856,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 90.558,
+        "tp_after": 91.258
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "90.85800 - (30 \u00d7 0.01) = 90.55800",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "90.85800 + (40 \u00d7 0.01) = 91.25800",
+        "stage_reason": "0.2274 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225787421,
+      "symbol": "NZDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.45899,
+        "current": 0.46033,
+        "pip_size": 0.0001,
+        "profit_pips": 13.4,
+        "profit_ratio": 0.5174,
+        "bb_width_pips": 25.9,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.46104
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.46104",
+        "stage_reason": "0.5174 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 14.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789219,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86632,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 4.3,
+        "profit_ratio": 0.1307,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86332,
+        "tp_after": 0.87032
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86632 - (30 \u00d7 0.0001) = 0.86332",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86632 + (40 \u00d7 0.0001) = 0.87032",
+        "stage_reason": "0.1307 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789223,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16414,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.8,
+        "profit_ratio": 0.194,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16114,
+        "tp_after": 1.16814
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16414 - (30 \u00d7 0.0001) = 1.16114",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16414 + (40 \u00d7 0.0001) = 1.16814",
+        "stage_reason": "0.1940 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789229,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61631,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 6.8,
+        "profit_ratio": 0.1058,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61331,
+        "tp_after": 1.62031
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61631 - (30 \u00d7 0.0001) = 1.61331",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61631 + (40 \u00d7 0.0001) = 1.62031",
+        "stage_reason": "0.1058 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789234,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86567,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 0.9,
+        "profit_ratio": 0.0119,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86967
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86567 + (40 \u00d7 0.0001) = 1.86967",
+        "stage_reason": "0.0119 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 0.9 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789239,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53437,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.1,
+        "profit_ratio": 0.6786,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.6,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.6786 >= 0.6000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 8.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225789245,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92777,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 32.5,
+        "profit_ratio": 0.4938,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4938 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803141,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86647,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.8,
+        "profit_ratio": 0.0851,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86347,
+        "tp_after": 0.87047
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86647 - (30 \u00d7 0.0001) = 0.86347",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86647 + (40 \u00d7 0.0001) = 0.87047",
+        "stage_reason": "0.0851 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803142,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16419,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.3,
+        "profit_ratio": 0.1841,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16119,
+        "tp_after": 1.16819
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16419 - (30 \u00d7 0.0001) = 1.16119",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16419 + (40 \u00d7 0.0001) = 1.16819",
+        "stage_reason": "0.1841 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803143,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61661,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 3.8,
+        "profit_ratio": 0.0591,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61361,
+        "tp_after": 1.62061
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61661 - (30 \u00d7 0.0001) = 1.61361",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61661 + (40 \u00d7 0.0001) = 1.62061",
+        "stage_reason": "0.0591 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803144,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86572,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 1.4,
+        "profit_ratio": 0.0185,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86972
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86572 + (40 \u00d7 0.0001) = 1.86972",
+        "stage_reason": "0.0185 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 1.4 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803145,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53426,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 21.2,
+        "profit_ratio": 0.7157,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.7157 >= 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.7 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803146,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92769,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 33.3,
+        "profit_ratio": 0.506,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.5060 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803162,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86648,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.7,
+        "profit_ratio": 0.0821,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86348,
+        "tp_after": 0.87048
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86648 - (30 \u00d7 0.0001) = 0.86348",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86648 + (40 \u00d7 0.0001) = 0.87048",
+        "stage_reason": "0.0821 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803163,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16418,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.4,
+        "profit_ratio": 0.1861,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16118,
+        "tp_after": 1.16818
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16418 - (30 \u00d7 0.0001) = 1.16118",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16418 + (40 \u00d7 0.0001) = 1.16818",
+        "stage_reason": "0.1861 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803165,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61659,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 4.0,
+        "profit_ratio": 0.0622,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61359,
+        "tp_after": 1.62059
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61659 - (30 \u00d7 0.0001) = 1.61359",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61659 + (40 \u00d7 0.0001) = 1.62059",
+        "stage_reason": "0.0622 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803167,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86568,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 1.0,
+        "profit_ratio": 0.0132,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86968
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86568 + (40 \u00d7 0.0001) = 1.86968",
+        "stage_reason": "0.0132 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 1.0 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803170,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.5343,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.8,
+        "profit_ratio": 0.7022,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.7022 >= 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803173,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92774,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 32.8,
+        "profit_ratio": 0.4984,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4984 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.3 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803307,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86648,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.7,
+        "profit_ratio": 0.0821,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86348,
+        "tp_after": 0.87048
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86648 - (30 \u00d7 0.0001) = 0.86348",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86648 + (40 \u00d7 0.0001) = 0.87048",
+        "stage_reason": "0.0821 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803309,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16414,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.8,
+        "profit_ratio": 0.194,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16114,
+        "tp_after": 1.16814
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16414 - (30 \u00d7 0.0001) = 1.16114",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16414 + (40 \u00d7 0.0001) = 1.16814",
+        "stage_reason": "0.1940 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803311,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61666,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 3.3,
+        "profit_ratio": 0.0514,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61366,
+        "tp_after": 1.62066
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61666 - (30 \u00d7 0.0001) = 1.61366",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61666 + (40 \u00d7 0.0001) = 1.62066",
+        "stage_reason": "0.0514 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803312,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86579,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 2.1,
+        "profit_ratio": 0.0278,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86979
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86579 + (40 \u00d7 0.0001) = 1.86979",
+        "stage_reason": "0.0278 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 2.1 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803314,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53431,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.7,
+        "profit_ratio": 0.6989,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.6989 < 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803315,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": true,
+      "previous_stage": "STAGE_1",
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92772,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 33.0,
+        "profit_ratio": 0.5014,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.5014 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.2 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803333,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86648,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.7,
+        "profit_ratio": 0.0821,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86348,
+        "tp_after": 0.87048
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86648 - (30 \u00d7 0.0001) = 0.86348",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86648 + (40 \u00d7 0.0001) = 0.87048",
+        "stage_reason": "0.0821 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803337,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16414,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.8,
+        "profit_ratio": 0.194,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16114,
+        "tp_after": 1.16814
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16414 - (30 \u00d7 0.0001) = 1.16114",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16414 + (40 \u00d7 0.0001) = 1.16814",
+        "stage_reason": "0.1940 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803338,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61668,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 3.1,
+        "profit_ratio": 0.0482,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61368,
+        "tp_after": 1.62068
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61668 - (30 \u00d7 0.0001) = 1.61368",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61668 + (40 \u00d7 0.0001) = 1.62068",
+        "stage_reason": "0.0482 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803339,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86576,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 1.8,
+        "profit_ratio": 0.0238,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86976
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86576 + (40 \u00d7 0.0001) = 1.86976",
+        "stage_reason": "0.0238 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 1.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803364,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.5343,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.8,
+        "profit_ratio": 0.7022,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.7022 >= 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803369,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": true,
+      "previous_stage": "STAGE_1",
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92772,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 33.0,
+        "profit_ratio": 0.5014,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.5014 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.2 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803427,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86648,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.7,
+        "profit_ratio": 0.0821,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86348,
+        "tp_after": 0.87048
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86648 - (30 \u00d7 0.0001) = 0.86348",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86648 + (40 \u00d7 0.0001) = 0.87048",
+        "stage_reason": "0.0821 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803429,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16416,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.6,
+        "profit_ratio": 0.1901,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16116,
+        "tp_after": 1.16816
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16416 - (30 \u00d7 0.0001) = 1.16116",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16416 + (40 \u00d7 0.0001) = 1.16816",
+        "stage_reason": "0.1901 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803432,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61673,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 2.6,
+        "profit_ratio": 0.0405,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61373,
+        "tp_after": 1.62073
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61673 - (30 \u00d7 0.0001) = 1.61373",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61673 + (40 \u00d7 0.0001) = 1.62073",
+        "stage_reason": "0.0405 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803433,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86583,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 2.5,
+        "profit_ratio": 0.0331,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86983
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86583 + (40 \u00d7 0.0001) = 1.86983",
+        "stage_reason": "0.0331 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 2.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803437,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2B",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.5343,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.8,
+        "profit_ratio": 0.7022,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.7,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.7022 >= 0.7000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803440,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92777,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 32.5,
+        "profit_ratio": 0.4938,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4938 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803508,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86649,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.6,
+        "profit_ratio": 0.079,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86349,
+        "tp_after": 0.87049
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86649 - (30 \u00d7 0.0001) = 0.86349",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86649 + (40 \u00d7 0.0001) = 0.87049",
+        "stage_reason": "0.0790 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803647,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86651,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.4,
+        "profit_ratio": 0.0729,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86351,
+        "tp_after": 0.87051
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86651 - (30 \u00d7 0.0001) = 0.86351",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86651 + (40 \u00d7 0.0001) = 0.87051",
+        "stage_reason": "0.0729 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803648,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.16418,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.4,
+        "profit_ratio": 0.1861,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.16118,
+        "tp_after": 1.16818
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16418 - (30 \u00d7 0.0001) = 1.16118",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16418 + (40 \u00d7 0.0001) = 1.16818",
+        "stage_reason": "0.1861 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803649,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61675,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 2.4,
+        "profit_ratio": 0.0373,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61375,
+        "tp_after": 1.62075
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61675 - (30 \u00d7 0.0001) = 1.61375",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61675 + (40 \u00d7 0.0001) = 1.62075",
+        "stage_reason": "0.0373 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803650,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86579,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 2.1,
+        "profit_ratio": 0.0278,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86979
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86579 + (40 \u00d7 0.0001) = 1.86979",
+        "stage_reason": "0.0278 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 2.1 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803651,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53435,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.3,
+        "profit_ratio": 0.6853,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.6,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.6853 >= 0.6000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 7.9 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803653,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92784,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 31.8,
+        "profit_ratio": 0.4832,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4832 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.9 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803666,
+      "symbol": "EURGBP",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.86655,
+        "current": 0.86675,
+        "pip_size": 0.0001,
+        "profit_pips": 2.0,
+        "profit_ratio": 0.0608,
+        "bb_width_pips": 32.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.86355,
+        "tp_after": 0.87055
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.86655 - (30 \u00d7 0.0001) = 0.86355",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.86655 + (40 \u00d7 0.0001) = 0.87055",
+        "stage_reason": "0.0608 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803669,
+      "symbol": "AUDNZD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.1642,
+        "current": 1.16512,
+        "pip_size": 0.0001,
+        "profit_pips": 9.2,
+        "profit_ratio": 0.1821,
+        "bb_width_pips": 50.51,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.1612,
+        "tp_after": 1.1682
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.16420 - (30 \u00d7 0.0001) = 1.16120",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.16420 + (40 \u00d7 0.0001) = 1.16820",
+        "stage_reason": "0.1821 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803670,
+      "symbol": "EURCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.61674,
+        "current": 1.61699,
+        "pip_size": 0.0001,
+        "profit_pips": 2.5,
+        "profit_ratio": 0.0389,
+        "bb_width_pips": 64.26,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.61374,
+        "tp_after": 1.62074
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.61674 - (30 \u00d7 0.0001) = 1.61374",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.61674 + (40 \u00d7 0.0001) = 1.62074",
+        "stage_reason": "0.0389 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803675,
+      "symbol": "GBPCAD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.86573,
+        "current": 1.86558,
+        "pip_size": 0.0001,
+        "profit_pips": 1.5,
+        "profit_ratio": 0.0199,
+        "bb_width_pips": 75.53,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.86973
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.86573 + (40 \u00d7 0.0001) = 1.86973",
+        "stage_reason": "0.0199 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 1.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803676,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_2A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53435,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 20.3,
+        "profit_ratio": 0.6853,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.6,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.6853 >= 0.6000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 7.9 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225803678,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.9278,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 32.2,
+        "profit_ratio": 0.4893,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4893 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 5.7 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225868182,
+      "symbol": "AUDCHF",
+      "type": "BUY",
+      "stage": "STAGE_1A",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.53479,
+        "current": 0.53638,
+        "pip_size": 0.0001,
+        "profit_pips": 15.9,
+        "profit_ratio": 0.5368,
+        "bb_width_pips": 29.62,
+        "stage_threshold": 0.5,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.53661
+      },
+      "verification": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.53661",
+        "stage_reason": "0.5368 >= 0.5000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 12.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225868183,
+      "symbol": "AUDCAD",
+      "type": "BUY",
+      "stage": "STAGE_1",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.92798,
+        "current": 0.93102,
+        "pip_size": 0.0001,
+        "profit_pips": 30.4,
+        "profit_ratio": 0.4619,
+        "bb_width_pips": 65.81,
+        "stage_threshold": 0.4,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.932809
+      },
+      "verification": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "upper_bollinger_band",
+        "tp_calculation": "Upper BB = 0.93281",
+        "stage_reason": "0.4619 >= 0.4000"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 6.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225970041,
+      "symbol": "GBPUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.34378,
+        "current": 1.34245,
+        "pip_size": 0.0001,
+        "profit_pips": 13.3,
+        "profit_ratio": 0.1713,
+        "bb_width_pips": 77.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.34778
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.34378 + (40 \u00d7 0.0001) = 1.34778",
+        "stage_reason": "0.1713 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 13.3 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225970044,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66956,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 3.9,
+        "profit_ratio": 0.0698,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66656,
+        "tp_after": 0.67356
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66956 - (30 \u00d7 0.0001) = 0.66656",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66956 + (40 \u00d7 0.0001) = 0.67356",
+        "stage_reason": "0.0698 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 225970045,
+      "symbol": "CHFJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 197.874,
+        "current": 197.923,
+        "pip_size": 0.01,
+        "profit_pips": 4.9,
+        "profit_ratio": 0.0279,
+        "bb_width_pips": 175.8172,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 197.574,
+        "tp_after": 198.274
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "197.87400 - (30 \u00d7 0.01) = 197.57400",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "197.87400 + (40 \u00d7 0.01) = 198.27400",
+        "stage_reason": "0.0279 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008141,
+      "symbol": "GBPUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.34237,
+        "current": 1.34245,
+        "pip_size": 0.0001,
+        "profit_pips": 0.8,
+        "profit_ratio": 0.0103,
+        "bb_width_pips": 77.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.33937,
+        "tp_after": 1.34637
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.34237 - (30 \u00d7 0.0001) = 1.33937",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.34237 + (40 \u00d7 0.0001) = 1.34637",
+        "stage_reason": "0.0103 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008142,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66985,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 1.0,
+        "profit_ratio": 0.0179,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66685,
+        "tp_after": 0.67385
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66985 - (30 \u00d7 0.0001) = 0.66685",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66985 + (40 \u00d7 0.0001) = 0.67385",
+        "stage_reason": "0.0179 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008143,
+      "symbol": "CHFJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 197.948,
+        "current": 197.923,
+        "pip_size": 0.01,
+        "profit_pips": 2.5,
+        "profit_ratio": 0.0142,
+        "bb_width_pips": 175.8172,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 198.348
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "197.94800 + (40 \u00d7 0.01) = 198.34800",
+        "stage_reason": "0.0142 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 2.5 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008218,
+      "symbol": "GBPUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.34243,
+        "current": 1.34245,
+        "pip_size": 0.0001,
+        "profit_pips": 0.2,
+        "profit_ratio": 0.0026,
+        "bb_width_pips": 77.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.33943,
+        "tp_after": 1.34643
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.34243 - (30 \u00d7 0.0001) = 1.33943",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.34243 + (40 \u00d7 0.0001) = 1.34643",
+        "stage_reason": "0.0026 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008220,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66985,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 1.0,
+        "profit_ratio": 0.0179,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66685,
+        "tp_after": 0.67385
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66985 - (30 \u00d7 0.0001) = 0.66685",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66985 + (40 \u00d7 0.0001) = 0.67385",
+        "stage_reason": "0.0179 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226008223,
+      "symbol": "CHFJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 197.939,
+        "current": 197.923,
+        "pip_size": 0.01,
+        "profit_pips": 1.6,
+        "profit_ratio": 0.0091,
+        "bb_width_pips": 175.8172,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 198.339
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "197.93900 + (40 \u00d7 0.01) = 198.33900",
+        "stage_reason": "0.0091 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 1.6 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009135,
+      "symbol": "GBPUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.34241,
+        "current": 1.34245,
+        "pip_size": 0.0001,
+        "profit_pips": 0.4,
+        "profit_ratio": 0.0052,
+        "bb_width_pips": 77.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 1.33941,
+        "tp_after": 1.34641
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "1.34241 - (30 \u00d7 0.0001) = 1.33941",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.34241 + (40 \u00d7 0.0001) = 1.34641",
+        "stage_reason": "0.0052 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009136,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66992,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 0.3,
+        "profit_ratio": 0.0054,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.66692,
+        "tp_after": 0.67392
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "0.66992 - (30 \u00d7 0.0001) = 0.66692",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66992 + (40 \u00d7 0.0001) = 0.67392",
+        "stage_reason": "0.0054 < 0.2500"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009139,
+      "symbol": "CHFJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 197.931,
+        "current": 197.923,
+        "pip_size": 0.01,
+        "profit_pips": 0.8,
+        "profit_ratio": 0.0046,
+        "bb_width_pips": 175.8172,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 198.331
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "197.93100 + (40 \u00d7 0.01) = 198.33100",
+        "stage_reason": "0.0046 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 0.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009364,
+      "symbol": "GBPUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 1.34247,
+        "current": 1.34245,
+        "pip_size": 0.0001,
+        "profit_pips": 0.2,
+        "profit_ratio": 0.0026,
+        "bb_width_pips": 77.62,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 1.34647
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "1.34247 + (40 \u00d7 0.0001) = 1.34647",
+        "stage_reason": "0.0026 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 0.2 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009368,
+      "symbol": "AUDUSD",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 0.66997,
+        "current": 0.66995,
+        "pip_size": 0.0001,
+        "profit_pips": 0.2,
+        "profit_ratio": 0.0036,
+        "bb_width_pips": 55.9,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 0.67397
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "0.66997 + (40 \u00d7 0.0001) = 0.67397",
+        "stage_reason": "0.0036 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 0.2 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    },
+    {
+      "ticket": 226009371,
+      "symbol": "CHFJPY",
+      "type": "BUY",
+      "stage": "STAGE_0",
+      "stage_changed": false,
+      "previous_stage": null,
+      "protection_phase": "profit-locking",
+      "values": {
+        "entry": 197.931,
+        "current": 197.923,
+        "pip_size": 0.01,
+        "profit_pips": 0.8,
+        "profit_ratio": 0.0046,
+        "bb_width_pips": 175.8172,
+        "stage_threshold": 0.25,
+        "sl_before": 0.0,
+        "tp_before": 0.0,
+        "sl_after": 0.0,
+        "tp_after": 198.331
+      },
+      "verification": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "sl_calculation": "No change",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "tp_calculation": "197.93100 + (40 \u00d7 0.01) = 198.33100",
+        "stage_reason": "0.0046 < 0.2500"
+      },
+      "safety_adjustment": {
+        "reason": "Safety adjustment rejected: would give back 0.8 pips profit",
+        "adjustment_pips": 0.0,
+        "decision": "keep_current_sl"
+      },
+      "execution": {
+        "success": true,
+        "message": "Success"
+      }
+    }
+  ],
+  "stage_definitions": {
+    "STAGE_0": {
+      "buy": {
+        "sl_formula": "entry - (30 \u00d7 pip_size)",
+        "tp_formula": "entry + (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "protection_percent": 0.0,
+        "trailing_percent": 0,
+        "description": "Initial position: profit < 25% of BB width",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry + (30 \u00d7 pip_size)",
+        "tp_formula": "entry - (40 \u00d7 pip_size)",
+        "profit_threshold": 0.25,
+        "protection_percent": 0.0,
+        "trailing_percent": 0,
+        "description": "Initial position: profit < 25% of BB width",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_1": {
+      "buy": {
+        "sl_formula": "entry + (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.4,
+        "protection_percent": 0.4,
+        "trailing_percent": 0,
+        "description": "25-39% profit: protect 40% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.40 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.4,
+        "protection_percent": 0.4,
+        "trailing_percent": 0,
+        "description": "25-39% profit: protect 40% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_1A": {
+      "buy": {
+        "sl_formula": "entry + (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.5,
+        "protection_percent": 0.55,
+        "trailing_percent": 0,
+        "description": "40-49% profit: protect 55% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.55 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.5,
+        "protection_percent": 0.55,
+        "trailing_percent": 0,
+        "description": "40-49% profit: protect 55% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2A": {
+      "buy": {
+        "sl_formula": "entry + (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.6,
+        "protection_percent": 0.65,
+        "trailing_percent": 0,
+        "description": "50-59% profit: protect 65% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.65 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.6,
+        "protection_percent": 0.65,
+        "trailing_percent": 0,
+        "description": "50-59% profit: protect 65% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2B": {
+      "buy": {
+        "sl_formula": "entry + (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "upper_bollinger_band",
+        "profit_threshold": 0.7,
+        "protection_percent": 0.75,
+        "trailing_percent": 0,
+        "description": "60-69% profit: protect 75% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.75 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "lower_bollinger_band",
+        "profit_threshold": 0.7,
+        "protection_percent": 0.75,
+        "trailing_percent": 0,
+        "description": "60-69% profit: protect 75% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_2C": {
+      "buy": {
+        "sl_formula": "entry + (0.80 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "protection_percent": 0.8,
+        "trailing_percent": 0,
+        "description": "70-79% profit: protect 80% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.80 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.8,
+        "protection_percent": 0.8,
+        "trailing_percent": 0,
+        "description": "70-79% profit: protect 80% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_3A": {
+      "buy": {
+        "sl_formula": "entry + (0.85 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "protection_percent": 0.85,
+        "trailing_percent": 0,
+        "description": "80-89% profit: protect 85% of gains",
+        "protection_phase": "profit-locking"
+      },
+      "sell": {
+        "sl_formula": "entry - (0.85 \u00d7 profit_pips \u00d7 pip_size)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 0.9,
+        "protection_percent": 0.85,
+        "trailing_percent": 0,
+        "description": "80-89% profit: protect 85% of gains",
+        "protection_phase": "profit-locking"
+      }
+    },
+    "STAGE_3B": {
+      "buy": {
+        "sl_formula": "current_price - (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "protection_percent": 0,
+        "trailing_percent": 0.03,
+        "description": "90-119% profit: 3% trailing stop from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.03 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.2,
+        "protection_percent": 0,
+        "trailing_percent": 0.03,
+        "description": "90-119% profit: 3% trailing stop from price",
+        "protection_phase": "price-trailing"
+      }
+    },
+    "STAGE_4": {
+      "buy": {
+        "sl_formula": "current_price - (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "protection_percent": 0,
+        "trailing_percent": 0.02,
+        "description": "120-179% profit: 2% trailing stop from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.02 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": 1.8,
+        "protection_percent": 0,
+        "trailing_percent": 0.02,
+        "description": "120-179% profit: 2% trailing stop from price",
+        "protection_phase": "price-trailing"
+      }
+    },
+    "STAGE_5": {
+      "buy": {
+        "sl_formula": "current_price - (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "protection_percent": 0,
+        "trailing_percent": 0.015,
+        "description": "180%+ profit: 1.5% ultra-tight trailing from price",
+        "protection_phase": "price-trailing"
+      },
+      "sell": {
+        "sl_formula": "current_price + (0.015 \u00d7 bb_width)",
+        "tp_formula": "REMOVED",
+        "profit_threshold": Infinity,
+        "protection_percent": 0,
+        "trailing_percent": 0.015,
+        "description": "180%+ profit: 1.5% ultra-tight trailing from price",
+        "protection_phase": "price-trailing"
+      }
+    }
+  },
+  "stage_statistics": {
+    "total_positions": 101,
+    "stage_distribution": {
+      "STAGE_1A": 8,
+      "STAGE_1": 10,
+      "STAGE_0": 73,
+      "STAGE_2A": 4,
+      "STAGE_2B": 6
+    },
+    "phase_distribution": {
+      "profit_locking": 101,
+      "price_trailing": 0
+    }
+  }
+}
