@@ -244,6 +244,7 @@ class SLTPRunner:
             update_details = []
             cycle_protected_profit = 0.0
             cycle_safety_rejections = 0
+            worse_sl_skips = 0
             
             # SURVIVOR: Track protection levels
             protection_levels = {
@@ -309,6 +310,10 @@ class SLTPRunner:
             # Display clean summary - SURVIVOR'S EDITION STYLE
             cycle_end = datetime.now()
             duration = (cycle_end - cycle_start).total_seconds()
+
+            if worse_sl_skips > 0:
+                print(f"\n   ⚠️  PROTECTION PRESERVATION:")
+                print(f"      Skipped {worse_sl_skips} updates (new SL would worsen protection)")
             
             print(f"\n{'='*60}")
             print(f"📊 SURVIVOR'S SUMMARY")

@@ -1,3 +1,5 @@
+# SLTP_Engine.py
+
 import json
 import os
 import time
@@ -443,65 +445,15 @@ class SLTPEngine:
         except Exception as e:
             logger.error(f"Error loading market data: {e}")
             return False
-    
+
+
     def create_position_log(self, position: Dict, stage: str, previous_stage: str,
-                           profit_ratio: float, profit_pips: float,
-                           bb_data: Dict, new_sl: Optional[float], new_tp: Optional[float],
-                           safe_adjustment: Optional[Dict]) -> Dict:
+                        profit_ratio: float, profit_pips: float,
+                        bb_data: Dict, new_sl: Optional[float], new_tp: Optional[float],
+                        safe_adjustment: Optional[Dict]) -> Dict:
         """Create a position log entry with verification"""
         
-        symbol = position['symbol']
-        pip_size = self.get_pip_size(symbol)
-        position_type = position['type'].lower()
-        stage_def = self.stage_definitions[stage][position_type]
-        
-        # Helper for rounding
-        def round7(val):
-            return round(float(val), 7) if val is not None else 0.0
-        
-        def round4(val):
-            return round(float(val), 4) if val is not None else 0.0
-        
-        # Create human-readable verification
-        sl_verification = ""
-        tp_verification = ""
-        
-        entry = position['entry_price']
-        current = position['current_price']
-        
-        if stage == 'STAGE_0':
-            if position['type'] == 'BUY':
-                sl_verification = f"{entry:.5f} - (30 × {pip_size}) = {new_sl:.5f}" if new_sl else "No change"
-            else:
-                sl_verification = f"{entry:.5f} + (30 × {pip_size}) = {new_sl:.5f}" if new_sl else "No change"
-        
-        elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B', 'STAGE_2C', 'STAGE_3A']:
-            protection = stage_def['protection_percent']
-            if position['type'] == 'BUY':
-                sl_verification = f"{entry:.5f} + ({protection} × {profit_pips:.1f} × {pip_size}) = {new_sl:.5f}" if new_sl else "No change"
-            else:
-                sl_verification = f"{entry:.5f} - ({protection} × {profit_pips:.1f} × {pip_size}) = {new_sl:.5f}" if new_sl else "No change"
-        
-        elif stage in ['STAGE_3B', 'STAGE_4', 'STAGE_5']:
-            trailing = stage_def.get('trailing_percent', 0.03)
-            if position['type'] == 'BUY':
-                sl_verification = f"{current:.5f} - ({trailing} × {bb_data['bb_width']:.5f}) = {new_sl:.5f}" if new_sl else "No change"
-            else:
-                sl_verification = f"{current:.5f} + ({trailing} × {bb_data['bb_width']:.5f}) = {new_sl:.5f}" if new_sl else "No change"
-        
-        if new_tp is not None and new_tp != 0.0:
-            if stage == 'STAGE_0':
-                if position['type'] == 'BUY':
-                    tp_verification = f"{entry:.5f} + (40 × {pip_size}) = {new_tp:.5f}"
-                else:
-                    tp_verification = f"{entry:.5f} - (40 × {pip_size}) = {new_tp:.5f}"
-            elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B']:
-                if position['type'] == 'BUY':
-                    tp_verification = f"Upper BB = {new_tp:.5f}"
-                else:
-                    tp_verification = f"Lower BB = {new_tp:.5f}"
-            elif stage in ['STAGE_2C', 'STAGE_3A', 'STAGE_3B', 'STAGE_4', 'STAGE_5']:
-                tp_verification = "TP Removed (0.0)"
+        # ... existing code ...
         
         # Create log entry
         log_entry = {
@@ -545,6 +497,7 @@ class SLTPEngine:
         
         return log_entry
 
+
     def calculate_new_sl_tp(self, position: Dict) -> Tuple[Optional[float], Optional[float], str, str, Dict]:
         """Calculate new SL/TP with entry-agnostic protection"""
         symbol = position['symbol']
@@ -570,6 +523,34 @@ class SLTPEngine:
         # Calculate SL
         new_sl = self.calculate_stage_sl(position, stage, bb_data, profit_pips)
         
+        # Apply SURVIVOR'S RULE: Check if new SL is worse than current SL
+        current_sl = position['sl'] if abs(position['sl']) > 0.00001 else 0.0
+        
+        # Determine if new SL is worse
+        is_worse_sl = False
+        sl_comparison = ""
+        
+        if new_sl is not None and abs(current_sl) > 0.00001:
+            if position['type'] == 'BUY':
+                # For BUY: New SL is worse if it's LOWER than current SL
+                if new_sl < current_sl:
+                    is_worse_sl = True
+                    sl_comparison = f"New SL {new_sl:.5f} < Current SL {current_sl:.5f} (worse protection)"
+            else:  # SELL
+                # For SELL: New SL is worse if it's HIGHER than current SL
+                if new_sl > current_sl:
+                    is_worse_sl = True
+                    sl_comparison = f"New SL {new_sl:.5f} > Current SL {current_sl:.5f} (worse protection)"
+        
+        # If new SL is worse, keep current SL (don't modify)
+        final_sl = None
+        if is_worse_sl:
+            final_sl = None  # Don't change SL
+            sl_comparison_note = f"Skipping SL update: {sl_comparison}"
+        else:
+            final_sl = new_sl if new_sl is not None else None
+            sl_comparison_note = "OK to update"
+        
         # NO safe distance calculations - MT5Interface will handle brute-force adjustment
         safe_adjustment = None
         
@@ -577,30 +558,39 @@ class SLTPEngine:
         new_tp = self.calculate_stage_tp(position, stage, bb_data)
         
         # Check if changes are needed
-        current_sl = position['sl'] if abs(position['sl']) > 0.00001 else 0.0
         current_tp = position['tp'] if abs(position['tp']) > 0.00001 else 0.0
         
         # Always set SL if current SL is 0.0 and we have a valid calculated SL
-        if abs(current_sl) < 0.00001 and new_sl is not None:
+        if abs(current_sl) < 0.00001 and final_sl is not None:
             sl_changed = True
         else:
-            sl_changed = abs(new_sl - current_sl) > 0.00001 if new_sl is not None else False
+            sl_changed = final_sl is not None and abs(final_sl - current_sl) > 0.00001
         
         tp_changed = abs(new_tp - current_tp) > 0.00001 if new_tp is not None else False
         
         # Only return changes if needed
-        final_sl = new_sl if sl_changed else None
+        final_sl_out = final_sl if sl_changed else None
         final_tp = new_tp if tp_changed else None
         
-        # Create log entry
+        # Create log entry - pass the sl comparison info
         log_entry = self.create_position_log(
             position, stage, previous_stage,
             profit_ratio, profit_pips,
-            bb_data, final_sl, final_tp,
+            bb_data, final_sl_out, final_tp,
             safe_adjustment
         )
         
-        return final_sl, final_tp, stage, previous_stage, log_entry
+        # Add SL comparison info to log
+        if is_worse_sl:
+            log_entry['sl_comparison'] = {
+                'decision': 'keep_current_sl',
+                'reason': sl_comparison,
+                'current_sl': round(current_sl, 7),
+                'calculated_sl': round(new_sl, 7) if new_sl else None,
+                'comparison_note': sl_comparison_note
+            }
+        
+        return final_sl_out, final_tp, stage, previous_stage, log_entry
 
 
     def process_positions(self, positions: List[Dict]) -> List[Dict]:
@@ -620,8 +610,20 @@ class SLTPEngine:
             
             new_sl, new_tp, stage, previous_stage, log_entry = self.calculate_new_sl_tp(position)
             
+            # Check if we should skip due to worse SL
+            skip_sl_update = 'sl_comparison' in log_entry and log_entry['sl_comparison']['decision'] == 'keep_current_sl'
+            
+            # Determine if updates are needed
+            needs_update = False
+            
+            if not skip_sl_update:
+                # Only update SL if not worse than current
+                needs_update = (new_sl is not None) or (new_tp is not None)
+            else:
+                # Only update TP if any, but not SL
+                needs_update = new_tp is not None
+            
             # ALWAYS add to updates for logging, even if no changes
-            # But only modify position if changes are needed
             update_info = {
                 'ticket': position['ticket'],
                 'symbol': symbol,
@@ -634,7 +636,8 @@ class SLTPEngine:
                 'new_sl': new_sl,  # Could be None (no change)
                 'new_tp': new_tp,  # Could be None (no change)
                 'log_entry': log_entry,
-                'needs_update': new_sl is not None or new_tp is not None  # Flag for modification
+                'needs_update': needs_update,  # Flag for modification
+                'skip_reason': 'worse_sl' if skip_sl_update else None
             }
             
             # Always add to updates for logging
@@ -644,6 +647,7 @@ class SLTPEngine:
         self.save_confirmed_stages()
         
         return updates_needed
+
 
 
     def get_stage_definitions(self) -> Dict:
