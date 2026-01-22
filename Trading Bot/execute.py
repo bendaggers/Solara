@@ -8,8 +8,24 @@ import time
 from datetime import datetime
 import config
 
+def get_bb_values(symbol):
+    """Get Bollinger Band values for a specific symbol"""
+    try:
+        with open(config.DATA_PATH, 'r') as f:
+            data = json.load(f)
+        
+        for item in data.get('data', []):
+            if item['pair'] == symbol:
+                return {
+                    'upper_band': item.get('upper_band'),
+                    'lower_band': item.get('lower_band'),
+                    'middle_band': item.get('middle_band')
+                }
+    except Exception as e:
+        print(f"⚠️ Could not load BB data for {symbol}: {e}")
+    return None
 
-# ================== SYMBOL HELPER CLASS ==================
+
 class SymbolHelper:
     """Helper class for symbol-specific calculations"""
     
@@ -135,6 +151,7 @@ class TradeExecutor:
         self.connected = False
         self.max_retries = 3
         self.retry_delay = 2  # seconds
+        self.current_trade_type = None  # CRITICAL: Added this line
     
     def connect(self):
         """Connect to MT5 terminal with retries"""
@@ -232,31 +249,6 @@ class TradeExecutor:
                     
                     # Check if trade was successful
                     if result is not None:
-                        # Calculate the actual prices for display
-                        symbol_info = mt5.symbol_info(symbol)
-                        if symbol_info:
-                            tick = mt5.symbol_info_tick(symbol)
-                            if tick:
-                                ask_price = tick.ask
-                                pip_size = SymbolHelper.get_pip_size(symbol)
-                                
-                                # Calculate SL and TP prices
-                                sl_price = round(ask_price - (config.STOP_LOSS_PIPS * pip_size), 5)
-                                tp_price = round(ask_price + (config.TAKE_PROFIT_PIPS * pip_size), 5)
-                                
-                                # Clean display
-                                if pip_size == 0.01:  # Metals, JPY
-                                    sl_display = f"SL={sl_price:.3f}"
-                                    tp_display = f"TP={tp_price:.3f}"
-                                elif pip_size == 0.0001:  # Forex
-                                    sl_display = f"SL={sl_price:.5f}"
-                                    tp_display = f"TP={tp_price:.5f}"
-                                else:
-                                    sl_display = f"SL={sl_price}"
-                                    tp_display = f"TP={tp_price}"
-                                
-                                print(f"  ✅ {symbol}: BUY executed - {sl_display} ({config.STOP_LOSS_PIPS}pips), {tp_display} ({config.TAKE_PROFIT_PIPS}pips)")
-                        
                         executed_trades.append({
                             'symbol': symbol,
                             'result': 'SUCCESS',
@@ -274,12 +266,105 @@ class TradeExecutor:
         
         return executed_trades
 
+    def _retry_with_larger_stops(self, symbol, entry_price, sl_pips, tp_pips, 
+                                symbol_type, pip_size, confidence):
+        """Retry with progressively larger stops FOR FIXED TP PIPS"""
+        print(f"🔄 {symbol}: Retrying with larger stops (Fixed TP)...")
+        
+        multipliers = [1.5, 2, 3, 5, 8, 12, 18, 25, 35, 50]
+        
+        for i, multiplier in enumerate(multipliers):
+            larger_sl_pips = sl_pips * multiplier
+            larger_tp_pips = tp_pips * multiplier
+            
+            # Calculate new prices
+            if self.current_trade_type == "BUY":
+                sl_price = round(entry_price - (larger_sl_pips * pip_size), 5)
+                tp_price = round(entry_price + (larger_tp_pips * pip_size), 5)
+            else:  # SELL
+                sl_price = round(entry_price + (larger_sl_pips * pip_size), 5)
+                tp_price = round(entry_price - (larger_tp_pips * pip_size), 5)
+            
+            print(f"   Attempt {i+1}: SL={larger_sl_pips:.1f}pips, TP={larger_tp_pips:.1f}pips")
+            
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "symbol": symbol,
+                "volume": config.LOT_SIZE,
+                "type": mt5.ORDER_TYPE_BUY if self.current_trade_type == "BUY" else mt5.ORDER_TYPE_SELL,
+                "price": entry_price,
+                "sl": sl_price,
+                "tp": tp_price,
+                "deviation": config.SLIPPAGE,
+                "magic": 234000,
+                "comment": f"{config.MODEL_NAME} - {confidence:.1%}",
+                "type_time": mt5.ORDER_TIME_GTC,
+                "type_filling": mt5.ORDER_FILLING_IOC,
+            }
+            
+            result = mt5.order_send(request)
+            
+            if result and hasattr(result, 'retcode') and result.retcode == mt5.TRADE_RETCODE_DONE:
+                print(f"✅ {symbol}: Success on retry {i+1}!")
+                return result
+            
+            time.sleep(0.1)
+        
+        print(f"❌ {symbol}: Failed after {len(multipliers)} retry attempts")
+        return None
 
-
+    def _retry_with_larger_stops_bb(self, symbol, entry_price, sl_pips, bb_tp_price, 
+                                   symbol_type, pip_size, confidence):
+        """Retry with progressively larger stops FOR BB TP (price stays fixed)"""
+        print(f"🔄 {symbol}: Retrying with larger stops (BB TP stays at {bb_tp_price:.5f})...")
+        
+        multipliers = [1.5, 2, 3, 5, 8, 12, 18, 25, 35, 50]
+        
+        for i, multiplier in enumerate(multipliers):
+            larger_sl_pips = sl_pips * multiplier
+            
+            # Calculate new SL (TP stays at BB price)
+            if self.current_trade_type == "BUY":
+                sl_price = round(entry_price - (larger_sl_pips * pip_size), 5)
+            else:  # SELL
+                sl_price = round(entry_price + (larger_sl_pips * pip_size), 5)
+            
+            tp_price = round(bb_tp_price, 5)  # BB TP stays fixed
+            
+            print(f"   Attempt {i+1}: SL={larger_sl_pips:.1f}pips, TP={tp_price:.5f} (fixed BB)")
+            
+            request = {
+                "action": mt5.TRADE_ACTION_DEAL,
+                "symbol": symbol,
+                "volume": config.LOT_SIZE,
+                "type": mt5.ORDER_TYPE_BUY if self.current_trade_type == "BUY" else mt5.ORDER_TYPE_SELL,
+                "price": entry_price,
+                "sl": sl_price,
+                "tp": tp_price,
+                "deviation": config.SLIPPAGE,
+                "magic": 234000,
+                "comment": f"{config.MODEL_NAME} - {confidence:.1%}",
+                "type_time": mt5.ORDER_TIME_GTC,
+                "type_filling": mt5.ORDER_FILLING_IOC,
+            }
+            
+            result = mt5.order_send(request)
+            
+            if result and hasattr(result, 'retcode') and result.retcode == mt5.TRADE_RETCODE_DONE:
+                print(f"✅ {symbol}: Success on retry {i+1}!")
+                return result
+            
+            time.sleep(0.1)
+        
+        print(f"❌ {symbol}: Failed after {len(multipliers)} retry attempts")
+        return None
 
     def execute_buy(self, symbol, sl_pips=None, tp_pips=None, confidence=0.0):
-        """Execute buy with symbol-specific pip calculations - CLEAN VERSION"""
+        """Execute buy with Bollinger Band TP (upper_band)"""
         try:
+            # Set trade type
+            self.current_trade_type = "BUY"
+            
             # Use config values if not specified
             if sl_pips is None:
                 sl_pips = config.STOP_LOSS_PIPS
@@ -296,9 +381,6 @@ class TradeExecutor:
             symbol_type = SymbolHelper.detect_symbol_type(symbol)
             pip_size = SymbolHelper.get_pip_size(symbol)
             
-            # Don't automatically adjust stops
-            # sl_pips, tp_pips = SymbolHelper.adjust_stops_for_symbol(symbol, sl_pips, tp_pips)
-            
             # Ensure symbol is selected
             if not symbol_info.visible:
                 mt5.symbol_select(symbol, True)
@@ -312,11 +394,35 @@ class TradeExecutor:
             
             ask_price = tick.ask
             
-            # Calculate SL and TP prices CORRECTLY and round them
+            # Calculate SL price
             sl_price = round(SymbolHelper.calculate_sl_price(ask_price, sl_pips, symbol, is_buy=True), 5)
-            tp_price = round(SymbolHelper.calculate_tp_price(ask_price, tp_pips, symbol, is_buy=True), 5)
             
-            # Round ask price too
+            # ==== GET TP FROM BOLLINGER BAND ====
+            bb_data = get_bb_values(symbol)
+            using_bb_tp = False
+            bb_tp_price = None
+            
+            if bb_data and bb_data['upper_band'] is not None:
+                # Use Bollinger Band upper_band for TP
+                bb_tp_price = bb_data['upper_band']
+                tp_price = round(bb_tp_price, 5)
+                tp_source = "BB Upper"
+                using_bb_tp = True
+                
+                # Validate TP is above current price (for BUY)
+                if tp_price <= ask_price:
+                    print(f"⚠️ {symbol}: BB TP {tp_price:.5f} not above current {ask_price:.5f}")
+                    # Use fixed TP instead
+                    tp_price = round(SymbolHelper.calculate_tp_price(ask_price, tp_pips, symbol, is_buy=True), 5)
+                    tp_source = f"Fixed {tp_pips}pips (BB was invalid)"
+                    using_bb_tp = False
+            else:
+                # Fallback to fixed TP pips
+                tp_price = round(SymbolHelper.calculate_tp_price(ask_price, tp_pips, symbol, is_buy=True), 5)
+                tp_source = f"Fixed {tp_pips}pips"
+                using_bb_tp = False
+            
+            # Round ask price
             ask_price = round(ask_price, 5)
             
             # Prepare trade request
@@ -335,16 +441,17 @@ class TradeExecutor:
                 "type_filling": mt5.ORDER_FILLING_IOC,
             }
             
+            print(f"🔧 {symbol}: BUY - Ask={ask_price:.5f}, SL={sl_price:.5f} ({sl_pips}pips), TP={tp_price:.5f} ({tp_source})")
+            
             # Send trade request
             result = mt5.order_send(request)
             
-            # Check result - CLEAN VERSION
+            # Check result
             if result is None:
                 last_error = mt5.last_error()
                 if isinstance(last_error, tuple):
                     error_code, error_msg = last_error
                     if error_code == 0:  # 0 means NO ERROR (success!)
-                        # Return success indicator
                         return "SUCCESS"
                     else:
                         print(f"❌ {symbol}: Failed - {error_msg}")
@@ -353,64 +460,34 @@ class TradeExecutor:
             
             elif hasattr(result, 'retcode'):
                 if result.retcode == mt5.TRADE_RETCODE_DONE:
-                    # Return the result object for execute_trades to handle
                     return result
                 else:
-                    # If invalid stops, try progressive increase (silently)
+                    # If invalid stops, try progressive increase
                     if hasattr(result, 'comment') and "invalid stops" in str(result.comment).lower():
-                        return self._retry_with_larger_stops(symbol, ask_price, sl_pips, tp_pips, 
-                                                        symbol_type, pip_size, confidence)
+                        # DETERMINE WHAT TO PASS TO RETRY
+                        if using_bb_tp:
+                            # Using BB TP - pass the price
+                            return self._retry_with_larger_stops_bb(symbol, ask_price, sl_pips, bb_tp_price, 
+                                                                  symbol_type, pip_size, confidence)
+                        else:
+                            # Using fixed TP pips - pass the pips count
+                            return self._retry_with_larger_stops(symbol, ask_price, sl_pips, tp_pips, 
+                                                              symbol_type, pip_size, confidence)
                     print(f"❌ {symbol}: Rejected - Retcode: {result.retcode}")
                     return None
             else:
-                # Unexpected result type
                 return result
-                        
+                    
         except Exception as e:
             print(f"❌ {symbol}: Error - {str(e)}")
             return None
 
-
-    def _retry_with_larger_stops(self, symbol, entry_price, base_sl_pips, base_tp_pips, 
-                                symbol_type, pip_size, confidence):
-        """Retry with progressively larger stops - SILENT VERSION"""
-        multipliers = [1.5, 2, 3, 5, 8, 12, 18, 25, 35, 50]
-        
-        for i, multiplier in enumerate(multipliers):
-            sl_pips = base_sl_pips * multiplier
-            tp_pips = base_tp_pips * multiplier
-            
-            # Calculate new prices
-            sl_price = round(entry_price - (sl_pips * pip_size), 5)
-            tp_price = round(entry_price + (tp_pips * pip_size), 5)
-            
-            request = {
-                "action": mt5.TRADE_ACTION_DEAL,
-                "symbol": symbol,
-                "volume": config.LOT_SIZE,
-                "type": mt5.ORDER_TYPE_BUY,
-                "price": entry_price,
-                "sl": sl_price,
-                "tp": tp_price,
-                "deviation": config.SLIPPAGE,
-                "magic": 234000,
-                "comment": f"{config.MODEL_NAME} - {confidence:.1%}",
-                "type_time": mt5.ORDER_TIME_GTC,
-                "type_filling": mt5.ORDER_FILLING_IOC,
-            }
-            
-            result = mt5.order_send(request)
-            
-            if result and hasattr(result, 'retcode') and result.retcode == mt5.TRADE_RETCODE_DONE:
-                return result
-            
-            time.sleep(0.1)
-        
-        return None
-
     def execute_sell(self, symbol, sl_pips=None, tp_pips=None, comment=""):
-        """Execute sell with symbol-specific pip calculations"""
+        """Execute sell with Bollinger Band TP (lower_band)"""
         try:
+            # Set trade type
+            self.current_trade_type = "SELL"
+            
             # Use config values if not specified
             if sl_pips is None:
                 sl_pips = config.STOP_LOSS_PIPS
@@ -443,15 +520,39 @@ class TradeExecutor:
             
             bid_price = tick.bid
             
-            # Calculate SL and TP prices CORRECTLY for SELL
+            # Calculate SL price
             sl_price = SymbolHelper.calculate_sl_price(bid_price, sl_pips, symbol, is_buy=False)
-            tp_price = SymbolHelper.calculate_tp_price(bid_price, tp_pips, symbol, is_buy=False)
+            
+            # ==== GET TP FROM BOLLINGER BAND ====
+            bb_data = get_bb_values(symbol)
+            using_bb_tp = False
+            bb_tp_price = None
+            
+            if bb_data and bb_data['lower_band'] is not None:
+                # Use Bollinger Band lower_band for TP
+                bb_tp_price = bb_data['lower_band']
+                tp_price = round(bb_tp_price, 5)
+                tp_source = "BB Lower"
+                using_bb_tp = True
+                
+                # Validate TP is below current price (for SELL)
+                if tp_price >= bid_price:
+                    print(f"⚠️ {symbol}: BB TP {tp_price:.5f} not below current {bid_price:.5f}")
+                    # Use fixed TP instead
+                    tp_price = SymbolHelper.calculate_tp_price(bid_price, tp_pips, symbol, is_buy=False)
+                    tp_source = f"Fixed {tp_pips}pips (BB was invalid)"
+                    using_bb_tp = False
+            else:
+                # Fallback to fixed TP pips
+                tp_price = SymbolHelper.calculate_tp_price(bid_price, tp_pips, symbol, is_buy=False)
+                tp_source = f"Fixed {tp_pips}pips"
+                using_bb_tp = False
             
             # Calculate actual pip distances
             actual_sl_pips = (sl_price - bid_price) / pip_size
             actual_tp_pips = (bid_price - tp_price) / pip_size
             
-            print(f"📊 {symbol}: Bid={bid_price}, SL={sl_price} ({actual_sl_pips:.1f}pips), TP={tp_price} ({actual_tp_pips:.1f}pips)")
+            print(f"📊 {symbol}: SELL - Bid={bid_price:.5f}, SL={sl_price:.5f} ({actual_sl_pips:.1f}pips), TP={tp_price:.5f} ({tp_source})")
             
             # Prepare trade request
             request = {
@@ -464,7 +565,7 @@ class TradeExecutor:
                 "tp": tp_price,
                 "deviation": config.SLIPPAGE,
                 "magic": 234000,
-                "comment": comment,
+                "comment": comment or f"Sell - {tp_source}",
                 "type_time": mt5.ORDER_TIME_GTC,
                 "type_filling": mt5.ORDER_FILLING_IOC,
             }
@@ -479,6 +580,17 @@ class TradeExecutor:
                 return None
             
             elif result.retcode != mt5.TRADE_RETCODE_DONE:
+                # If invalid stops, try progressive increase
+                if hasattr(result, 'comment') and "invalid stops" in str(result.comment).lower():
+                    # DETERMINE WHAT TO PASS TO RETRY
+                    if using_bb_tp:
+                        # Using BB TP - pass the price
+                        return self._retry_with_larger_stops_bb(symbol, bid_price, sl_pips, bb_tp_price, 
+                                                              symbol_type, pip_size, confidence)
+                    else:
+                        # Using fixed TP pips - pass the pips count
+                        return self._retry_with_larger_stops(symbol, bid_price, sl_pips, tp_pips, 
+                                                          symbol_type, pip_size, confidence)
                 print(f"❌ Rejected - Retcode: {result.retcode}")
                 print(f"   Comment: {result.comment}")
                 return result
