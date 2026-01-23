@@ -1,0 +1,10 @@
+{
+  "model_type": "RandomForestClassifier",
+  "training_date": "2026-01-23 18:05:50",
+  "n_features": 82,
+  "train_samples": 1768,
+  "test_samples": 443,
+  "train_positive": 712,
+  "test_positive": 173,
+  "feature_count": 82
+}
