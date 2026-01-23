@@ -1,0 +1,251 @@
+{
+  "227636880_USDCHF": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      18.800000000001038,
+      19.100000000000783,
+      14.700000000000824,
+      6.799999999999029
+    ],
+    "peak_profit": 19.100000000000783,
+    "peak_profit_time": "2026.01.22 22:30:13",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "USDCHF",
+    "type": "BUY"
+  },
+  "227706340_CADCHF": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      28.89999999999948,
+      29.69999999999917,
+      28.599999999999735,
+      16.69999999999949
+    ],
+    "peak_profit": 29.69999999999917,
+    "peak_profit_time": "2026.01.22 22:30:13",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "CADCHF",
+    "type": "BUY"
+  },
+  "228241696_USDCHF": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      11.599999999999389,
+      11.299999999999644,
+      15.699999999999603
+    ],
+    "peak_profit": 15.699999999999603,
+    "peak_profit_time": "2026.01.22 22:32:36",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.22 22:32:36",
+    "symbol": "USDCHF",
+    "type": "BUY"
+  },
+  "228241698_USDCAD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      12.000000000000899,
+      13.400000000001189,
+      18.60000000000195
+    ],
+    "peak_profit": 18.60000000000195,
+    "peak_profit_time": "2026.01.22 22:32:36",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.22 22:32:36",
+    "symbol": "USDCAD",
+    "type": "BUY"
+  },
+  "228241710_GBPCHF": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      11.099999999999444,
+      10.499999999999954,
+      15.299999999998093,
+      5.1000000000001044
+    ],
+    "peak_profit": 15.299999999998093,
+    "peak_profit_time": "2026.01.22 22:32:36",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "GBPCHF",
+    "type": "BUY"
+  },
+  "228241715_GBPCAD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      9.20000000000254,
+      10.799999999999699,
+      16.100000000001113,
+      58.400000000000674
+    ],
+    "peak_profit": 58.400000000000674,
+    "peak_profit_time": "2026.01.23 10:00:19",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "GBPCAD",
+    "type": "BUY"
+  },
+  "228379827_USDCAD": {
+    "stage_history": [
+      "STAGE_0",
+      "STAGE_1"
+    ],
+    "profit_history": [
+      31.09999999999946,
+      32.49999999999975,
+      37.70000000000051
+    ],
+    "peak_profit": 37.70000000000051,
+    "peak_profit_time": "2026.01.22 22:32:36",
+    "previous_stage": "STAGE_1",
+    "current_stage": "STAGE_1",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.22 22:32:36",
+    "symbol": "USDCAD",
+    "type": "BUY"
+  },
+  "228703742_EURAUD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      9.899999999998244,
+      9.199999999998099,
+      7.500000000000284
+    ],
+    "peak_profit": 9.899999999998244,
+    "peak_profit_time": "2026.01.22 22:29:16",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.22 22:32:36",
+    "symbol": "EURAUD",
+    "type": "BUY"
+  },
+  "229209577_USDCAD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      0.40000000000040004
+    ],
+    "peak_profit": 0.40000000000040004,
+    "peak_profit_time": "2026.01.23 10:00:19",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "USDCAD",
+    "type": "BUY"
+  },
+  "229209585_EURNZD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      1.100000000000545
+    ],
+    "peak_profit": 1.100000000000545,
+    "peak_profit_time": "2026.01.23 10:00:19",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "EURNZD",
+    "type": "BUY"
+  },
+  "229209594_GBPNZD": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      1.6999999999978144
+    ],
+    "peak_profit": 1.6999999999978144,
+    "peak_profit_time": "2026.01.23 10:00:19",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "GBPNZD",
+    "type": "BUY"
+  },
+  "229209602_CADCHF": {
+    "stage_history": [
+      "STAGE_0"
+    ],
+    "profit_history": [
+      0.9999999999998899
+    ],
+    "peak_profit": 0.9999999999998899,
+    "peak_profit_time": "2026.01.23 10:00:19",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "defense_active": false,
+    "defense_since": null,
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026.01.23 10:00:19",
+    "symbol": "CADCHF",
+    "type": "BUY"
+  }
+}

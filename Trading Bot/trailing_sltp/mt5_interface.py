@@ -1,4 +1,6 @@
-# mt5_simple_interface.py
+#!/usr/bin/env python3
+# mt5_engine.py - MT5 Interface with position handling
+
 import MetaTrader5 as mt5
 from typing import Dict, List, Optional, Tuple
 import logging
@@ -44,7 +46,7 @@ class MT5SimpleInterface:
             print("Disconnected from MT5")
     
     def get_positions(self) -> List[Dict]:
-        """Get all open positions with CORRECT type handling"""
+        """Get all open positions with correct type handling"""
         if not self.connected:
             print("❌ Not connected to MT5")
             return []
@@ -127,6 +129,9 @@ class MT5SimpleInterface:
                 elif "Invalid stops" in str(result.comment):
                     # Continue adjusting
                     continue
+                elif "no changes" in str(result.comment).lower():
+                    print(f"⚠️ Position {ticket}: No changes needed")
+                    return True
                 else:
                     # Other error
                     print(f"❌ Position {ticket} failed: {result.comment}")
@@ -143,10 +148,6 @@ class MT5SimpleInterface:
                      pip_size: float, attempt: int, is_sl: bool) -> float:
         """
         Adjust SL/TP by 1 pip per attempt
-        
-        Rules:
-        - SL: Move AWAY from current price (safer)
-        - TP: Move FURTHER in profit direction (more conservative)
         """
         adjustment = attempt * pip_size
         

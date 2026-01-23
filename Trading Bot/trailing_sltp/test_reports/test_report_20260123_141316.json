@@ -1,0 +1,615 @@
+{
+  "total_scenarios": 20,
+  "total_tests": 60,
+  "passed_scenarios": 20,
+  "failed_scenarios": 0,
+  "passed_tests": 60,
+  "failed_tests": 0,
+  "errors": 0,
+  "start_time": "2026-01-23T14:13:16.480887",
+  "end_time": "2026-01-23T14:13:16.520031",
+  "scenario_details": {
+    "Basic_Stage_Progression": {
+      "category": "stage_progression",
+      "description": "Basic progression through all stages - REVISED THRESHOLDS",
+      "tests": [
+        {
+          "name": "Below 15% threshold",
+          "passed": true,
+          "details": "Profit ratio: 0.100, Previous: STAGE_0",
+          "actual": "STAGE_0",
+          "expected": "STAGE_0"
+        },
+        {
+          "name": "Above STAGE_1 threshold (15%)",
+          "passed": true,
+          "details": "Profit ratio: 0.200, Previous: STAGE_0",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        },
+        {
+          "name": "Above STAGE_1A threshold (30%)",
+          "passed": true,
+          "details": "Profit ratio: 0.350, Previous: STAGE_0",
+          "actual": "STAGE_1A",
+          "expected": "STAGE_1A"
+        },
+        {
+          "name": "Above STAGE_2A threshold (45%)",
+          "passed": true,
+          "details": "Profit ratio: 0.500, Previous: STAGE_0",
+          "actual": "STAGE_2A",
+          "expected": "STAGE_2A"
+        },
+        {
+          "name": "Above STAGE_2B threshold (60%)",
+          "passed": true,
+          "details": "Profit ratio: 0.650, Previous: STAGE_0",
+          "actual": "STAGE_2B",
+          "expected": "STAGE_2B"
+        },
+        {
+          "name": "Above STAGE_3A threshold (80%)",
+          "passed": true,
+          "details": "Profit ratio: 0.800, Previous: STAGE_0",
+          "actual": "STAGE_3A",
+          "expected": "STAGE_3A"
+        },
+        {
+          "name": "Above STAGE_3B threshold (90%)",
+          "passed": true,
+          "details": "Profit ratio: 1.000, Previous: STAGE_0",
+          "actual": "STAGE_3B",
+          "expected": "STAGE_3B"
+        },
+        {
+          "name": "Above STAGE_4 threshold (120%)",
+          "passed": true,
+          "details": "Profit ratio: 1.300, Previous: STAGE_0",
+          "actual": "STAGE_4",
+          "expected": "STAGE_4"
+        },
+        {
+          "name": "Above STAGE_4 threshold (still)",
+          "passed": true,
+          "details": "Profit ratio: 1.600, Previous: STAGE_0",
+          "actual": "STAGE_4",
+          "expected": "STAGE_4"
+        },
+        {
+          "name": "Above STAGE_5 threshold (180%)",
+          "passed": true,
+          "details": "Profit ratio: 2.000, Previous: STAGE_0",
+          "actual": "STAGE_5",
+          "expected": "STAGE_5"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Hysteresis_Effect": {
+      "category": "stage_progression",
+      "description": "Hysteresis prevents ping-pong effect - REVISED THRESHOLDS",
+      "tests": [
+        {
+          "name": "Above new STAGE_1 threshold (0.15)",
+          "passed": true,
+          "details": "Profit ratio: 0.230, Previous: STAGE_0",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        },
+        {
+          "name": "Above threshold+buffer (move)",
+          "passed": true,
+          "details": "Profit ratio: 0.270, Previous: STAGE_0",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        },
+        {
+          "name": "Above STAGE_1A threshold (0.30)",
+          "passed": true,
+          "details": "Profit ratio: 0.350, Previous: STAGE_1",
+          "actual": "STAGE_1A",
+          "expected": "STAGE_1A"
+        },
+        {
+          "name": "Still above STAGE_1A threshold",
+          "passed": true,
+          "details": "Profit ratio: 0.340, Previous: STAGE_1",
+          "actual": "STAGE_1A",
+          "expected": "STAGE_1A"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "One_Way_Transitions": {
+      "category": "stage_progression",
+      "description": "Cannot go back from trailing stages",
+      "tests": [
+        {
+          "name": "Move to trailing stage",
+          "passed": true,
+          "details": "Profit ratio: 0.850, Previous: STAGE_0",
+          "actual": "STAGE_3A",
+          "expected": "STAGE_3A"
+        },
+        {
+          "name": "Try to go back (should stay)",
+          "passed": true,
+          "details": "Profit ratio: 0.600, Previous: STAGE_3A",
+          "actual": "STAGE_3A",
+          "expected": "STAGE_3A"
+        },
+        {
+          "name": "Try to go back more (should stay)",
+          "passed": true,
+          "details": "Profit ratio: 0.400, Previous: STAGE_3A",
+          "actual": "STAGE_3A",
+          "expected": "STAGE_3A"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "CADCHF_Real_Case": {
+      "category": "stage_progression",
+      "description": "Your CADCHF case with different BB widths - REVISED THRESHOLDS",
+      "tests": [
+        {
+          "name": "28.6/200=0.143 ratio (14.3% < 15%) (CADCHF)",
+          "passed": true,
+          "details": "Profit ratio: 0.143, Previous: STAGE_0",
+          "actual": "STAGE_0",
+          "expected": "STAGE_0"
+        },
+        {
+          "name": "28.6/100=0.286 ratio (28.6% \u2192 STAGE_1) (CADCHF)",
+          "passed": true,
+          "details": "Profit ratio: 0.286, Previous: STAGE_0",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        },
+        {
+          "name": "28.6/50=0.572 ratio (CADCHF)",
+          "passed": true,
+          "details": "Profit ratio: 0.572, Previous: STAGE_0",
+          "actual": "STAGE_2A",
+          "expected": "STAGE_2A"
+        },
+        {
+          "name": "28.6/25=1.144 ratio (CADCHF)",
+          "passed": true,
+          "details": "Profit ratio: 1.144, Previous: STAGE_0",
+          "actual": "STAGE_3B",
+          "expected": "STAGE_3B"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Stage_Backward_1_Level": {
+      "category": "regression_detection",
+      "description": "Regression: Stage moves back 1 level",
+      "tests": [
+        {
+          "name": "Regression Detection",
+          "passed": true,
+          "details": "Expected detection: True",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Defense Stage Selection",
+          "passed": true,
+          "details": "Expected defense: STAGE_2C",
+          "actual": "STAGE_2C",
+          "expected": "STAGE_2C"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Stage_Backward_2_Levels": {
+      "category": "regression_detection",
+      "description": "Regression: Stage moves back 3+ levels (STAGE_3A to STAGE_1A = 4 levels)",
+      "tests": [
+        {
+          "name": "Regression Detection",
+          "passed": true,
+          "details": "Expected detection: True",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Defense Stage Selection",
+          "passed": true,
+          "details": "Expected defense: STAGE_3B",
+          "actual": "STAGE_3B",
+          "expected": "STAGE_3B"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Profit_Giveback_30_Percent": {
+      "category": "regression_detection",
+      "description": "Regression: 30%+ profit give-back",
+      "tests": [
+        {
+          "name": "Regression Detection",
+          "passed": true,
+          "details": "Expected detection: True",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Defense Stage Selection",
+          "passed": true,
+          "details": "Expected defense: STAGE_2C",
+          "actual": "STAGE_2C",
+          "expected": "STAGE_2C"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Momentum_Stagnation": {
+      "category": "regression_detection",
+      "description": "Regression: Same stage for 4+ cycles with <5% fluctuation",
+      "tests": [
+        {
+          "name": "Regression Detection",
+          "passed": true,
+          "details": "Expected detection: True",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Defense Stage Selection",
+          "passed": true,
+          "details": "Expected defense: STAGE_2C",
+          "actual": "STAGE_2C",
+          "expected": "STAGE_2C"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_Regression_Normal": {
+      "category": "regression_detection",
+      "description": "No regression: Normal progression",
+      "tests": [
+        {
+          "name": "Regression Detection",
+          "passed": true,
+          "details": "Expected detection: False",
+          "actual": "False",
+          "expected": "False"
+        },
+        {
+          "name": "No Regression Detection",
+          "passed": true,
+          "details": "Expected no detection",
+          "actual": null,
+          "expected": null
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_SL_No_TP": {
+      "category": "missing_sl_tp",
+      "description": "Position with NO SL and NO TP",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.0, Calculated SL: 1.102",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.0, Calculated TP: 1.11",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.333",
+          "actual": "STAGE_1A",
+          "expected": "STAGE_1A"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Has_SL_No_TP": {
+      "category": "missing_sl_tp",
+      "description": "Position with SL but NO TP",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 1.248, Calculated SL: 1.252",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.0, Calculated TP: 1.26",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.333",
+          "actual": "STAGE_1A",
+          "expected": "STAGE_1A"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_SL_Has_TP": {
+      "category": "missing_sl_tp",
+      "description": "Position with TP but NO SL",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.0, Calculated SL: 109.875",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 108.5, Calculated TP: 108.0",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.167",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Bad_SL_Needs_Improvement": {
+      "category": "missing_sl_tp",
+      "description": "Position with worse SL than calculated",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.648, Calculated SL: 0.65125",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.66, Calculated TP: 0.665",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.250",
+          "actual": "STAGE_1",
+          "expected": "STAGE_1"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_SL_Very_Small_Profit": {
+      "category": "missing_sl_tp",
+      "description": "Position with NO SL and very small profit (< 30 pips)",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.0, Calculated SL: 0.78674",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.0, Calculated TP: 0.79798",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.006",
+          "actual": "STAGE_0",
+          "expected": "STAGE_0"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_SL_Small_Profit_CADCHF": {
+      "category": "missing_sl_tp",
+      "description": "CADCHF with NO SL and small profit",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.0, Calculated SL: 0.56975",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.0, Calculated TP: 0.57626",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.034",
+          "actual": "STAGE_0",
+          "expected": "STAGE_0"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "No_SL_Profitable_But_Stage_0": {
+      "category": "missing_sl_tp",
+      "description": "Position profitable but still in STAGE_0 (profit < 25% ratio)",
+      "tests": [
+        {
+          "name": "SL Update Check",
+          "passed": true,
+          "details": "Current SL: 0.0, Calculated SL: 1.097",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "TP Update Check",
+          "passed": true,
+          "details": "Current TP: 0.0, Calculated TP: 1.11",
+          "actual": "True",
+          "expected": "True"
+        },
+        {
+          "name": "Stage Determination",
+          "passed": true,
+          "details": "Profit ratio: 0.100",
+          "actual": "STAGE_0",
+          "expected": "STAGE_0"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Defense_Overrides_Normal": {
+      "category": "defense_selection",
+      "description": "Defense provides better protection",
+      "tests": [
+        {
+          "name": "Final Stage Selection",
+          "passed": true,
+          "details": "Normal: STAGE_1A, Defense: STAGE_2C",
+          "actual": "STAGE_2C",
+          "expected": "STAGE_2C"
+        },
+        {
+          "name": "Defense Activation",
+          "passed": true,
+          "details": "Expected active: True",
+          "actual": "True",
+          "expected": "True"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Normal_Catches_Up": {
+      "category": "defense_selection",
+      "description": "Normal progression reaches defense level",
+      "tests": [
+        {
+          "name": "Final Stage Selection",
+          "passed": true,
+          "details": "Normal: STAGE_2C, Defense: STAGE_2C",
+          "actual": "STAGE_2C",
+          "expected": "STAGE_2C"
+        },
+        {
+          "name": "Defense Activation",
+          "passed": true,
+          "details": "Expected active: False",
+          "actual": "False",
+          "expected": "False"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Normal_Better_Than_Defense": {
+      "category": "defense_selection",
+      "description": "Normal stage already has better protection",
+      "tests": [
+        {
+          "name": "Final Stage Selection",
+          "passed": true,
+          "details": "Normal: STAGE_3A, Defense: STAGE_2C",
+          "actual": "STAGE_3A",
+          "expected": "STAGE_3A"
+        },
+        {
+          "name": "Defense Activation",
+          "passed": true,
+          "details": "Expected active: False",
+          "actual": "False",
+          "expected": "False"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    },
+    "Emergency_Defense": {
+      "category": "defense_selection",
+      "description": "Major regression triggers high defense",
+      "tests": [
+        {
+          "name": "Final Stage Selection",
+          "passed": true,
+          "details": "Normal: STAGE_0, Defense: STAGE_3B",
+          "actual": "STAGE_3B",
+          "expected": "STAGE_3B"
+        },
+        {
+          "name": "Defense Activation",
+          "passed": true,
+          "details": "Expected active: True",
+          "actual": "True",
+          "expected": "True"
+        }
+      ],
+      "passed": true,
+      "all_tests_passed": true
+    }
+  },
+  "category_summary": {
+    "stage_progression": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    },
+    "regression_detection": {
+      "total": 5,
+      "passed": 5,
+      "failed": 0
+    },
+    "missing_sl_tp": {
+      "total": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "defense_selection": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0
+    }
+  }
+}

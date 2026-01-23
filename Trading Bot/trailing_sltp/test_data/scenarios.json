@@ -1,0 +1,844 @@
+{
+  "stage_progression": [
+    {
+      "name": "Basic_Stage_Progression",
+      "description": "Basic progression through all stages - REVISED THRESHOLDS",
+      "positions": [
+        {
+          "profit_ratio": 0.1,
+          "expected_stage": "STAGE_0",
+          "desc": "Below 15% threshold"
+        },
+        {
+          "profit_ratio": 0.2,
+          "expected_stage": "STAGE_1",
+          "desc": "Above STAGE_1 threshold (15%)"
+        },
+        {
+          "profit_ratio": 0.35,
+          "expected_stage": "STAGE_1A",
+          "desc": "Above STAGE_1A threshold (30%)"
+        },
+        {
+          "profit_ratio": 0.5,
+          "expected_stage": "STAGE_2A",
+          "desc": "Above STAGE_2A threshold (45%)"
+        },
+        {
+          "profit_ratio": 0.65,
+          "expected_stage": "STAGE_2B",
+          "desc": "Above STAGE_2B threshold (60%)"
+        },
+        {
+          "profit_ratio": 0.8,
+          "expected_stage": "STAGE_3A",
+          "desc": "Above STAGE_3A threshold (80%)"
+        },
+        {
+          "profit_ratio": 1.0,
+          "expected_stage": "STAGE_3B",
+          "desc": "Above STAGE_3B threshold (90%)"
+        },
+        {
+          "profit_ratio": 1.3,
+          "expected_stage": "STAGE_4",
+          "desc": "Above STAGE_4 threshold (120%)"
+        },
+        {
+          "profit_ratio": 1.6,
+          "expected_stage": "STAGE_4",
+          "desc": "Above STAGE_4 threshold (still)"
+        },
+        {
+          "profit_ratio": 2.0,
+          "expected_stage": "STAGE_5",
+          "desc": "Above STAGE_5 threshold (180%)"
+        }
+      ]
+    },
+    {
+      "name": "Hysteresis_Effect",
+      "description": "Hysteresis prevents ping-pong effect - REVISED THRESHOLDS",
+      "positions": [
+        {
+          "profit_ratio": 0.23,
+          "previous_stage": "STAGE_0",
+          "expected_stage": "STAGE_1",
+          "desc": "Above new STAGE_1 threshold (0.15)"
+        },
+        {
+          "profit_ratio": 0.27,
+          "previous_stage": "STAGE_0",
+          "expected_stage": "STAGE_1",
+          "desc": "Above threshold+buffer (move)"
+        },
+        {
+          "profit_ratio": 0.35,
+          "previous_stage": "STAGE_1",
+          "expected_stage": "STAGE_1A",
+          "desc": "Above STAGE_1A threshold (0.30)"
+        },
+        {
+          "profit_ratio": 0.34,
+          "previous_stage": "STAGE_1",
+          "expected_stage": "STAGE_1A",
+          "desc": "Still above STAGE_1A threshold"
+        }
+      ]
+    },
+    {
+      "name": "One_Way_Transitions",
+      "description": "Cannot go back from trailing stages",
+      "positions": [
+        {
+          "profit_ratio": 0.85,
+          "previous_stage": "STAGE_0",
+          "expected_stage": "STAGE_3A",
+          "desc": "Move to trailing stage"
+        },
+        {
+          "profit_ratio": 0.6,
+          "previous_stage": "STAGE_3A",
+          "expected_stage": "STAGE_3A",
+          "desc": "Try to go back (should stay)"
+        },
+        {
+          "profit_ratio": 0.4,
+          "previous_stage": "STAGE_3A",
+          "expected_stage": "STAGE_3A",
+          "desc": "Try to go back more (should stay)"
+        }
+      ]
+    },
+    {
+      "name": "CADCHF_Real_Case",
+      "description": "Your CADCHF case with different BB widths - REVISED THRESHOLDS",
+      "positions": [
+        {
+          "symbol": "CADCHF",
+          "profit_pips": 28.6,
+          "bb_width_pips": 200,
+          "expected_stage": "STAGE_0",
+          "desc": "28.6/200=0.143 ratio (14.3% < 15%)"
+        },
+        {
+          "symbol": "CADCHF",
+          "profit_pips": 28.6,
+          "bb_width_pips": 100,
+          "expected_stage": "STAGE_1",
+          "desc": "28.6/100=0.286 ratio (28.6% \u2192 STAGE_1)"
+        },
+        {
+          "symbol": "CADCHF",
+          "profit_pips": 28.6,
+          "bb_width_pips": 50,
+          "expected_stage": "STAGE_2A",
+          "desc": "28.6/50=0.572 ratio"
+        },
+        {
+          "symbol": "CADCHF",
+          "profit_pips": 28.6,
+          "bb_width_pips": 25,
+          "expected_stage": "STAGE_3B",
+          "desc": "28.6/25=1.144 ratio"
+        }
+      ]
+    }
+  ],
+  "regression_detection": [
+    {
+      "name": "Stage_Backward_1_Level",
+      "description": "Regression: Stage moves back 1 level",
+      "setup": {
+        "previous_stage": "STAGE_2A",
+        "current_stage": "STAGE_1A",
+        "peak_profit": 60.0,
+        "current_profit": 55.0,
+        "stage_history": [
+          "STAGE_1",
+          "STAGE_1A",
+          "STAGE_2A"
+        ],
+        "profit_history": [
+          40,
+          50,
+          60
+        ],
+        "defense_active": false,
+        "defense_cycles": 0
+      },
+      "expected": {
+        "detected": true,
+        "defense_stage": "STAGE_2C",
+        "defense_active": true,
+        "level": "Level 1"
+      }
+    },
+    {
+      "name": "Stage_Backward_2_Levels",
+      "description": "Regression: Stage moves back 3+ levels (STAGE_3A to STAGE_1A = 4 levels)",
+      "setup": {
+        "previous_stage": "STAGE_3A",
+        "current_stage": "STAGE_1A",
+        "peak_profit": 85.0,
+        "current_profit": 70.0,
+        "stage_history": [
+          "STAGE_2A",
+          "STAGE_2B",
+          "STAGE_3A"
+        ],
+        "profit_history": [
+          55,
+          65,
+          85
+        ],
+        "defense_active": false,
+        "defense_cycles": 0
+      },
+      "expected": {
+        "detected": true,
+        "defense_stage": "STAGE_3B",
+        "defense_active": true,
+        "level": "Level 3"
+      }
+    },
+    {
+      "name": "Profit_Giveback_30_Percent",
+      "description": "Regression: 30%+ profit give-back",
+      "setup": {
+        "previous_stage": "STAGE_2B",
+        "current_stage": "STAGE_2B",
+        "peak_profit": 100.0,
+        "current_profit": 68.0,
+        "stage_history": [
+          "STAGE_2B",
+          "STAGE_2B",
+          "STAGE_2B"
+        ],
+        "profit_history": [
+          100,
+          85,
+          68
+        ],
+        "defense_active": false,
+        "defense_cycles": 0
+      },
+      "expected": {
+        "detected": true,
+        "defense_stage": "STAGE_2C",
+        "defense_active": true,
+        "level": "Level 1"
+      }
+    },
+    {
+      "name": "Momentum_Stagnation",
+      "description": "Regression: Same stage for 4+ cycles with <5% fluctuation",
+      "setup": {
+        "previous_stage": "STAGE_2A",
+        "current_stage": "STAGE_2A",
+        "peak_profit": 55.0,
+        "current_profit": 54.5,
+        "stage_history": [
+          "STAGE_2A",
+          "STAGE_2A",
+          "STAGE_2A",
+          "STAGE_2A"
+        ],
+        "profit_history": [
+          55.0,
+          54.8,
+          54.6,
+          54.5
+        ],
+        "defense_active": false,
+        "defense_cycles": 0
+      },
+      "expected": {
+        "detected": true,
+        "defense_stage": "STAGE_2C",
+        "defense_active": true,
+        "level": "Level 1"
+      }
+    },
+    {
+      "name": "No_Regression_Normal",
+      "description": "No regression: Normal progression",
+      "setup": {
+        "previous_stage": "STAGE_1A",
+        "current_stage": "STAGE_2A",
+        "peak_profit": 55.0,
+        "current_profit": 58.0,
+        "stage_history": [
+          "STAGE_1",
+          "STAGE_1A",
+          "STAGE_2A"
+        ],
+        "profit_history": [
+          40,
+          50,
+          58
+        ],
+        "defense_active": false,
+        "defense_cycles": 0
+      },
+      "expected": {
+        "detected": false,
+        "defense_stage": null,
+        "defense_active": false,
+        "level": "None"
+      }
+    }
+  ],
+  "missing_sl_tp": [
+    {
+      "name": "No_SL_No_TP",
+      "description": "Position with NO SL and NO TP",
+      "position": {
+        "ticket": 1001,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.105,
+        "sl": 0.0,
+        "tp": 0.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.11,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_1A"
+      }
+    },
+    {
+      "name": "Has_SL_No_TP",
+      "description": "Position with SL but NO TP",
+      "position": {
+        "ticket": 1002,
+        "symbol": "GBPUSD",
+        "type": 0,
+        "entry_price": 1.25,
+        "current_price": 1.255,
+        "sl": 1.248,
+        "tp": 0.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.245,
+        "upper_band": 1.26,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_1A"
+      }
+    },
+    {
+      "name": "No_SL_Has_TP",
+      "description": "Position with TP but NO SL",
+      "position": {
+        "ticket": 1003,
+        "symbol": "USDJPY",
+        "type": 1,
+        "entry_price": 110.0,
+        "current_price": 109.5,
+        "sl": 0.0,
+        "tp": 108.5,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 108.0,
+        "upper_band": 111.0,
+        "bb_width": 3.0
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_1"
+      }
+    },
+    {
+      "name": "Bad_SL_Needs_Improvement",
+      "description": "Position with worse SL than calculated",
+      "position": {
+        "ticket": 1004,
+        "symbol": "AUDUSD",
+        "type": 0,
+        "entry_price": 0.65,
+        "current_price": 0.655,
+        "sl": 0.648,
+        "tp": 0.66,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 0.645,
+        "upper_band": 0.665,
+        "bb_width": 0.02
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_1"
+      }
+    },
+    {
+      "name": "No_SL_Very_Small_Profit",
+      "description": "Position with NO SL and very small profit (< 30 pips)",
+      "position": {
+        "ticket": 1005,
+        "symbol": "USDCHF",
+        "type": 0,
+        "entry_price": 0.78974,
+        "current_price": 0.78981,
+        "sl": 0.0,
+        "tp": 0.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 0.786812,
+        "upper_band": 0.797983,
+        "bb_width": 0.011171
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_0"
+      }
+    },
+    {
+      "name": "No_SL_Small_Profit_CADCHF",
+      "description": "CADCHF with NO SL and small profit",
+      "position": {
+        "ticket": 1006,
+        "symbol": "CADCHF",
+        "type": 0,
+        "entry_price": 0.57275,
+        "current_price": 0.57296,
+        "sl": 0.0,
+        "tp": 0.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 0.570012,
+        "upper_band": 0.57626,
+        "bb_width": 0.006248
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_0"
+      }
+    },
+    {
+      "name": "No_SL_Profitable_But_Stage_0",
+      "description": "Position profitable but still in STAGE_0 (profit < 25% ratio)",
+      "position": {
+        "ticket": 1007,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.1015,
+        "sl": 0.0,
+        "tp": 0.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.11,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "should_set_sl": true,
+        "should_set_tp": true,
+        "expected_stage": "STAGE_0"
+      }
+    }
+  ],
+  "defense_selection": [
+    {
+      "name": "Defense_Overrides_Normal",
+      "description": "Defense provides better protection",
+      "normal_stage": "STAGE_1A",
+      "defense_stage": "STAGE_2C",
+      "expected": {
+        "final_stage": "STAGE_2C",
+        "defense_active": true,
+        "protection_increase": "40% \u2192 70%"
+      }
+    },
+    {
+      "name": "Normal_Catches_Up",
+      "description": "Normal progression reaches defense level",
+      "normal_stage": "STAGE_2C",
+      "defense_stage": "STAGE_2C",
+      "expected": {
+        "final_stage": "STAGE_2C",
+        "defense_active": false,
+        "protection_increase": "Same level"
+      }
+    },
+    {
+      "name": "Normal_Better_Than_Defense",
+      "description": "Normal stage already has better protection",
+      "normal_stage": "STAGE_3A",
+      "defense_stage": "STAGE_2C",
+      "expected": {
+        "final_stage": "STAGE_3A",
+        "defense_active": false,
+        "protection_increase": "75% > 70%"
+      }
+    },
+    {
+      "name": "Emergency_Defense",
+      "description": "Major regression triggers high defense",
+      "normal_stage": "STAGE_0",
+      "defense_stage": "STAGE_3B",
+      "expected": {
+        "final_stage": "STAGE_3B",
+        "defense_active": true,
+        "protection_increase": "0% \u2192 80%"
+      }
+    }
+  ],
+  "position_variations": [
+    {
+      "name": "EURUSD_Buy_Profit",
+      "description": "EURUSD BUY position with profit",
+      "position": {
+        "ticket": 2001,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.105,
+        "sl": 1.098,
+        "tp": 1.11,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.11,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "profit_pips": 50.0,
+        "expected_stage": "STAGE_1",
+        "should_update": true
+      }
+    },
+    {
+      "name": "GBPUSD_Sell_Profit",
+      "description": "GBPUSD SELL position with profit",
+      "position": {
+        "ticket": 2002,
+        "symbol": "GBPUSD",
+        "type": 1,
+        "entry_price": 1.3,
+        "current_price": 1.295,
+        "sl": 1.303,
+        "tp": 1.29,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.29,
+        "upper_band": 1.31,
+        "bb_width": 0.02
+      },
+      "expected": {
+        "profit_pips": 50.0,
+        "expected_stage": "STAGE_1",
+        "should_update": true
+      }
+    },
+    {
+      "name": "XAUUSD_Gold_Trading",
+      "description": "Gold (XAUUSD) with different pip size",
+      "position": {
+        "ticket": 2003,
+        "symbol": "XAUUSD",
+        "type": 0,
+        "entry_price": 1800.0,
+        "current_price": 1820.0,
+        "sl": 1790.0,
+        "tp": 1850.0,
+        "volume": 0.01
+      },
+      "market_data": {
+        "lower_band": 1780.0,
+        "upper_band": 1840.0,
+        "bb_width": 60.0
+      },
+      "expected": {
+        "profit_pips": 2000.0,
+        "expected_stage": "STAGE_2A",
+        "should_update": true
+      }
+    },
+    {
+      "name": "USDJPY_JPY_Pair",
+      "description": "JPY pair with 0.01 pip size",
+      "position": {
+        "ticket": 2004,
+        "symbol": "USDJPY",
+        "type": 0,
+        "entry_price": 110.0,
+        "current_price": 110.5,
+        "sl": 109.8,
+        "tp": 111.0,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 109.5,
+        "upper_band": 111.5,
+        "bb_width": 2.0
+      },
+      "expected": {
+        "profit_pips": 50.0,
+        "expected_stage": "STAGE_2A",
+        "should_update": true
+      }
+    }
+  ],
+  "edge_cases": [
+    {
+      "name": "Zero_Profit_Breakeven",
+      "description": "Position at breakeven",
+      "position": {
+        "ticket": 3001,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.1,
+        "sl": 1.098,
+        "tp": 1.11,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.11,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "profit_pips": 0.0,
+        "expected_stage": "STAGE_0",
+        "should_update": true
+      }
+    },
+    {
+      "name": "Negative_Profit_Loss",
+      "description": "Position in loss",
+      "position": {
+        "ticket": 3002,
+        "symbol": "GBPUSD",
+        "type": 0,
+        "entry_price": 1.3,
+        "current_price": 1.295,
+        "sl": 1.298,
+        "tp": 1.31,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.29,
+        "upper_band": 1.31,
+        "bb_width": 0.02
+      },
+      "expected": {
+        "profit_pips": -50.0,
+        "expected_stage": "STAGE_0",
+        "should_update": false
+      }
+    },
+    {
+      "name": "Tiny_Profit",
+      "description": "Very small profit (< 1 pip)",
+      "position": {
+        "ticket": 3003,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.10001,
+        "sl": 1.098,
+        "tp": 1.11,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.11,
+        "bb_width": 0.015
+      },
+      "expected": {
+        "profit_pips": 0.1,
+        "expected_stage": "STAGE_0",
+        "should_update": true
+      }
+    },
+    {
+      "name": "Huge_Profit",
+      "description": "Very large profit (should be STAGE_5)",
+      "position": {
+        "ticket": 3004,
+        "symbol": "EURUSD",
+        "type": 0,
+        "entry_price": 1.1,
+        "current_price": 1.13,
+        "sl": 1.095,
+        "tp": 1.12,
+        "volume": 0.1
+      },
+      "market_data": {
+        "lower_band": 1.095,
+        "upper_band": 1.125,
+        "bb_width": 0.03
+      },
+      "expected": {
+        "profit_pips": 300.0,
+        "expected_stage": "STAGE_5",
+        "should_update": true
+      }
+    }
+  ],
+  "real_world": [
+    {
+      "name": "Multiple_Positions_Mixed",
+      "description": "Multiple positions with mixed scenarios",
+      "positions": [
+        {
+          "ticket": 4001,
+          "symbol": "EURUSD",
+          "type": 0,
+          "entry_price": 1.1,
+          "current_price": 1.105,
+          "sl": 1.098,
+          "tp": 0.0,
+          "volume": 0.1
+        },
+        {
+          "ticket": 4002,
+          "symbol": "GBPUSD",
+          "type": 1,
+          "entry_price": 1.3,
+          "current_price": 1.295,
+          "sl": 0.0,
+          "tp": 1.29,
+          "volume": 0.1
+        },
+        {
+          "ticket": 4003,
+          "symbol": "USDJPY",
+          "type": 0,
+          "entry_price": 110.0,
+          "current_price": 109.5,
+          "sl": 110.2,
+          "tp": 109.0,
+          "volume": 0.1
+        }
+      ],
+      "market_data": {
+        "EURUSD": {
+          "lower_band": 1.095,
+          "upper_band": 1.11,
+          "bb_width": 0.015
+        },
+        "GBPUSD": {
+          "lower_band": 1.29,
+          "upper_band": 1.31,
+          "bb_width": 0.02
+        },
+        "USDJPY": {
+          "lower_band": 109.0,
+          "upper_band": 111.0,
+          "bb_width": 2.0
+        }
+      },
+      "expected": {
+        "updates_needed": 2,
+        "defense_activations": 0
+      }
+    },
+    {
+      "name": "Regression_Chain",
+      "description": "Chain of regression events",
+      "setup": {
+        "position_id": "999999_EURUSD",
+        "history": [
+          {
+            "cycle": 1,
+            "stage": "STAGE_1",
+            "profit": 40.0
+          },
+          {
+            "cycle": 2,
+            "stage": "STAGE_1A",
+            "profit": 50.0
+          },
+          {
+            "cycle": 3,
+            "stage": "STAGE_2A",
+            "profit": 60.0
+          },
+          {
+            "cycle": 4,
+            "stage": "STAGE_1A",
+            "profit": 55.0
+          },
+          {
+            "cycle": 5,
+            "stage": "STAGE_1A",
+            "profit": 52.0
+          },
+          {
+            "cycle": 6,
+            "stage": "STAGE_2A",
+            "profit": 58.0
+          }
+        ]
+      },
+      "expected": {
+        "regression_at_cycle": 4,
+        "defense_activated": true,
+        "defense_duration": 2,
+        "recovery_at_cycle": 6
+      }
+    },
+    {
+      "name": "Defense_Expiration",
+      "description": "Defense mode expires after max cycles",
+      "setup": {
+        "position_id": "888888_GBPUSD",
+        "defense_active": true,
+        "defense_cycles": 8,
+        "peak_profit": 100.0,
+        "current_profit": 90.0,
+        "stage_history": [
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C",
+          "STAGE_2C"
+        ],
+        "profit_history": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "expected": {
+        "should_defense_expire": true,
+        "new_defense": false,
+        "final_stage": "STAGE_2C"
+      }
+    }
+  ]
+}

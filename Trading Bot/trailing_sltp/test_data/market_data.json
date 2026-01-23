@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "pair": "EURUSD",
+      "lower_band": 1.26948,
+      "upper_band": 1.28081,
+      "lowerBand": 1.26948,
+      "upperBand": 1.28081
+    },
+    {
+      "pair": "GBPUSD",
+      "lower_band": 1.13747,
+      "upper_band": 1.14988,
+      "lowerBand": 1.13747,
+      "upperBand": 1.14988
+    },
+    {
+      "pair": "USDJPY",
+      "lower_band": 112.77056,
+      "upper_band": 113.91749,
+      "lowerBand": 112.77056,
+      "upperBand": 113.91749
+    },
+    {
+      "pair": "AUDUSD",
+      "lower_band": 1.354,
+      "upper_band": 1.37243,
+      "lowerBand": 1.354,
+      "upperBand": 1.37243
+    },
+    {
+      "pair": "CADCHF",
+      "lower_band": 1.02427,
+      "upper_band": 1.04174,
+      "lowerBand": 1.02427,
+      "upperBand": 1.04174
+    },
+    {
+      "pair": "XAUUSD",
+      "lower_band": 1923.52222,
+      "upper_band": 1938.69849,
+      "lowerBand": 1923.52222,
+      "upperBand": 1938.69849
+    }
+  ]
+}
