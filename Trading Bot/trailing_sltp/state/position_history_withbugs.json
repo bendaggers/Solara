@@ -16,28 +16,24 @@
       0.3999999999992898,
       2.300000000000635,
       1.40000000000029,
-      7.100000000000994,
-      5.199999999999649,
-      9.899999999999354
+      7.100000000000994
     ],
-    "peak_profit": 9.899999999999354,
-    "peak_profit_time": "2026-01-23T23:55:59.318732",
+    "peak_profit": 7.100000000000994,
+    "peak_profit_time": "2026-01-23T18:00:12.557894",
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "227706340_CADCHF": {
     "symbol": "CADCHF",
     "type": "BUY",
     "stage_history": [
       "STAGE_1",
-      "STAGE_1A",
-      "STAGE_2A",
-      "STAGE_2B"
+      "STAGE_1A"
     ],
     "profit_history": [
       19.799999999999816,
@@ -50,19 +46,17 @@
       19.799999999999816,
       22.299999999999542,
       23.49999999999963,
-      25.299999999999212,
-      29.199999999999225,
-      35.10000000000013
+      25.299999999999212
     ],
-    "peak_profit": 35.10000000000013,
-    "peak_profit_time": "2026-01-23T23:55:59.318732",
-    "previous_stage": "STAGE_2B",
-    "current_stage": "STAGE_2B",
+    "peak_profit": 25.299999999999212,
+    "peak_profit_time": "2026-01-23T18:00:12.557894",
+    "previous_stage": "STAGE_1A",
+    "current_stage": "STAGE_1A",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "228241710_GBPCHF": {
     "symbol": "GBPCHF",
@@ -128,8 +122,7 @@
     "symbol": "USDCAD",
     "type": "BUY",
     "stage_history": [
-      "STAGE_0",
-      "STAGE_1A"
+      "STAGE_0"
     ],
     "profit_history": [
       4.299999999999304,
@@ -142,18 +135,17 @@
       3.6999999999998145,
       2.2999999999995246,
       2.20000000000109,
-      3.8000000000004697,
-      27.500000000000302
+      3.8000000000004697
     ],
-    "peak_profit": 27.500000000000302,
-    "peak_profit_time": "2026-01-23T21:18:36.732803",
-    "previous_stage": "STAGE_1A",
-    "current_stage": "STAGE_1A",
+    "peak_profit": 6.500000000000394,
+    "peak_profit_time": "2026-01-23T12:06:23.712192",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T21:18:36.732803"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229209585_EURNZD": {
     "symbol": "EURNZD",
@@ -172,10 +164,7 @@
       24.799999999998157,
       17.899999999999583,
       16.799999999999038,
-      41.799999999998505,
-      4.100000000000215,
-      0.5000000000010552,
-      25.100000000000122
+      41.799999999998505
     ],
     "peak_profit": 41.799999999998505,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
@@ -185,15 +174,14 @@
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-24T22:48:24.726369"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229209594_GBPNZD": {
     "symbol": "GBPNZD",
     "type": "BUY",
     "stage_history": [
       "STAGE_0",
-      "STAGE_1A",
-      "STAGE_2C"
+      "STAGE_1A"
     ],
     "profit_history": [
       22.000000000002018,
@@ -206,27 +194,23 @@
       25.400000000002088,
       13.700000000000934,
       46.30000000000134,
-      128.20000000000053,
-      70.00000000000117,
-      93.00000000000085,
-      116.30000000000251
+      128.20000000000053
     ],
     "peak_profit": 128.20000000000053,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
-    "previous_stage": "STAGE_2C",
-    "current_stage": "STAGE_2C",
+    "previous_stage": "STAGE_1A",
+    "current_stage": "STAGE_1A",
     "defense_active": false,
     "defense_since": null,
-    "defense_cycles": 1,
-    "regression_count": 1,
-    "last_update": "2026-01-24T22:48:24.726369"
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229209602_CADCHF": {
     "symbol": "CADCHF",
     "type": "BUY",
     "stage_history": [
-      "STAGE_0",
-      "STAGE_1"
+      "STAGE_0"
     ],
     "profit_history": [
       2.100000000000435,
@@ -239,19 +223,17 @@
       2.100000000000435,
       4.6000000000001595,
       5.800000000000249,
-      7.599999999999829,
-      11.499999999999844,
-      17.400000000000748
+      7.599999999999829
     ],
-    "peak_profit": 17.400000000000748,
-    "peak_profit_time": "2026-01-23T23:55:59.318732",
-    "previous_stage": "STAGE_1",
-    "current_stage": "STAGE_1",
+    "peak_profit": 7.599999999999829,
+    "peak_profit_time": "2026-01-23T18:00:12.557894",
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229296311_EURNZD": {
     "symbol": "EURNZD",
@@ -264,47 +246,41 @@
       1.1000000000027654,
       8.00000000000134,
       9.100000000001884,
-      15.899999999997583,
-      21.800000000000708,
-      26.400000000001977
+      15.899999999997583
     ],
-    "peak_profit": 26.400000000001977,
-    "peak_profit_time": "2026-01-23T23:55:59.318732",
+    "peak_profit": 15.899999999997583,
+    "peak_profit_time": "2026-01-23T18:00:12.557894",
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229296312_GBPNZD": {
     "symbol": "GBPNZD",
     "type": "BUY",
     "stage_history": [
       "STAGE_0",
-      "STAGE_1",
-      "STAGE_3B"
+      "STAGE_1"
     ],
     "profit_history": [
       1.40000000000029,
       0.5999999999994898,
       12.300000000000644,
       20.299999999999763,
-      102.19999999999895,
-      43.999999999999595,
-      66.99999999999928,
-      90.30000000000094
+      102.19999999999895
     ],
     "peak_profit": 102.19999999999895,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
-    "previous_stage": "STAGE_3B",
-    "current_stage": "STAGE_3B",
+    "previous_stage": "STAGE_1",
+    "current_stage": "STAGE_1",
     "defense_active": false,
     "defense_since": null,
-    "defense_cycles": 1,
-    "regression_count": 1,
-    "last_update": "2026-01-24T22:48:24.726369"
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229316319_EURNZD": {
     "symbol": "EURNZD",
@@ -315,45 +291,39 @@
     "profit_history": [
       6.500000000000394,
       7.600000000000939,
-      17.399999999998528,
-      20.299999999999763,
-      24.900000000001032
+      17.399999999998528
     ],
-    "peak_profit": 24.900000000001032,
-    "peak_profit_time": "2026-01-23T23:55:59.318732",
+    "peak_profit": 17.399999999998528,
+    "peak_profit_time": "2026-01-23T18:00:12.557894",
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "defense_active": false,
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229316326_GBPNZD": {
     "symbol": "GBPNZD",
     "type": "BUY",
     "stage_history": [
       "STAGE_0",
-      "STAGE_1",
-      "STAGE_3B"
+      "STAGE_1"
     ],
     "profit_history": [
       9.100000000001884,
       23.499999999998522,
-      105.39999999999772,
-      47.199999999998354,
-      70.19999999999804,
-      93.49999999999969
+      105.39999999999772
     ],
     "peak_profit": 105.39999999999772,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
-    "previous_stage": "STAGE_3B",
-    "current_stage": "STAGE_3B",
+    "previous_stage": "STAGE_1",
+    "current_stage": "STAGE_1",
     "defense_active": false,
     "defense_since": null,
-    "defense_cycles": 1,
-    "regression_count": 1,
-    "last_update": "2026-01-24T22:48:24.726369"
+    "defense_cycles": 0,
+    "regression_count": 0,
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229324359_EURNZD": {
     "symbol": "EURNZD",
@@ -364,9 +334,7 @@
     "profit_history": [
       1.2000000000012,
       2.300000000001745,
-      22.699999999997722,
-      15.000000000000568,
-      19.600000000001838
+      22.699999999997722
     ],
     "peak_profit": 22.699999999997722,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
@@ -376,7 +344,7 @@
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-23T23:55:59.318732"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229324361_GBPNZD": {
     "symbol": "GBPNZD",
@@ -408,10 +376,7 @@
     ],
     "profit_history": [
       1.100000000000545,
-      23.899999999998922,
-      13.799999999999368,
-      18.400000000000638,
-      7.200000000000539
+      23.899999999998922
     ],
     "peak_profit": 23.899999999998922,
     "peak_profit_time": "2026-01-23T18:00:12.557894",
@@ -421,7 +386,7 @@
     "defense_since": null,
     "defense_cycles": 0,
     "regression_count": 0,
-    "last_update": "2026-01-24T22:48:24.726369"
+    "last_update": "2026-01-23T18:00:12.557894"
   },
   "229413383_GBPNZD": {
     "symbol": "GBPNZD",

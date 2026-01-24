@@ -287,7 +287,7 @@ class BollingerBandsModelTrainer:
         
         return optimal_threshold
     
-    def save_model(self, filename='bb_rev_short_model.pkl'):
+    def save_model(self, filename='BB_SHORT_REVERSAL_Model.pkl'):
         """Save the trained model and metadata"""
         if self.model is None:
             raise ValueError("Model not trained yet.")
@@ -402,7 +402,7 @@ def main():
     optimal_threshold = trainer.optimize_threshold()
     
     # Step 7: Save model
-    trainer.save_model('bb_rev_short_model.pkl')
+    trainer.save_model('BB_SHORT_REVERSAL_Model.pkl')
     
     # Step 8: Generate trading signals
     signals_df = trainer.generate_trading_signals(threshold=optimal_threshold)

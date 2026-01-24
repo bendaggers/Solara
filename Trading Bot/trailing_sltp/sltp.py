@@ -67,7 +67,7 @@ class SurvivorRunner:
             server=MT5_SERVER
         )
         self.engine = SurvivorEngineV3(
-            market_data_file=DATA_PATH,  # Use the path from config
+            market_data_file=DATA_PATH,
             hysteresis_config=STAGE_HYSTERESIS,
             safe_distance_config=SAFE_DISTANCE,
             regression_config=REGRESSION_CONFIG
@@ -172,18 +172,34 @@ class SurvivorRunner:
         except KeyboardInterrupt:
             print(f"\n👋 Stopped after {self.cycle_count} cycles")
 
+    def ensure_all_sl_set(self, default_sl_pips: float = 30) -> dict:
+        """Emergency function to ensure all positions have SL"""
+        print(f"\n🚨 EMERGENCY SL CHECK:")
+        print(f"{'='*60}")
+        if not self.mt5.connect():
+            print("❌ MT5 connection failed")
+            return {'success': False}
+        
+        results = self.mt5.ensure_all_positions_have_sl(default_sl_pips)
+        return {'success': True, 'results': results}
+
 
 def main():
     parser = argparse.ArgumentParser(description='Survivor\'s Edition Position Protection')
     parser.add_argument('--mode', choices=['once', 'continuous'], default='once')
     parser.add_argument('--interval', type=int, default=240)
     parser.add_argument('--clean-history', action='store_true', help='Clean position history file')
+    parser.add_argument('--ensure-sl', action='store_true', help='Ensure all positions have SL')
+    parser.add_argument('--sl-pips', type=int, default=30, help='Default SL pips for emergency set')
     args = parser.parse_args()
     
     runner = SurvivorRunner()
     
     if args.clean_history:
         runner.engine.clean_position_history_file()
+    
+    if args.ensure_sl:
+        runner.ensure_all_sl_set(args.sl_pips)
     
     if args.mode == 'continuous':
         runner.run_continuous(args.interval)

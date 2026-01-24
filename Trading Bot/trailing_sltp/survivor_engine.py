@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# survivor_engine.py - Survivor's Edition v3.0 Engine - REVISED VERSION
+# survivor_engine.py - Survivor's Edition v3.0 Engine - FIXED VERSION
 
 import json
 import os
@@ -11,10 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class SurvivorEngineV3:
-    """Survivor's Edition v3.0 Engine with Regression Defense - REVISED"""
+    """Survivor's Edition v3.0 Engine with Regression Defense - FIXED"""
     
-# survivor_engine.py - Survivor's Edition v3.0 Engine - CORRECTED VERSION
-
     # ================== ORIGINAL WORKING STAGE DEFINITIONS ==================
     STAGE_DEFINITIONS = {
         'DEFENSE_0': {'threshold': 0.00, 'protection': 0.70, 'tp': False, 'priority': -1},
@@ -44,6 +42,7 @@ class SurvivorEngineV3:
         ('STAGE_5', 1.80)    # Correct: 180% threshold
     ]
 
+
     # Stage order for comparison
     STAGE_ORDER = ['STAGE_0', 'STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B', 
                 'STAGE_2C', 'STAGE_3A', 'STAGE_3B', 'STAGE_4', 'STAGE_5']
@@ -64,7 +63,6 @@ class SurvivorEngineV3:
         self.cycle_timestamp = datetime.now()
     
     # ================== POSITION HISTORY MANAGEMENT ==================
-    # (This section remains the same)
     def _load_position_history(self) -> Dict:
         """Load position history from file"""
         try:
@@ -150,7 +148,6 @@ class SurvivorEngineV3:
             print(f"Cleaned up {len(to_remove)} old positions")
     
     # ================== MARKET DATA LOADING ==================
-    # (This section remains the same)
     def load_market_data(self) -> bool:
         """Load market data from JSON file"""
         try:
@@ -240,9 +237,8 @@ class SurvivorEngineV3:
             print(f"Error calculating profit ratio for {position['symbol']}: {e}")
             return 0.0
 
-
     def determine_normal_stage(self, profit_ratio: float, previous_stage: str) -> str:
-        """Determine normal stage with hysteresis - ORIGINAL WORKING VERSION"""
+        """Determine normal stage with hysteresis"""
         # Find target stage based on profit ratio using thresholds
         target_stage = 'STAGE_0'
         
@@ -290,9 +286,7 @@ class SurvivorEngineV3:
         
         return new_stage
 
-
     # ================== REGRESSION DEFENSE SYSTEM ==================
-    # (This section remains the same)
     def detect_regression(self, position_id: str, current_profit: float, 
                          current_stage: str, profit_ratio: float) -> Tuple[bool, Optional[str]]:
         """Detect regression and return defense stage if needed"""
@@ -472,10 +466,10 @@ class SurvivorEngineV3:
         history['previous_stage'] = current_stage
         history['last_update'] = self.cycle_timestamp
     
-    # ================== SL/TP CALCULATION - REVISED ==================
+    # ================== SL/TP CALCULATION - FIXED V2 ==================
     
     def calculate_sl(self, position: Dict, stage: str, symbol_data: Dict) -> Optional[float]:
-        """Calculate Stop Loss based on stage - REVISED"""
+        """Calculate Stop Loss based on stage - ALWAYS returns a value for STAGE_0 and above"""
         try:
             symbol = position['symbol']
             entry = position['entry_price']
@@ -485,33 +479,33 @@ class SurvivorEngineV3:
             
             # Calculate profit in pips
             profit_pips = abs(current - entry) / pip_size
-            protection = self.STAGE_DEFINITIONS[stage]['protection']
             
-            # DEFENSE_0: Emergency defense
+            # DEFENSE_0: Emergency defense - ALWAYS set SL
             if stage == 'DEFENSE_0':
                 if is_buy:
                     sl = current - (0.30 * profit_pips * pip_size)
                 else:
                     sl = current + (0.30 * profit_pips * pip_size)
-                print(f"   DEFENSE_0: Emergency protection activated")
+                print(f"   DEFENSE_0: Emergency protection activated (SL: {sl:.5f})")
             
-            # STAGE_0: ALWAYS 30 pip fixed stop (no breakeven logic)
+            # STAGE_0: ALWAYS 30 pip fixed stop - CRITICAL: Never return None
             elif stage == 'STAGE_0':
                 if is_buy:
                     sl = entry - (30 * pip_size)
                 else:
                     sl = entry + (30 * pip_size)
-                print(f"   STAGE_0: Fixed 30-pip stop ({'BUY' if is_buy else 'SELL'})")
+                print(f"   STAGE_0: Fixed 30-pip stop ({'BUY' if is_buy else 'SELL'}): {sl:.5f}")
             
-            # Profit-locking stages (STAGE_1 and above)
+            # Profit-locking stages (STAGE_1 and above) - ALWAYS set SL
             elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B', 'STAGE_2C', 'STAGE_3A']:
+                protection = self.STAGE_DEFINITIONS[stage]['protection']
                 if is_buy:
                     sl = entry + (protection * profit_pips * pip_size)
                 else:
                     sl = entry - (protection * profit_pips * pip_size)
-                print(f"   {stage}: Locking {int(protection*100)}% of {profit_pips:.1f}p profit")
+                print(f"   {stage}: Locking {int(protection*100)}% of {profit_pips:.1f}p profit (SL: {sl:.5f})")
             
-            # STAGE_3B: Hybrid protection
+            # STAGE_3B: Hybrid protection - ALWAYS set SL
             elif stage == 'STAGE_3B':
                 bb_width = symbol_data['bb_width']
                 if is_buy:
@@ -522,34 +516,54 @@ class SurvivorEngineV3:
                     profit_lock = entry - (0.80 * profit_pips * pip_size)
                     trailing = current + (0.20 * bb_width)
                     sl = min(profit_lock, trailing)
-                print(f"   STAGE_3B: Hybrid protection ({profit_pips:.1f}p profit)")
+                print(f"   STAGE_3B: Hybrid protection ({profit_pips:.1f}p profit): {sl:.5f}")
             
-            # Trailing stages
+            # Trailing stages - ALWAYS set SL
             elif stage in ['STAGE_4', 'STAGE_5']:
+                protection = self.STAGE_DEFINITIONS[stage]['protection']
                 if is_buy:
                     sl = current - ((1 - protection) * profit_pips * pip_size)
                 else:
                     sl = current + ((1 - protection) * profit_pips * pip_size)
-                print(f"   {stage}: Trailing protection ({int(protection*100)}%)")
+                print(f"   {stage}: Trailing protection ({int(protection*100)}%): {sl:.5f}")
             
             else:
-                # Fallback to 30-pip stop
+                # Fallback to 30-pip stop - CRITICAL: Never return None
                 if is_buy:
                     sl = entry - (30 * pip_size)
                 else:
                     sl = entry + (30 * pip_size)
-                print(f"   Fallback: 30-pip stop")
+                print(f"   Fallback: 30-pip stop: {sl:.5f}")
             
             # Apply safe distance
             sl = self._apply_safe_distance(sl, current, is_buy, pip_size)
             
+            # FINAL CHECK: Ensure SL is valid
+            if sl is None:
+                print(f"   ⚠️ WARNING: SL calculation returned None for {symbol}, using 30-pip stop")
+                if is_buy:
+                    sl = entry - (30 * pip_size)
+                else:
+                    sl = entry + (30 * pip_size)
+            
             return round(sl, 5)
             
         except Exception as e:
-            print(f"Error calculating SL for {position['symbol']}: {e}")
+            print(f"❌ Error calculating SL for {position['symbol']}: {e}")
             import traceback
             traceback.print_exc()
-            return None
+            # Emergency fallback
+            entry = position['entry_price']
+            is_buy = (position['type'] == 0)
+            pip_size = self.get_pip_size(position['symbol'])
+            
+            if is_buy:
+                sl = entry - (30 * pip_size)
+            else:
+                sl = entry + (30 * pip_size)
+            
+            print(f"   🚨 EMERGENCY FALLBACK SL: {sl:.5f}")
+            return round(sl, 5)
     
     def calculate_tp(self, position: Dict, stage: str, symbol_data: Dict) -> Optional[float]:
         """Calculate Take Profit based on stage"""
@@ -582,30 +596,49 @@ class SurvivorEngineV3:
         if is_buy:
             if current_price - sl < min_distance:
                 sl = current_price - min_distance
-                print(f"   Adjusted SL for safe distance (+{min_pips} pips)")
+                print(f"   Adjusted SL for safe distance (+{min_pips} pips): {sl:.5f}")
         else:
             if sl - current_price < min_distance:
                 sl = current_price + min_distance
-                print(f"   Adjusted SL for safe distance (+{min_pips} pips)")
+                print(f"   Adjusted SL for safe distance (+{min_pips} pips): {sl:.5f}")
         
         return sl
     
     def is_better_sl(self, new_sl: float, current_sl: float, is_buy: bool) -> bool:
-        """Check if new SL provides better protection"""
-        if abs(current_sl) < 0.00001:  # No current SL
-            # Safety first: Always set SL if none exists
-            print(f"   No current SL - setting SL for safety")
+        """Check if new SL provides better protection - FIXED LOGIC"""
+        
+        # CRITICAL FIX: If current SL is 0.0 (no SL), ALWAYS accept new SL
+        if current_sl == 0.0:
+            print(f"   🚨 No current SL - setting calculated SL for safety")
             return True
         
+        # If new SL is None, don't update
+        if new_sl is None:
+            print(f"   ⚠️ No new SL calculated - keeping existing SL: {current_sl:.5f}")
+            return False
+        
+        # If SLs are essentially the same, don't change
+        if abs(new_sl - current_sl) < 0.00001:
+            print(f"   ⚠️ SL unchanged ({new_sl:.5f} vs {current_sl:.5f})")
+            return False
+        
+        # Normal comparison for better protection
         if is_buy:
-            return new_sl > current_sl  # Higher is better for BUY
+            is_better = new_sl > current_sl  # Higher is better for BUY
         else:
-            return new_sl < current_sl  # Lower is better for SELL
-    
-    # ================== MAIN PROCESSING ==================
+            is_better = new_sl < current_sl  # Lower is better for SELL
+        
+        if is_better:
+            print(f"   ✅ Better SL: {current_sl:.5f} → {new_sl:.5f}")
+        else:
+            print(f"   ⚠️ Worse SL: {current_sl:.5f} ← {new_sl:.5f}")
+        
+        return is_better
+
+    # ================== MAIN PROCESSING - FIXED V2 ==================
     
     def process_all_positions(self, positions: List[Dict]) -> List[Dict]:
-        """Process all positions with regression defense"""
+        """Process all positions with regression defense - FIXED SL HANDLING"""
         updates = []
         
         if not self.market_data:
@@ -653,31 +686,59 @@ class SurvivorEngineV3:
                 position_id, position, profit_ratio, final_stage, defense_active
             )
             
-            # Calculate new SL/TP
+            # Calculate new SL/TP - CRITICAL: SL should NEVER be None for any stage
             new_sl = self.calculate_sl(position, final_stage, symbol_data)
             new_tp = self.calculate_tp(position, final_stage, symbol_data)
             
-            # Check if updates needed
+            # Get current values from position
             current_sl = position.get('sl', 0.0)
             current_tp = position.get('tp', 0.0)
             
-            should_update_sl = False
-            if new_sl is not None and self.is_better_sl(new_sl, current_sl, position['type'] == 0):
-                should_update_sl = True
-            else:
-                new_sl = None
+            # CRITICAL FIX: Ensure new_sl is NEVER None
+            if new_sl is None:
+                print(f"   🚨 CRITICAL: SL calculation returned None for {symbol} #{position['ticket']}")
+                print(f"   🚨 Falling back to emergency 30-pip stop")
+                entry = position['entry_price']
+                is_buy = (position['type'] == 0)
+                if is_buy:
+                    new_sl = entry - (30 * pip_size)
+                else:
+                    new_sl = entry + (30 * pip_size)
             
-            should_update_tp = (new_tp is not None and 
-                               abs(new_tp - current_tp) > 0.00001)
+            should_update_sl = False
+            should_update_tp = False
+            
+            # Check if we should update SL
+            if new_sl is not None:
+                should_update_sl = self.is_better_sl(new_sl, current_sl, position['type'] == 0)
+            else:
+                # This should never happen with our fix above, but just in case
+                new_sl = current_sl
+                print(f"   ⚠️ No SL calculated, keeping current: {current_sl:.5f}")
+            
+            # Check if we should update TP
+            if new_tp is not None:
+                if abs(new_tp - current_tp) > 0.00001:
+                    should_update_tp = True
+                else:
+                    new_tp = current_tp
+            else:
+                new_tp = current_tp
             
             needs_update = should_update_sl or should_update_tp
             
-            # Debug output
+            # Debug output with SL status
+            sl_status = "✅" if current_sl != 0.0 else "❌"
             print(f"   {symbol} #{position['ticket']}: Stage={final_stage}, Profit={current_profit:.1f}p, Ratio={profit_ratio:.3f}")
+            print(f"     SL Status: {sl_status} Current SL: {current_sl:.5f}, New SL: {new_sl:.5f}")
+            
             if should_update_sl:
-                print(f"     SL: {current_sl:.5f} → {new_sl:.5f}")
+                print(f"     SL Update: {current_sl:.5f} → {new_sl:.5f}")
+            else:
+                print(f"     SL Keep: {current_sl:.5f}")
+                
             if should_update_tp:
-                print(f"     TP: {current_tp:.5f} → {new_tp:.5f}")
+                print(f"     TP Update: {current_tp:.5f} → {new_tp:.5f}")
             
             # Create update info
             update_info = {
