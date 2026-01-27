@@ -1,0 +1,119 @@
+{
+  "timestamp": "2026-01-26T17:18:06.491667",
+  "total_tests": 3,
+  "passed_tests": 0,
+  "failed_tests": 3,
+  "results": {
+    "UT-001": {
+      "name": "Stage Progression Logic",
+      "passed": false,
+      "time": 0.10067486763000488,
+      "results": [
+        {
+          "scenario": "5-Day Steady Growth",
+          "final_stage": "STAGE_5",
+          "expected": "STAGE_4",
+          "passed": false
+        },
+        {
+          "scenario": "5-Day Volatile Growth",
+          "final_stage": "STAGE_5",
+          "expected": "STAGE_3B",
+          "passed": false
+        },
+        {
+          "scenario": "5-Day Slow Growth",
+          "final_stage": "STAGE_5",
+          "expected": "STAGE_1A",
+          "passed": false
+        },
+        {
+          "scenario": "5-Day Sideways",
+          "final_stage": "STAGE_5",
+          "expected": "STAGE_0",
+          "passed": false
+        },
+        {
+          "scenario": "5-Day Fast Growth",
+          "final_stage": "STAGE_5",
+          "expected": "STAGE_5",
+          "passed": true
+        }
+      ]
+    },
+    "UT-002": {
+      "name": "Regression Detection",
+      "passed": false,
+      "time": 0.022405147552490234,
+      "results": [
+        {
+          "scenario": "Profit Giveback",
+          "regression_detected": true,
+          "expected": true,
+          "passed": true
+        },
+        {
+          "scenario": "No Giveback",
+          "regression_detected": true,
+          "expected": false,
+          "passed": false
+        },
+        {
+          "scenario": "Multiple Regressions",
+          "regression_detected": true,
+          "expected": true,
+          "passed": true
+        }
+      ]
+    },
+    "UT-003": {
+      "name": "SL/TP Assignment",
+      "passed": false,
+      "time": 0.005560636520385742,
+      "results": [
+        {
+          "position": 1001,
+          "stage": "STAGE_5",
+          "sl": 1.1005,
+          "tp": 0.0,
+          "passed": true
+        },
+        {
+          "position": 1002,
+          "stage": "STAGE_3B",
+          "sl": 1.1035,
+          "tp": 0.0,
+          "passed": true
+        },
+        {
+          "position": 1003,
+          "stage": "STAGE_4",
+          "sl": 1.1102,
+          "tp": 0.0,
+          "passed": true
+        },
+        {
+          "position": 1004,
+          "stage": "STAGE_0",
+          "sl": 1.097,
+          "tp": 1.105,
+          "passed": true
+        },
+        {
+          "position": 1005,
+          "stage": "STAGE_1A",
+          "sl": 1.1016,
+          "tp": 1.105,
+          "passed": true
+        },
+        {
+          "position": 1006,
+          "stage": "STAGE_3A",
+          "sl": 1.106,
+          "tp": 0.0,
+          "passed": true
+        }
+      ]
+    }
+  }
+}

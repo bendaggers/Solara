@@ -1,776 +1,485 @@
-#!/usr/bin/env python3
-# survivor_engine.py - Survivor's Edition v3.0 Engine - FIXED VERSION
+"""
+Survivor's Edition v5.0 Engine - Clean Version
+"""
 
 import json
 import os
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
-import logging
-
-logger = logging.getLogger(__name__)
 
 
-class SurvivorEngineV3:
-    """Survivor's Edition v3.0 Engine with Regression Defense - FIXED"""
+class SurvivorEngineV5:
+    """
+    Survivor's Edition v5.0 - Clean Version
+    """
     
-    # ================== ORIGINAL WORKING STAGE DEFINITIONS ==================
+    # ================== STAGE DEFINITIONS ==================
     STAGE_DEFINITIONS = {
-        'DEFENSE_0': {'threshold': 0.00, 'protection': 0.70, 'tp': False, 'priority': -1},
-        'STAGE_0':  {'threshold': 0.00, 'protection': 0.00,  'tp': True,  'priority': 0},  # 0-14%
-        'STAGE_1':  {'threshold': 0.15, 'protection': 0.25, 'tp': True,  'priority': 1},  # 15-29%
-        'STAGE_1A': {'threshold': 0.30, 'protection': 0.40, 'tp': True,  'priority': 2},  # 30-44%
-        'STAGE_2A': {'threshold': 0.45, 'protection': 0.50, 'tp': True,  'priority': 3},  # 45-59%
-        'STAGE_2B': {'threshold': 0.60, 'protection': 0.60, 'tp': True,  'priority': 4},  # 60-79%
-        'STAGE_2C': {'threshold': 0.70, 'protection': 0.70, 'tp': False, 'priority': 5},  # 70-89%
-        'STAGE_3A': {'threshold': 0.80, 'protection': 0.75, 'tp': False, 'priority': 6},  # 80-99%
-        'STAGE_3B': {'threshold': 1.00, 'protection': 0.80, 'tp': False, 'priority': 7},  # 100-119%
-        'STAGE_4':  {'threshold': 1.20, 'protection': 0.85, 'tp': False, 'priority': 8},  # 120-179%
-        'STAGE_5':  {'threshold': 1.80, 'protection': 0.90, 'tp': False, 'priority': 9}   # 180%+
+        'STAGE_0':  {'threshold_pips': 0,   'protection': 0.00,  'tp': True,  'name': 'Entry'},
+        'STAGE_1':  {'threshold_pips': 8,   'protection': 0.10,  'tp': True,  'name': 'Initial Lock'},
+        'STAGE_2':  {'threshold_pips': 10,  'protection': 0.15,  'tp': True,  'name': 'Building'},
+        'STAGE_3':  {'threshold_pips': 15,  'protection': 0.20,  'tp': True,  'name': 'Developing'},
+        'STAGE_4':  {'threshold_pips': 20,  'protection': 0.25,  'tp': True,  'name': 'Base Secure'},
+        'STAGE_5':  {'threshold_pips': 25,  'protection': 0.30,  'tp': True,  'name': 'Quarter Lock'},
+        'STAGE_6':  {'threshold_pips': 30,  'protection': 0.35,  'tp': True,  'name': 'Growing'},
+        'STAGE_7':  {'threshold_pips': 35,  'protection': 0.40,  'tp': True,  'name': 'Approaching Half'},
+        'STAGE_8':  {'threshold_pips': 40,  'protection': 0.45,  'tp': True,  'name': 'Near Half'},
+        'STAGE_9':  {'threshold_pips': 45,  'protection': 0.50,  'tp': True,  'name': 'Half Lock'},
+        'STAGE_10': {'threshold_pips': 50,  'protection': 0.55,  'tp': True,  'name': 'Majority'},
+        'STAGE_11': {'threshold_pips': 55,  'protection': 0.60,  'tp': True,  'name': 'Solid'},
+        'STAGE_12': {'threshold_pips': 60,  'protection': 0.65,  'tp': True,  'name': 'Strong'},
+        'STAGE_13': {'threshold_pips': 65,  'protection': 0.70,  'tp': True,  'name': 'Dominant'},
+        'STAGE_14': {'threshold_pips': 70,  'protection': 0.72,  'tp': False, 'name': 'Trail Start'},
+        'STAGE_15': {'threshold_pips': 80,  'protection': 0.75,  'tp': False, 'name': 'Trail Active'},
+        'STAGE_16': {'threshold_pips': 90,  'protection': 0.78,  'tp': False, 'name': 'Trail Strong'},
+        'STAGE_17': {'threshold_pips': 100, 'protection': 0.80,  'tp': False, 'name': 'Full Lock'},
+        'STAGE_18': {'threshold_pips': 120, 'protection': 0.82,  'tp': False, 'name': 'Secure'},
+        'STAGE_19': {'threshold_pips': 130, 'protection': 0.84,  'tp': False, 'name': 'Very Secure'},
+        'STAGE_20': {'threshold_pips': 150, 'protection': 0.86,  'tp': False, 'name': 'Excellent'},
+        'STAGE_21': {'threshold_pips': 180, 'protection': 0.88,  'tp': False, 'name': 'Superior'},
+        'STAGE_22': {'threshold_pips': 200, 'protection': 0.90,  'tp': False, 'name': 'Maximum'}
     }
-
-    # Stage thresholds for progression - MUST MATCH THE ABOVE!
-    STAGE_THRESHOLDS = [
-        ('STAGE_0', 0.00),
-        ('STAGE_1', 0.15),   # Correct: 15% threshold
-        ('STAGE_1A', 0.30),  # Correct: 30% threshold  
-        ('STAGE_2A', 0.45),  # Correct: 45% threshold
-        ('STAGE_2B', 0.60),  # Correct: 60% threshold
-        ('STAGE_2C', 0.70),  # Correct: 70% threshold (not 0.80)
-        ('STAGE_3A', 0.80),  # Correct: 80% threshold
-        ('STAGE_3B', 1.00),  # Correct: 100% threshold (not 0.90 or 1.20)
-        ('STAGE_4', 1.20),   # Correct: 120% threshold
-        ('STAGE_5', 1.80)    # Correct: 180% threshold
-    ]
-
-
-    # Stage order for comparison
-    STAGE_ORDER = ['STAGE_0', 'STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B', 
-                'STAGE_2C', 'STAGE_3A', 'STAGE_3B', 'STAGE_4', 'STAGE_5']
-
-    # Stages that cannot be moved back from (trailing stages)
-    TRAILING_STAGES = ['STAGE_2C', 'STAGE_3A', 'STAGE_3B', 'STAGE_4', 'STAGE_5']
     
-    def __init__(self, market_data_file: str, hysteresis_config: Dict, 
-                 safe_distance_config: Dict, regression_config: Dict):
-        self.market_data_file = market_data_file
-        self.market_data = {}
-        self.hysteresis = hysteresis_config
-        self.safe_distance = safe_distance_config
-        self.regression_config = regression_config
+    # Ordered stages
+    STAGE_ORDER = [f'STAGE_{i}' for i in range(23)]
+    
+    def __init__(self, initial_sl_pips: int = 30):
+        """
+        Initialize engine
         
-        # Position history tracking
-        self.position_history = self._load_position_history()
+        Args:
+            initial_sl_pips: Initial stop loss distance in pips
+        """
+        self.initial_sl_pips = initial_sl_pips
+        self.position_states = self._load_position_states()
         self.cycle_timestamp = datetime.now()
-    
-    # ================== POSITION HISTORY MANAGEMENT ==================
-    def _load_position_history(self) -> Dict:
-        """Load position history from file"""
-        try:
-            history_file = "state/position_history.json"
-            if os.path.exists(history_file):
-                print(f"Loading position history from {history_file}")
-                with open(history_file, 'r') as f:
-                    data = json.load(f)
-                
-                # Convert string dates to datetime
-                for pos_id, history in data.items():
-                    for date_field in ['peak_profit_time', 'defense_since', 'last_update']:
-                        if history.get(date_field):
-                            try:
-                                history[date_field] = datetime.fromisoformat(history[date_field])
-                            except:
-                                history[date_field] = datetime.now()
-                
-                print(f"Loaded position history for {len(data)} positions")
-                return data
-        except Exception as e:
-            print(f"Could not load position history: {e}")
-            print("Creating fresh position history")
-        return {}
-    
-    def save_position_history(self):
-        """Save position history to file"""
-        try:
-            os.makedirs("state", exist_ok=True)
-            
-            # Convert datetime to string
-            serializable = {}
-            for pos_id, history in self.position_history.items():
-                serializable[pos_id] = history.copy()
-                for date_field in ['peak_profit_time', 'defense_since', 'last_update']:
-                    if date_field in serializable[pos_id] and serializable[pos_id][date_field]:
-                        serializable[pos_id][date_field] = serializable[pos_id][date_field].isoformat()
-            
-            with open("state/position_history.json", 'w') as f:
-                json.dump(serializable, f, indent=2)
-            
-            print(f"Saved position history for {len(self.position_history)} positions")
-            
-            # Backward compatibility
-            with open("state/confirmed_stages.json", 'w') as f:
-                simplified = {pid: h.get('current_stage', 'STAGE_0') 
-                            for pid, h in self.position_history.items()}
-                json.dump(simplified, f, indent=2)
-                
-        except Exception as e:
-            print(f"Failed to save position history: {e}")
-    
-    def clean_position_history_file(self):
-        """Clean corrupted position history file"""
-        try:
-            history_file = "state/position_history.json"
-            if os.path.exists(history_file):
-                # Create backup
-                import shutil
-                backup_file = f"{history_file}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                shutil.copy2(history_file, backup_file)
-                print(f"Created backup: {backup_file}")
-                
-                # Reset history
-                self.position_history = {}
-                self.save_position_history()
-                print("Position history cleaned and reset")
-        except Exception as e:
-            print(f"Error cleaning position history: {e}")
-    
-    def _cleanup_old_positions(self):
-        """Remove positions older than 24 hours"""
-        to_remove = []
-        for pos_id, history in self.position_history.items():
-            last_update = history.get('last_update')
-            if last_update and (datetime.now() - last_update) > timedelta(hours=24):
-                to_remove.append(pos_id)
         
-        for pos_id in to_remove:
-            del self.position_history[pos_id]
+        # Fixed TP distance (pips from entry)
+        self.tp_distance_pips = 100
         
-        if to_remove:
-            print(f"Cleaned up {len(to_remove)} old positions")
+        # Market data for BB calculations
+        self.market_data = self._load_market_data()
+        
+        # Initialize SL update statistics
+        self.sl_update_stats = {'tightened': 0, 'no_change': 0, 'loosened': 0}
     
     # ================== MARKET DATA LOADING ==================
-    def load_market_data(self) -> bool:
-        """Load market data from JSON file"""
+
+    def _load_market_data(self) -> Dict:
+        """Load Bollinger Band data from file"""
         try:
-            if not os.path.exists(self.market_data_file):
-                print(f"Market data file not found: {self.market_data_file}")
-                print(f"Current directory: {os.getcwd()}")
-                print(f"File path: {os.path.abspath(self.market_data_file)}")
-                return False
+            # Fixed path to market data
+            market_data_path = r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\marketdata_PERIOD_H4.json"
             
-            with open(self.market_data_file, 'r') as f:
+            if not os.path.exists(market_data_path):
+                return {}
+            
+            with open(market_data_path, 'r') as f:
                 data = json.load(f)
             
-            self.market_data = {}
+            market_data = {}
             
-            # Check if data is in 'data' key or is the main list
-            if 'data' in data:
+            # Extract the data array
+            if isinstance(data, dict) and 'data' in data:
                 items = data['data']
             else:
                 items = data
             
             for item in items:
                 symbol = item.get('pair', '')
-                if not symbol:
-                    continue
+                lower_band = item.get('lower_band')
+                upper_band = item.get('upper_band')
                 
-                # Extract Bollinger Bands
-                lower_band = item.get('lower_band', 0)
-                upper_band = item.get('upper_band', 0)
-                
-                # If not found, try alternative names
-                if lower_band == 0:
-                    lower_band = item.get('lowerBand', 0)
-                if upper_band == 0:
-                    upper_band = item.get('upperBand', 0)
-                
-                self.market_data[symbol] = {
-                    'lower_band': round(lower_band, 7),
-                    'upper_band': round(upper_band, 7),
-                    'bb_width': round(upper_band - lower_band, 7)
-                }
+                if symbol and lower_band is not None and upper_band is not None:
+                    try:
+                        # Calculate BB width
+                        bb_width_price = float(upper_band) - float(lower_band)
+                        pip_size = self.get_pip_size(symbol)
+                        
+                        if pip_size > 0:
+                            bb_width_pips = bb_width_price / pip_size
+                            market_data[symbol] = {
+                                'lower_band': float(lower_band),
+                                'upper_band': float(upper_band),
+                                'bb_width_price': bb_width_price,
+                                'bb_width_pips': bb_width_pips
+                            }
+                            
+                    except Exception:
+                        continue
             
-            print(f"Loaded market data for {len(self.market_data)} symbols")
-            return True
+            return market_data
             
-        except Exception as e:
-            print(f"Error loading market data: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
-    
-    # ================== CORE ENGINE METHODS ==================
+        except Exception:
+            return {}
+
+    # ================== UTILITY FUNCTIONS ==================
     
     def get_pip_size(self, symbol: str) -> float:
-        """Get pip size for symbol"""
+        """Get pip size for a symbol"""
         symbol_upper = symbol.upper()
         
-        if "JPY" in symbol_upper and not any(x in symbol_upper for x in ['XAUJPY', 'XAGJPY']):
+        # JPY pairs
+        if symbol_upper.endswith('JPY'):
             return 0.01
-        elif any(x in symbol_upper for x in ['XAU', 'GOLD', 'XAG', 'SILVER', 'OIL']):
+        # Gold/XAU
+        if any(x in symbol_upper for x in ['XAU', 'GOLD']):
             return 0.01
-        elif any(x in symbol_upper for x in ['BTC', 'ETH', 'XRP', 'ADA', 'US30', 'NAS', 'SPX', 'DAX', 'FTSE']):
+        # Silver/XAG
+        if any(x in symbol_upper for x in ['XAG', 'SILVER']):
+            return 0.001
+        # Crypto
+        if any(x in symbol_upper for x in ['BTC', 'ETH']):
             return 1.0
-        else:
-            return 0.0001
+        # Indices
+        if any(x in symbol_upper for x in ['US30', 'NAS', 'SPX', 'DAX']):
+            return 1.0
+        # Default for major forex pairs
+        return 0.0001
     
-    def calculate_profit_ratio(self, position: Dict, symbol_data: Dict) -> float:
-        """Calculate profit ratio: profit_pips / bb_width"""
+    def get_position_id(self, position: Dict) -> str:
+        """Generate unique position ID"""
+        return str(position.get('ticket', 0))
+    
+    def calculate_profit_pips(self, position: Dict) -> float:
+        """Calculate current profit in pips"""
         try:
             symbol = position['symbol']
             pip_size = self.get_pip_size(symbol)
             
-            entry = position['entry_price']
-            current = position['current_price']
-            
-            # Calculate profit in pips (always positive for ratio)
-            profit_pips = abs(current - entry) / pip_size
-            
-            bb_width = symbol_data['bb_width']
-            bb_width_pips = bb_width / pip_size
-            
-            if bb_width_pips <= 0:
+            if pip_size == 0:
                 return 0.0
             
-            return profit_pips / bb_width_pips
-            
-        except Exception as e:
-            print(f"Error calculating profit ratio for {position['symbol']}: {e}")
-            return 0.0
-
-    def determine_normal_stage(self, profit_ratio: float, previous_stage: str) -> str:
-        """Determine normal stage with hysteresis"""
-        # Find target stage based on profit ratio using thresholds
-        target_stage = 'STAGE_0'
-        
-        # Find the highest stage that profit_ratio meets or exceeds
-        for stage, threshold in reversed(self.STAGE_THRESHOLDS):
-            if profit_ratio >= threshold:
-                target_stage = stage
-                break
-        
-        # Apply hysteresis ONLY if we're moving to a different stage
-        if target_stage != previous_stage:
-            try:
-                target_idx = self.STAGE_ORDER.index(target_stage)
-                prev_idx = self.STAGE_ORDER.index(previous_stage)
-                
-                if target_idx > prev_idx:  # Moving up
-                    # Need to exceed threshold minus up_buffer
-                    stage_threshold = next((t for s, t in self.STAGE_THRESHOLDS if s == target_stage), 0)
-                    if profit_ratio >= stage_threshold - self.hysteresis.get('up_buffer', 0.02):
-                        new_stage = target_stage
-                    else:
-                        new_stage = previous_stage
-                else:  # Moving down
-                    # Need to fall below CURRENT stage's threshold minus down_buffer
-                    stage_threshold = next((t for s, t in self.STAGE_THRESHOLDS if s == previous_stage), 0)
-                    if profit_ratio < stage_threshold - self.hysteresis.get('down_buffer', 0.05):
-                        new_stage = target_stage
-                    else:
-                        new_stage = previous_stage
-            except ValueError:
-                new_stage = previous_stage
-        else:
-            new_stage = previous_stage
-        
-        # One-way transition - can't go back from trailing stages
-        if previous_stage in self.TRAILING_STAGES:
-            try:
-                prev_idx = self.STAGE_ORDER.index(previous_stage)
-                new_idx = self.STAGE_ORDER.index(new_stage)
-                if new_idx < prev_idx:
-                    print(f"One-way transition: Cannot go back from {previous_stage} to {new_stage}")
-                    new_stage = previous_stage
-            except ValueError:
-                pass
-        
-        return new_stage
-
-    # ================== REGRESSION DEFENSE SYSTEM ==================
-    def detect_regression(self, position_id: str, current_profit: float, 
-                         current_stage: str, profit_ratio: float) -> Tuple[bool, Optional[str]]:
-        """Detect regression and return defense stage if needed"""
-        if position_id not in self.position_history:
-            return False, None
-        
-        history = self.position_history[position_id]
-        
-        # Check if defense expired
-        if history.get('defense_active', False):
-            if history.get('defense_cycles', 0) >= self.regression_config.get('max_defense_cycles', 8):
-                print(f"Defense expired for {position_id}")
-                return False, None
-        
-        previous_stage = history.get('previous_stage', 'STAGE_0')
-        peak_profit = history.get('peak_profit', 0.0)
-        stage_history = history.get('stage_history', [])
-        
-        # Criterion 1: Stage backward movement
-        if (previous_stage != current_stage and 
-            self._is_higher_stage(previous_stage, current_stage)):
-            
-            min_stage = self.regression_config.get('min_stage_for_detection', 'STAGE_1')
-            if self._is_higher_or_equal_stage(previous_stage, min_stage):
-                stage_diff = self._stage_difference(previous_stage, current_stage)
-                stage_diff_abs = abs(stage_diff)
-                if stage_diff_abs >= 1:
-                    print(f"REGRESSION: Stage moved back from {previous_stage} to {current_stage} (diff: {stage_diff_abs})")
-                    if stage_diff_abs == 1:
-                        return True, self.regression_config.get('defense_level_1', 'STAGE_2C')
-                    elif stage_diff_abs == 2:
-                        return True, self.regression_config.get('defense_level_2', 'STAGE_3A')
-                    else:
-                        return True, self.regression_config.get('defense_level_3', 'STAGE_3B')
-        
-        # Criterion 2: Profit give-back
-        if peak_profit > 0 and current_profit > 0:
-            giveback_ratio = 1.0 - (current_profit / peak_profit)
-            giveback_threshold = self.regression_config.get('giveback_threshold', 0.30)
-            
-            if giveback_ratio >= giveback_threshold:
-                # Check if position was in profit for at least 2 cycles
-                if len(stage_history) >= 2:
-                    print(f"REGRESSION: {giveback_ratio*100:.1f}% profit give-back")
-                    if giveback_ratio <= 0.40:
-                        return True, self.regression_config.get('defense_level_1', 'STAGE_2C')
-                    elif giveback_ratio <= 0.50:
-                        return True, self.regression_config.get('defense_level_2', 'STAGE_3A')
-                    else:
-                        return True, self.regression_config.get('defense_level_3', 'STAGE_3B')
-        
-        # Criterion 3: Momentum stagnation
-        stagnation_cycles = self.regression_config.get('stagnation_cycles', 4)
-        if len(stage_history) >= stagnation_cycles:
-            recent_stages = stage_history[-stagnation_cycles:]
-            if len(set(recent_stages)) == 1:  # All same stage
-                # Check profit ratio fluctuation
-                if 'profit_history' in history and len(history['profit_history']) >= stagnation_cycles:
-                    recent_profits = history['profit_history'][-stagnation_cycles:]
-                    max_profit = max(recent_profits)
-                    min_profit = min(recent_profits)
-                    
-                    if max_profit > 0 and (max_profit - min_profit) / max_profit < 0.05:
-                        print(f"REGRESSION: Stagnation for {stagnation_cycles} cycles")
-                        return True, self.regression_config.get('defense_level_1', 'STAGE_2C')
-        
-        return False, None
-    
-    def _is_higher_stage(self, stage1: str, stage2: str) -> bool:
-        """Check if stage1 is higher than stage2"""
-        try:
-            idx1 = self.STAGE_ORDER.index(stage1)
-            idx2 = self.STAGE_ORDER.index(stage2)
-            return idx1 > idx2
-        except ValueError:
-            return False
-    
-    def _is_higher_or_equal_stage(self, stage1: str, stage2: str) -> bool:
-        """Check if stage1 is higher or equal to stage2"""
-        try:
-            idx1 = self.STAGE_ORDER.index(stage1)
-            idx2 = self.STAGE_ORDER.index(stage2)
-            return idx1 >= idx2
-        except ValueError:
-            return False
-    
-    def _stage_difference(self, stage1: str, stage2: str) -> int:
-        """Calculate difference in stages"""
-        try:
-            idx1 = self.STAGE_ORDER.index(stage1)
-            idx2 = self.STAGE_ORDER.index(stage2)
-            return idx1 - idx2  # Positive if stage1 > stage2
-        except ValueError:
-            return 0
-    
-    def determine_final_stage(self, normal_stage: str, defense_stage: Optional[str], 
-                            position_id: str) -> Tuple[str, bool]:
-        """Choose final stage: MAX(normal, defense)"""
-        if defense_stage is None:
-            return normal_stage, False
-        
-        # Check if normal caught up
-        if self._is_higher_or_equal_stage(normal_stage, defense_stage):
-            if position_id in self.position_history:
-                history = self.position_history[position_id]
-                if history.get('defense_active', False):
-                    print(f"Defense completed for {position_id}")
-            return normal_stage, False
-        
-        # Activate defense
-        print(f"DEFENSE ACTIVATED: {defense_stage} (was {normal_stage})")
-        return defense_stage, True
-    
-    def update_position_history(self, position_id: str, position: Dict, 
-                               profit_ratio: float, current_stage: str,
-                               defense_active: bool = False):
-        """Update position history"""
-        if position_id not in self.position_history:
-            self.position_history[position_id] = {
-                'symbol': position['symbol'],
-                'type': 'BUY' if position['type'] == 0 else 'SELL',
-                'stage_history': [],
-                'profit_history': [],
-                'peak_profit': 0.0,
-                'peak_profit_time': None,
-                'previous_stage': 'STAGE_0',
-                'current_stage': 'STAGE_0',
-                'defense_active': False,
-                'defense_since': None,
-                'defense_cycles': 0,
-                'regression_count': 0,
-                'last_update': self.cycle_timestamp
-            }
-        
-        history = self.position_history[position_id]
-        
-        # Calculate current profit
-        symbol = position['symbol']
-        pip_size = self.get_pip_size(symbol)
-        current_profit = abs(position['current_price'] - position['entry_price']) / pip_size
-        
-        # Update profit history
-        history['profit_history'].append(current_profit)
-        if len(history['profit_history']) > 20:
-            history['profit_history'] = history['profit_history'][-20:]
-        
-        # Update peak profit
-        if current_profit > history['peak_profit']:
-            history['peak_profit'] = current_profit
-            history['peak_profit_time'] = self.cycle_timestamp
-        
-        # Update stage history
-        if not history['stage_history'] or history['stage_history'][-1] != current_stage:
-            history['stage_history'].append(current_stage)
-            if len(history['stage_history']) > 10:
-                history['stage_history'] = history['stage_history'][-10:]
-        
-        # Update defense status
-        if defense_active:
-            if not history['defense_active']:
-                history['defense_active'] = True
-                history['defense_since'] = self.cycle_timestamp
-                history['defense_cycles'] = 1
-                history['regression_count'] = history.get('regression_count', 0) + 1
-                print(f"Defense count: {history['regression_count']}")
-            else:
-                history['defense_cycles'] += 1
-        else:
-            if history['defense_active']:
-                history['defense_active'] = False
-                history['defense_since'] = None
-                defense_duration = history['defense_cycles']
-                print(f"Defense ended after {defense_duration} cycles")
-        
-        # Update current info
-        history['current_stage'] = current_stage
-        history['previous_stage'] = current_stage
-        history['last_update'] = self.cycle_timestamp
-    
-    # ================== SL/TP CALCULATION - FIXED V2 ==================
-    
-    def calculate_sl(self, position: Dict, stage: str, symbol_data: Dict) -> Optional[float]:
-        """Calculate Stop Loss based on stage - ALWAYS returns a value for STAGE_0 and above"""
-        try:
-            symbol = position['symbol']
             entry = position['entry_price']
             current = position['current_price']
-            is_buy = (position['type'] == 0)
-            pip_size = self.get_pip_size(symbol)
+            profit = abs(current - entry) / pip_size
             
-            # Calculate profit in pips
-            profit_pips = abs(current - entry) / pip_size
+            return round(profit, 2)
             
-            # DEFENSE_0: Emergency defense - ALWAYS set SL
-            if stage == 'DEFENSE_0':
-                if is_buy:
-                    sl = current - (0.30 * profit_pips * pip_size)
-                else:
-                    sl = current + (0.30 * profit_pips * pip_size)
-                print(f"   DEFENSE_0: Emergency protection activated (SL: {sl:.5f})")
-            
-            # STAGE_0: ALWAYS 30 pip fixed stop - CRITICAL: Never return None
-            elif stage == 'STAGE_0':
-                if is_buy:
-                    sl = entry - (30 * pip_size)
-                else:
-                    sl = entry + (30 * pip_size)
-                print(f"   STAGE_0: Fixed 30-pip stop ({'BUY' if is_buy else 'SELL'}): {sl:.5f}")
-            
-            # Profit-locking stages (STAGE_1 and above) - ALWAYS set SL
-            elif stage in ['STAGE_1', 'STAGE_1A', 'STAGE_2A', 'STAGE_2B', 'STAGE_2C', 'STAGE_3A']:
-                protection = self.STAGE_DEFINITIONS[stage]['protection']
-                if is_buy:
-                    sl = entry + (protection * profit_pips * pip_size)
-                else:
-                    sl = entry - (protection * profit_pips * pip_size)
-                print(f"   {stage}: Locking {int(protection*100)}% of {profit_pips:.1f}p profit (SL: {sl:.5f})")
-            
-            # STAGE_3B: Hybrid protection - ALWAYS set SL
-            elif stage == 'STAGE_3B':
-                bb_width = symbol_data['bb_width']
-                if is_buy:
-                    profit_lock = entry + (0.80 * profit_pips * pip_size)
-                    trailing = current - (0.20 * bb_width)
-                    sl = max(profit_lock, trailing)
-                else:
-                    profit_lock = entry - (0.80 * profit_pips * pip_size)
-                    trailing = current + (0.20 * bb_width)
-                    sl = min(profit_lock, trailing)
-                print(f"   STAGE_3B: Hybrid protection ({profit_pips:.1f}p profit): {sl:.5f}")
-            
-            # Trailing stages - ALWAYS set SL
-            elif stage in ['STAGE_4', 'STAGE_5']:
-                protection = self.STAGE_DEFINITIONS[stage]['protection']
-                if is_buy:
-                    sl = current - ((1 - protection) * profit_pips * pip_size)
-                else:
-                    sl = current + ((1 - protection) * profit_pips * pip_size)
-                print(f"   {stage}: Trailing protection ({int(protection*100)}%): {sl:.5f}")
-            
-            else:
-                # Fallback to 30-pip stop - CRITICAL: Never return None
-                if is_buy:
-                    sl = entry - (30 * pip_size)
-                else:
-                    sl = entry + (30 * pip_size)
-                print(f"   Fallback: 30-pip stop: {sl:.5f}")
-            
-            # Apply safe distance
-            sl = self._apply_safe_distance(sl, current, is_buy, pip_size)
-            
-            # FINAL CHECK: Ensure SL is valid
-            if sl is None:
-                print(f"   ⚠️ WARNING: SL calculation returned None for {symbol}, using 30-pip stop")
-                if is_buy:
-                    sl = entry - (30 * pip_size)
-                else:
-                    sl = entry + (30 * pip_size)
-            
-            return round(sl, 5)
-            
-        except Exception as e:
-            print(f"❌ Error calculating SL for {position['symbol']}: {e}")
-            import traceback
-            traceback.print_exc()
-            # Emergency fallback
-            entry = position['entry_price']
-            is_buy = (position['type'] == 0)
-            pip_size = self.get_pip_size(position['symbol'])
-            
-            if is_buy:
-                sl = entry - (30 * pip_size)
-            else:
-                sl = entry + (30 * pip_size)
-            
-            print(f"   🚨 EMERGENCY FALLBACK SL: {sl:.5f}")
-            return round(sl, 5)
+        except Exception:
+            return 0.0
     
-    def calculate_tp(self, position: Dict, stage: str, symbol_data: Dict) -> Optional[float]:
-        """Calculate Take Profit based on stage"""
-        try:
-            stage_info = self.STAGE_DEFINITIONS[stage]
-            
-            # No TP for defense stages
-            if not stage_info['tp']:
-                return None
-            
-            # Use Bollinger Bands
-            is_buy = (position['type'] == 0)
-            if is_buy:
-                tp = symbol_data['upper_band']
-            else:
-                tp = symbol_data['lower_band']
-            
-            return round(tp, 5)
-            
-        except Exception as e:
-            print(f"Error calculating TP: {e}")
-            return None
-    
-    def _apply_safe_distance(self, sl: float, current_price: float, 
-                           is_buy: bool, pip_size: float) -> float:
-        """Ensure SL is at safe distance from current price"""
-        min_pips = self.safe_distance.get('min_pips', 10)
-        min_distance = min_pips * pip_size
+    def calculate_profit_ratio(self, position: Dict) -> float:
+        """Calculate profit ratio: profit_pips / bb_width_pips"""
+        symbol = position['symbol']
         
-        if is_buy:
-            if current_price - sl < min_distance:
-                sl = current_price - min_distance
-                print(f"   Adjusted SL for safe distance (+{min_pips} pips): {sl:.5f}")
+        if symbol not in self.market_data:
+            return 0.0
+        
+        bb_data = self.market_data[symbol]
+        profit_pips = self.calculate_profit_pips(position)
+        bb_width_pips = bb_data['bb_width_pips']
+        
+        if bb_width_pips <= 0:
+            return 0.0
+        
+        ratio = profit_pips / bb_width_pips
+        return round(ratio, 3)
+    
+    def get_bb_width_pips(self, symbol: str) -> float:
+        """Get BB width in pips for a symbol"""
+        if symbol in self.market_data:
+            width = self.market_data[symbol].get('bb_width_pips', 0.0)
+            return round(width, 2)
+        return 0.0
+    
+    def get_bb_width_price(self, symbol: str) -> float:
+        """Get BB width in price for a symbol"""
+        if symbol in self.market_data:
+            return self.market_data[symbol].get('bb_width_price', 0.0)
+        return 0.0
+    
+    def determine_stage(self, profit_pips: float) -> str:
+        """Determine protection stage based on profit in pips"""
+        for stage_name in reversed(self.STAGE_ORDER):
+            if stage_name in self.STAGE_DEFINITIONS:
+                threshold = self.STAGE_DEFINITIONS[stage_name]['threshold_pips']
+                if profit_pips >= threshold:
+                    return stage_name
+        return 'STAGE_0'
+    
+    # ================== SL/TP CALCULATION ==================
+    
+    def calculate_sl(self, position: Dict, stage: str, profit_pips: float) -> float:
+        """Calculate Stop Loss price"""
+        symbol = position['symbol']
+        entry = position['entry_price']
+        is_buy = (position['type'] == 0)
+        pip_size = self.get_pip_size(symbol)
+        
+        stage_info = self.STAGE_DEFINITIONS[stage]
+        protection = stage_info['protection']
+        
+        if stage == 'STAGE_0':
+            # Initial SL
+            if is_buy:
+                sl = entry - (self.initial_sl_pips * pip_size)
+            else:
+                sl = entry + (self.initial_sl_pips * pip_size)
         else:
-            if sl - current_price < min_distance:
-                sl = current_price + min_distance
-                print(f"   Adjusted SL for safe distance (+{min_pips} pips): {sl:.5f}")
+            # Profit protection
+            protected_pips = profit_pips * protection
+            if is_buy:
+                sl = entry + (protected_pips * pip_size)
+            else:
+                sl = entry - (protected_pips * pip_size)
         
-        return sl
+        return round(sl, 5)
     
-    def is_better_sl(self, new_sl: float, current_sl: float, is_buy: bool) -> bool:
-        """Check if new SL provides better protection - FIXED LOGIC"""
+    def calculate_tp(self, position: Dict) -> Optional[float]:
+        """Calculate Take Profit price"""
+        symbol = position['symbol']
+        entry = position['entry_price']
+        is_buy = (position['type'] == 0)
+        pip_size = self.get_pip_size(symbol)
         
-        # CRITICAL FIX: If current SL is 0.0 (no SL), ALWAYS accept new SL
-        if current_sl == 0.0:
-            print(f"   🚨 No current SL - setting calculated SL for safety")
-            return True
+        # Simple TP at fixed distance
+        if is_buy:
+            tp = entry + (self.tp_distance_pips * pip_size)
+        else:
+            tp = entry - (self.tp_distance_pips * pip_size)
         
-        # If new SL is None, don't update
+        return round(tp, 5)
+    
+    # ================== SL UPDATE LOGIC ==================
+    
+    def should_update_sl(self, new_sl: float, current_sl: float, is_buy: bool) -> Tuple[bool, str]:
+        """Check if we should update SL"""
+        # No current SL
+        if current_sl == 0.0 or current_sl is None:
+            self.sl_update_stats['tightened'] += 1
+            return True, "No existing SL"
+        
+        # No new SL calculated
         if new_sl is None:
-            print(f"   ⚠️ No new SL calculated - keeping existing SL: {current_sl:.5f}")
-            return False
+            self.sl_update_stats['no_change'] += 1
+            return False, "No new SL calculated"
         
-        # If SLs are essentially the same, don't change
-        if abs(new_sl - current_sl) < 0.00001:
-            print(f"   ⚠️ SL unchanged ({new_sl:.5f} vs {current_sl:.5f})")
-            return False
+        # Essentially the same price
+        pip_size = 0.0001
+        if abs(new_sl - current_sl) < (0.1 * pip_size):
+            self.sl_update_stats['no_change'] += 1
+            return False, "SL unchanged"
         
-        # Normal comparison for better protection
+        # For BUY positions
         if is_buy:
-            is_better = new_sl > current_sl  # Higher is better for BUY
-        else:
-            is_better = new_sl < current_sl  # Lower is better for SELL
+            if new_sl > current_sl:
+                self.sl_update_stats['tightened'] += 1
+                return True, f"SL tightened"
+            else:
+                self.sl_update_stats['loosened'] += 1
+                return False, f"SL would loosen"
         
-        if is_better:
-            print(f"   ✅ Better SL: {current_sl:.5f} → {new_sl:.5f}")
+        # For SELL positions  
         else:
-            print(f"   ⚠️ Worse SL: {current_sl:.5f} ← {new_sl:.5f}")
+            if new_sl < current_sl:
+                self.sl_update_stats['tightened'] += 1
+                return True, f"SL tightened"
+            else:
+                self.sl_update_stats['loosened'] += 1
+                return False, f"SL would loosen"
+    
+    def print_sl_update_stats(self):
+        """Print statistics about SL updates"""
+        total = sum(self.sl_update_stats.values())
+        if total > 0:
+            print(f"\nSL Updates: Tightened={self.sl_update_stats['tightened']}, "
+                  f"No Change={self.sl_update_stats['no_change']}, "
+                  f"Would Loosen={self.sl_update_stats['loosened']}")
+    
+    # ================== POSITION STATE MANAGEMENT ==================
+    
+    def _load_position_states(self) -> Dict:
+        """Load position states from file"""
+        try:
+            state_file = "state/position_states_v5.json"
+            if os.path.exists(state_file):
+                with open(state_file, 'r') as f:
+                    return json.load(f)
+        except Exception:
+            pass
+        return {}
+    
+    def save_position_states(self):
+        """Save position states to file"""
+        try:
+            os.makedirs("state", exist_ok=True)
+            with open("state/position_states_v5.json", 'w') as f:
+                json.dump(self.position_states, f, indent=2)
+        except Exception:
+            pass
+    
+    def update_position_state(self, position_id: str, position: Dict, 
+                             stage: str, profit_pips: float):
+        """Update position state with simplified stage history"""
+        if position_id not in self.position_states:
+            self.position_states[position_id] = {
+                'symbol': position['symbol'],
+                'type': 'BUY' if position['type'] == 0 else 'SELL',
+                'entry_price': position['entry_price'],
+                'stage_history': [],  # SIMPLIFIED: Just stage names
+                'profit_history': [],
+                'profit_ratio_history': [],
+                'bb_width_history': [],
+                'bb_width_price_history': [],
+                'profit_pips_threshold_history': [],
+                'previous_stage': 'STAGE_0',
+                'current_stage': 'STAGE_0',
+                'peak_profit_pips': 0.0,
+                'peak_profit_ratio': 0.0,
+                'last_update': self.cycle_timestamp.isoformat()
+            }
         
-        return is_better
-
-    # ================== MAIN PROCESSING - FIXED V2 ==================
+        state = self.position_states[position_id]
+        
+        # Calculate metrics
+        profit_ratio = self.calculate_profit_ratio(position)
+        bb_width_pips = self.get_bb_width_pips(position['symbol'])
+        bb_width_price = self.get_bb_width_price(position['symbol'])
+        
+        # Calculate distance to next stage threshold
+        next_stage_threshold = self._get_next_stage_threshold(stage)
+        threshold_distance = next_stage_threshold - profit_pips if next_stage_threshold > 0 else 0
+        
+        # Update stage history if changed - SIMPLIFIED VERSION
+        if stage != state['current_stage']:
+            # Just store the stage name (no extra data)
+            state['stage_history'].append(stage)
+            state['previous_stage'] = state['current_stage']
+            state['current_stage'] = stage
+        
+        # Update history arrays
+        state['profit_history'].append(round(profit_pips, 2))
+        state['profit_ratio_history'].append(round(profit_ratio, 3))
+        state['bb_width_history'].append(round(bb_width_pips, 2))
+        state['bb_width_price_history'].append(round(bb_width_price, 5))
+        state['profit_pips_threshold_history'].append(round(threshold_distance, 2))
+        
+        # Update peak values
+        if profit_pips > state.get('peak_profit_pips', 0):
+            state['peak_profit_pips'] = round(profit_pips, 2)
+        
+        if profit_ratio > state.get('peak_profit_ratio', 0):
+            state['peak_profit_ratio'] = round(profit_ratio, 3)
+        
+        # Keep history sizes manageable
+        max_history = 50
+        for key in ['profit_history', 'profit_ratio_history', 'bb_width_history', 
+                   'bb_width_price_history', 'profit_pips_threshold_history']:
+            if key in state and len(state[key]) > max_history:
+                state[key] = state[key][-max_history:]
+        
+        # Keep stage history reasonable size
+        if len(state['stage_history']) > 20:
+            state['stage_history'] = state['stage_history'][-20:]
+        
+        state['last_update'] = self.cycle_timestamp.isoformat()
+    
+    def _get_next_stage_threshold(self, current_stage: str) -> float:
+        """Get the profit threshold for the next stage"""
+        try:
+            current_index = self.STAGE_ORDER.index(current_stage)
+            if current_index < len(self.STAGE_ORDER) - 1:
+                next_stage = self.STAGE_ORDER[current_index + 1]
+                return self.STAGE_DEFINITIONS[next_stage]['threshold_pips']
+        except (ValueError, IndexError):
+            pass
+        return -1
+    
+    def cleanup_old_positions(self, max_age_hours: int = 72):
+        """Remove old positions"""
+        cutoff_time = datetime.now() - timedelta(hours=max_age_hours)
+        to_remove = []
+        
+        for pos_id, state in self.position_states.items():
+            last_update_str = state.get('last_update')
+            if last_update_str:
+                try:
+                    last_update = datetime.fromisoformat(last_update_str.replace('Z', '+00:00'))
+                    if last_update < cutoff_time:
+                        to_remove.append(pos_id)
+                except:
+                    pass
+        
+        for pos_id in to_remove:
+            del self.position_states[pos_id]
+    
+    # ================== MAIN PROCESSING ==================
     
     def process_all_positions(self, positions: List[Dict]) -> List[Dict]:
-        """Process all positions with regression defense - FIXED SL HANDLING"""
+        """Process all positions with proper SL logic"""
         updates = []
-        
-        if not self.market_data:
-            print("No market data loaded")
-            return updates
-        
         self.cycle_timestamp = datetime.now()
         
+        # Reset stats for this cycle
+        self.sl_update_stats = {'tightened': 0, 'no_change': 0, 'loosened': 0}
+        
         for position in positions:
+            position_id = self.get_position_id(position)
             symbol = position['symbol']
             
-            if symbol not in self.market_data:
-                print(f"No market data for {symbol}")
-                continue
+            profit_pips = self.calculate_profit_pips(position)
+            stage = self.determine_stage(profit_pips)
             
-            symbol_data = self.market_data[symbol]
+            # Update position state (with simplified stage history)
+            self.update_position_state(position_id, position, stage, profit_pips)
             
-            # Calculate profit ratio
-            profit_ratio = self.calculate_profit_ratio(position, symbol_data)
-            
-            # Generate position ID
-            position_id = f"{position['ticket']}_{symbol}"
-            
-            # Get previous stage
-            previous_stage = self.position_history.get(position_id, {}).get('current_stage', 'STAGE_0')
-            
-            # 1. Normal Protection Track
-            normal_stage = self.determine_normal_stage(profit_ratio, previous_stage)
-            
-            # 2. Regression Defense Track
-            pip_size = self.get_pip_size(symbol)
-            current_profit = abs(position['current_price'] - position['entry_price']) / pip_size
-            
-            regression_detected, defense_stage = self.detect_regression(
-                position_id, current_profit, normal_stage, profit_ratio
-            )
-            
-            # 3. Final Stage Determination
-            final_stage, defense_active = self.determine_final_stage(
-                normal_stage, defense_stage, position_id
-            )
-            
-            # Update position history
-            self.update_position_history(
-                position_id, position, profit_ratio, final_stage, defense_active
-            )
-            
-            # Calculate new SL/TP - CRITICAL: SL should NEVER be None for any stage
-            new_sl = self.calculate_sl(position, final_stage, symbol_data)
-            new_tp = self.calculate_tp(position, final_stage, symbol_data)
-            
-            # Get current values from position
+            # Get current SL/TP
             current_sl = position.get('sl', 0.0)
             current_tp = position.get('tp', 0.0)
             
-            # CRITICAL FIX: Ensure new_sl is NEVER None
-            if new_sl is None:
-                print(f"   🚨 CRITICAL: SL calculation returned None for {symbol} #{position['ticket']}")
-                print(f"   🚨 Falling back to emergency 30-pip stop")
-                entry = position['entry_price']
-                is_buy = (position['type'] == 0)
-                if is_buy:
-                    new_sl = entry - (30 * pip_size)
-                else:
-                    new_sl = entry + (30 * pip_size)
+            # Calculate new SL/TP
+            new_sl = self.calculate_sl(position, stage, profit_pips)
             
-            should_update_sl = False
+            # Check if we should set TP
+            stage_info = self.STAGE_DEFINITIONS[stage]
+            if stage_info['tp']:
+                new_tp = self.calculate_tp(position)
+            else:
+                new_tp = None
+            
+            # Check if new SL is better than current SL
+            should_update_sl, sl_reason = self.should_update_sl(
+                new_sl, current_sl, position['type'] == 0
+            )
+            
+            # Check TP update
             should_update_tp = False
+            if new_tp is not None and abs(new_tp - current_tp) > 0.00001:
+                should_update_tp = True
             
-            # Check if we should update SL
-            if new_sl is not None:
-                should_update_sl = self.is_better_sl(new_sl, current_sl, position['type'] == 0)
-            else:
-                # This should never happen with our fix above, but just in case
-                new_sl = current_sl
-                print(f"   ⚠️ No SL calculated, keeping current: {current_sl:.5f}")
-            
-            # Check if we should update TP
-            if new_tp is not None:
-                if abs(new_tp - current_tp) > 0.00001:
-                    should_update_tp = True
-                else:
-                    new_tp = current_tp
-            else:
-                new_tp = current_tp
-            
-            needs_update = should_update_sl or should_update_tp
-            
-            # Debug output with SL status
-            sl_status = "✅" if current_sl != 0.0 else "❌"
-            print(f"   {symbol} #{position['ticket']}: Stage={final_stage}, Profit={current_profit:.1f}p, Ratio={profit_ratio:.3f}")
-            print(f"     SL Status: {sl_status} Current SL: {current_sl:.5f}, New SL: {new_sl:.5f}")
-            
-            if should_update_sl:
-                print(f"     SL Update: {current_sl:.5f} → {new_sl:.5f}")
-            else:
-                print(f"     SL Keep: {current_sl:.5f}")
-                
-            if should_update_tp:
-                print(f"     TP Update: {current_tp:.5f} → {new_tp:.5f}")
-            
-            # Create update info
+            # Create update record
             update_info = {
                 'ticket': position['ticket'],
-                'symbol': symbol,
-                'stage': final_stage,
+                'symbol': position['symbol'],
+                'stage': stage,
+                'stage_name': stage_info['name'],
+                'protection_percent': int(stage_info['protection'] * 100),
+                'profit_pips': round(profit_pips, 1),
+                'profit_ratio': round(self.calculate_profit_ratio(position), 3),
+                'bb_width_pips': round(self.get_bb_width_pips(position['symbol']), 1),
                 'current_sl': current_sl,
                 'current_tp': current_tp,
                 'new_sl': new_sl,
-                'new_tp': new_tp,
-                'needs_update': needs_update,
-                'protection_percent': int(self.STAGE_DEFINITIONS[final_stage]['protection'] * 100),
-                'profit_ratio': round(profit_ratio, 3),
-                'defense_active': defense_active,
-                'regression_detected': regression_detected,
-                'normal_stage': normal_stage
+                'new_tp': new_tp if new_tp else current_tp,
+                'needs_update': should_update_sl or should_update_tp,
+                'update_sl': should_update_sl,
+                'update_tp': should_update_tp
             }
-            
-            if regression_detected:
-                update_info['defense_activated'] = True
-                update_info['defense_stage'] = defense_stage
             
             updates.append(update_info)
         
-        # Save history and cleanup
-        self.save_position_history()
-        self._cleanup_old_positions()
+        # Print statistics
+        self.print_sl_update_stats()
+        
+        # Save states
+        self.save_position_states()
+        self.cleanup_old_positions()
         
         return updates
     
-    def get_protection_percent(self, stage: str) -> float:
+    def get_protection_percent(self, stage: str) -> int:
         """Get protection percentage for a stage"""
         if stage in self.STAGE_DEFINITIONS:
-            return self.STAGE_DEFINITIONS[stage]['protection']
-        return 0.0
+            return int(self.STAGE_DEFINITIONS[stage]['protection'] * 100)
+        return 0
