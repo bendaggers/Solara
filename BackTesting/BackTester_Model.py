@@ -16,98 +16,29 @@ warnings.filterwarnings('ignore')
 
 # Configuration
 CONFIG = {
-    'model_path': '../Model Training\BB SHORT Model\BB_SHORT_REVERSAL_Model.pkl',
+    'model_path': '../Model Training\BB SHORT Model\BB_SHORT_REVERSAL_Model_v2.pkl',
     'input_csv': 'GBPUSD_2024-2025_backtest.csv',
     'output_csv': 'GBPUSD_2024-2025_backtest_RESULTS.csv',
     'output_json': 'GBPUSD_2024-2025_backtest_RESULTS.json',
     'output_signals_json': 'trading_signals_GBPUSD.json',
     'timestamp_col': 'timestamp',
     'features' : [
-        'close_lag1',
-        'close_lag2',
-        'close_lag3',
-        'open_lag1',
-        'open_lag2',
-        'open_lag3',
-        'high_lag1',
-        'high_lag2',
-        'high_lag3',
-        'low_lag1',
-        'low_lag2',
-        'low_lag3',
-        'volume_lag1',
-        'volume_lag2',
-        'volume_lag3',
-        'ret_lag1',
-        'ret_lag2',
-        'ret_lag3',
-        'bb_position_lag1',
-        'bb_position_lag2',
-        'bb_position_lag3',
-        'bb_width_pct_lag1',
-        'bb_width_pct_lag2',
-        'bb_width_pct_lag3',
-        'dist_bb_upper_lag1',
-        'dist_bb_upper_lag2',
-        'dist_bb_upper_lag3',
-        'bb_upper_touch_lag1',
-        'bb_upper_touch_lag2',
-        'bb_upper_touch_lag3',
-        'bb_mid_rejection_lag1',
-        'bb_mid_rejection_lag2',
-        'bb_mid_rejection_lag3',
-        'rsi_value_lag1',
-        'rsi_value_lag2',
-        'rsi_value_lag3',
-        'rsi_slope_lag1',
-        'rsi_slope_lag2',
-        'rsi_slope_lag3',
-        'rsi_overbought_lag1',
-        'rsi_overbought_lag2',
-        'rsi_overbought_lag3',
-        'body_size_lag1',
-        'body_size_lag2',
-        'body_size_lag3',
-        'upper_wick_lag1',
-        'upper_wick_lag2',
-        'upper_wick_lag3',
-        'lower_wick_lag1',
-        'lower_wick_lag2',
-        'lower_wick_lag3',
-        'wick_ratio_lag1',
-        'wick_ratio_lag2',
-        'wick_ratio_lag3',
-        'close_pos_in_candle_lag1',
-        'close_pos_in_candle_lag2',
-        'close_pos_in_candle_lag3',
-        'upper_rejection_lag1',
-        'upper_rejection_lag2',
-        'upper_rejection_lag3',
-        'lower_high_lag1',
-        'lower_high_lag2',
-        'lower_high_lag3',
-        'atr_norm_lag1',
-        'atr_norm_lag2',
-        'atr_norm_lag3',
-        'ema_50_slope_lag1',
-        'ema_50_slope_lag2',
-        'ema_50_slope_lag3',
-        'price_below_ema50_lag1',
-        'price_below_ema50_lag2',
-        'price_below_ema50_lag3',
-        'candle_vs_bb_lag1',
-        'candle_vs_bb_lag2',
-        'candle_vs_bb_lag3',
-        'body_vs_bb_lag1',
-        'body_vs_bb_lag2',
-        'body_vs_bb_lag3',
-        'RSI_slope_3',
-        'price_slope_3',
-        'upper_rejection_score',
-        'reversal_signal'
+        "candle_body_pct",
+        "ret_lag1",
+        "rsi_slope_lag2",
+        "ret",
+        "body_size",
+        "RSI_slope_3",
+        "rsi_slope_lag3",
+        "ret_lag2",
+        "price_momentum",
+        "rsi_slope",
+        "dist_bb_upper_lag3",
+        "rsi_slope_lag1",
+        "rsi_value"
     ],
-    'min_confidence': 0.65,
-    'min_signal_strength': 'Medium'  # New: Only include Medium or stronger signals
+    'min_confidence': 0.80,
+    'min_signal_strength': 'Strong'  # New: Only include Medium or stronger signals
 }
 
 # Signal strength mapping for filtering
@@ -160,6 +91,7 @@ def load_data():
         print(f"   ✗ ERROR loading data: {e}")
         exit(1)
 
+
 def process_predictions(model, df):
     """Process all predictions and return complete dataframe"""
     print("\n⚙️  PROCESSING PREDICTIONS...")
@@ -182,20 +114,18 @@ def process_predictions(model, df):
     df['model_prediction'] = predictions
     df['model_confidence'] = probabilities
     
-    # First, mark all signals based on confidence threshold
-    df['model_signal_raw'] = (probabilities >= CONFIG['min_confidence']).astype(int)
-    
-    # Calculate signal strength with numeric value for filtering
-    df['signal_strength'] = df['model_confidence'].apply(
-        lambda x: 'Strong' if x >= 0.75 else 
-                 'Medium' if x >= 0.65 else 
-                 'Weak' if x >= 0.50 else 'None'
-    )
+    # Use EXACTLY the same categorization as training
+    df['signal_strength'] = pd.cut(df['model_confidence'],
+                                    bins=[0, 0.3, 0.5, 0.7, 0.9, 1.0],
+                                    labels=['Very Weak', 'Weak', 'Moderate', 'Strong', 'Very Strong'])
     
     # Add numeric strength for easy filtering
     df['signal_strength_value'] = df['signal_strength'].map(SIGNAL_STRENGTH_ORDER)
     
-    # Filter signals: only Medium or Strong, AND above confidence threshold
+    # First, mark all signals based on confidence threshold
+    df['model_signal_raw'] = (probabilities >= CONFIG['min_confidence']).astype(int)
+    
+    # Filter signals: only Strong and Very Strong (≥ 0.7 confidence)
     min_strength_value = SIGNAL_STRENGTH_ORDER[CONFIG['min_signal_strength']]
     df['model_signal'] = (
         (df['model_confidence'] >= CONFIG['min_confidence']) & 
@@ -211,7 +141,7 @@ def process_predictions(model, df):
     return df
 
 def get_filtered_signals(df):
-    """Get only Medium and Strong signals"""
+    """Get only Strong and Very Strong signals"""
     min_strength_value = SIGNAL_STRENGTH_ORDER[CONFIG['min_signal_strength']]
     filtered_signals = df[
         (df['model_signal'] == 1) & 
@@ -219,6 +149,105 @@ def get_filtered_signals(df):
     ].copy()
     
     return filtered_signals
+
+def generate_summary(df, filtered_signals_df):
+    """Generate summary statistics with JSON output"""
+    print("\n📊 GENERATING SUMMARY...")
+    
+    total_rows = len(df)
+    
+    # All signals (raw, before filtering)
+    raw_signals = df['model_signal_raw'].sum()
+    
+    # Filtered signals
+    total_signals = len(filtered_signals_df)
+    very_strong_signals = len(filtered_signals_df[filtered_signals_df['signal_strength'] == 'Very Strong'])
+    strong_signals = len(filtered_signals_df[filtered_signals_df['signal_strength'] == 'Strong'])
+    moderate_signals = len(df[df['signal_strength'] == 'Moderate'])
+    weak_signals = len(df[df['signal_strength'] == 'Weak'])
+    very_weak_signals = len(df[df['signal_strength'] == 'Very Weak'])
+    
+    avg_confidence = filtered_signals_df['model_confidence'].mean() if total_signals > 0 else 0
+    
+    # Use ASCII symbols instead of Unicode for Windows compatibility
+    print(f"   Total rows: {total_rows}")
+    print(f"   Raw signals (>= {CONFIG['min_confidence']}): {raw_signals} ({raw_signals/total_rows:.1%})")
+    print(f"   Filtered signals ({CONFIG['min_signal_strength']}+): {total_signals} ({total_signals/total_rows:.1%})")
+    print(f"     - Very Strong signals (>= 0.9): {very_strong_signals}")
+    print(f"     - Strong signals (0.7-0.9): {strong_signals}")
+    if total_signals > 0:
+        print(f"   Average confidence of filtered signals: {avg_confidence:.1%}")
+    
+    # Performance metrics if labels exist
+    if 'label' in df.columns and total_signals > 0:
+        win_rate = filtered_signals_df['prediction_correct'].mean()
+        print(f"   Win rate on filtered signals: {win_rate:.1%}")
+    
+    # Create comprehensive summary data
+    summary_data = {
+        'summary': {
+            'generated_at': datetime.now().isoformat(),
+            'total_rows': total_rows,
+            'raw_signals_count': int(raw_signals),
+            'raw_signal_rate': float(raw_signals/total_rows),
+            'filtered_signals_count': int(total_signals),
+            'filtered_signal_rate': float(total_signals/total_rows),
+            'average_confidence': float(avg_confidence),
+            'min_confidence': CONFIG['min_confidence'],
+            'min_signal_strength': CONFIG['min_signal_strength']
+        },
+        'signal_distribution': {
+            'very_strong': int(very_strong_signals),
+            'strong': int(strong_signals),
+            'moderate': int(moderate_signals),
+            'weak': int(weak_signals),
+            'very_weak': int(very_weak_signals),
+            'raw_signals': int(raw_signals),
+            'filtered_signals': int(total_signals)
+        },
+        'confidence_thresholds': {
+            'very_strong': 0.90,
+            'strong': 0.70,
+            'moderate': 0.50,
+            'weak': 0.30,
+            'very_weak': 0.0
+        }
+    }
+    
+    if 'label' in df.columns and total_signals > 0:
+        summary_data['performance'] = {
+            'win_rate': float(win_rate),
+            'filtered_correct_predictions': int(filtered_signals_df['prediction_correct'].sum()),
+            'filtered_accuracy': float(filtered_signals_df['prediction_correct'].mean()),
+            'total_accuracy': float(df['prediction_correct'].mean()) if 'prediction_correct' in df.columns else None
+        }
+    
+    # Save summary as JSON
+    with open('model_summary.json', 'w') as f:
+        json.dump(summary_data, f, indent=2, default=str)
+    
+    # Also keep the text summary for quick viewing - use ASCII symbols for Windows
+    with open('model_assessment_summary.txt', 'w', encoding='utf-8') as f:
+        f.write(f"Model Assessment Summary\n")
+        f.write(f"=======================\n")
+        f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Input file: {CONFIG['input_csv']}\n")
+        f.write(f"Output files:\n")
+        f.write(f"  - CSV: {CONFIG['output_csv']}\n")
+        f.write(f"  - Full JSON: {CONFIG['output_json']}\n")
+        f.write(f"  - Signals JSON: {CONFIG['output_signals_json']} ({CONFIG['min_signal_strength']}+ only)\n")
+        f.write(f"  - Summary JSON: model_summary.json\n")
+        f.write(f"\nStatistics:\n")
+        f.write(f"  Total rows: {total_rows}\n")
+        f.write(f"  Raw signals (>= {CONFIG['min_confidence']}): {raw_signals} ({raw_signals/total_rows:.1%})\n")
+        f.write(f"  Filtered signals ({CONFIG['min_signal_strength']}+): {total_signals} ({total_signals/total_rows:.1%})\n")
+        f.write(f"    - Very Strong signals (>= 0.9): {very_strong_signals}\n")
+        f.write(f"    - Strong signals (0.7-0.9): {strong_signals}\n")
+        if 'label' in df.columns and total_signals > 0:
+            f.write(f"  Win rate on filtered signals: {win_rate:.1%}\n")
+    
+    print(f"\n   ✓ Summary saved to: model_assessment_summary.txt")
+    print(f"   ✓ Detailed summary saved to: model_summary.json")
 
 def save_results(df):
     """Save the complete assessment in multiple formats"""
@@ -280,98 +309,7 @@ def save_results(df):
     
     return df, signals_df
 
-def generate_summary(df, filtered_signals_df):
-    """Generate summary statistics with JSON output"""
-    print("\n📊 GENERATING SUMMARY...")
-    
-    total_rows = len(df)
-    
-    # All signals (raw, before filtering)
-    raw_signals = df['model_signal_raw'].sum()
-    
-    # Filtered signals
-    total_signals = len(filtered_signals_df)
-    strong_signals = len(filtered_signals_df[filtered_signals_df['signal_strength'] == 'Strong'])
-    medium_signals = len(filtered_signals_df[filtered_signals_df['signal_strength'] == 'Medium'])
-    avg_confidence = filtered_signals_df['model_confidence'].mean() if total_signals > 0 else 0
-    
-    # Use ASCII symbols instead of Unicode for Windows compatibility
-    print(f"   Total rows: {total_rows}")
-    print(f"   Raw signals (>= {CONFIG['min_confidence']}): {raw_signals} ({raw_signals/total_rows:.1%})")
-    print(f"   Filtered signals (Medium+): {total_signals} ({total_signals/total_rows:.1%})")
-    print(f"     - Strong signals: {strong_signals}")
-    print(f"     - Medium signals: {medium_signals}")
-    if total_signals > 0:
-        print(f"   Average confidence of filtered signals: {avg_confidence:.1%}")
-    
-    # Performance metrics if labels exist
-    if 'label' in df.columns and total_signals > 0:
-        win_rate = filtered_signals_df['prediction_correct'].mean()
-        print(f"   Win rate on filtered signals: {win_rate:.1%}")
-    
-    # Create comprehensive summary data
-    summary_data = {
-        'summary': {
-            'generated_at': datetime.now().isoformat(),
-            'total_rows': total_rows,
-            'raw_signals_count': int(raw_signals),
-            'raw_signal_rate': float(raw_signals/total_rows),
-            'filtered_signals_count': int(total_signals),
-            'filtered_signal_rate': float(total_signals/total_rows),
-            'average_confidence': float(avg_confidence),
-            'min_confidence': CONFIG['min_confidence'],
-            'min_signal_strength': CONFIG['min_signal_strength']
-        },
-        'signal_distribution': {
-            'strong': int(strong_signals),
-            'medium': int(medium_signals),
-            'weak': int(len(df[df['signal_strength'] == 'Weak'])),
-            'none': int(len(df[df['signal_strength'] == 'None'])),
-            'raw_signals': int(raw_signals),
-            'filtered_signals': int(total_signals)
-        },
-        'confidence_thresholds': {
-            'strong': 0.75,
-            'medium': 0.65,
-            'weak': 0.50,
-            'none': 0.0
-        }
-    }
-    
-    if 'label' in df.columns and total_signals > 0:
-        summary_data['performance'] = {
-            'win_rate': float(win_rate),
-            'filtered_correct_predictions': int(filtered_signals_df['prediction_correct'].sum()),
-            'filtered_accuracy': float(filtered_signals_df['prediction_correct'].mean()),
-            'total_accuracy': float(df['prediction_correct'].mean()) if 'prediction_correct' in df.columns else None
-        }
-    
-    # Save summary as JSON
-    with open('model_summary.json', 'w') as f:
-        json.dump(summary_data, f, indent=2, default=str)
-    
-    # Also keep the text summary for quick viewing - use ASCII symbols for Windows
-    with open('model_assessment_summary.txt', 'w', encoding='utf-8') as f:
-        f.write(f"Model Assessment Summary\n")
-        f.write(f"=======================\n")
-        f.write(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-        f.write(f"Input file: {CONFIG['input_csv']}\n")
-        f.write(f"Output files:\n")
-        f.write(f"  - CSV: {CONFIG['output_csv']}\n")
-        f.write(f"  - Full JSON: {CONFIG['output_json']}\n")
-        f.write(f"  - Signals JSON: {CONFIG['output_signals_json']} (Medium+ only)\n")
-        f.write(f"  - Summary JSON: model_summary.json\n")
-        f.write(f"\nStatistics:\n")
-        f.write(f"  Total rows: {total_rows}\n")
-        f.write(f"  Raw signals (>= {CONFIG['min_confidence']}): {raw_signals} ({raw_signals/total_rows:.1%})\n")
-        f.write(f"  Filtered signals (Medium+): {total_signals} ({total_signals/total_rows:.1%})\n")
-        f.write(f"    - Strong signals: {strong_signals}\n")
-        f.write(f"    - Medium signals: {medium_signals}\n")
-        if 'label' in df.columns and total_signals > 0:
-            f.write(f"  Win rate on filtered signals: {win_rate:.1%}\n")
-    
-    print(f"\n   ✓ Summary saved to: model_assessment_summary.txt")
-    print(f"   ✓ Detailed summary saved to: model_summary.json")
+
 
 def main():
     """Main execution function"""

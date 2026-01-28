@@ -1,52 +1,92 @@
+# feature_optimizer_fixed.py
+
 import pandas as pd
 import numpy as np
 import pickle
 import json
-import itertools
-import time
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
 import warnings
 warnings.filterwarnings('ignore')
 
-class FeatureOptimizer:
+class FeatureOptimizer15:
     """
-    Automated feature optimization with systematic search
+    Optimize features down to 15, handling non-numeric columns properly
     """
     
-    def __init__(self, features_file="processed_features.pkl"):
+    def __init__(self, features_file="processed_features.pkl", target_features=15):
         self.features_file = features_file
+        self.target_features = target_features
         self.features = None
-        self.model = None
+        self.numeric_features = None
         self.best_features = None
         self.best_score = -np.inf
-        self.optimization_history = []
         
     def load_features(self):
-        """Load processed features"""
+        """Load processed features and identify numeric columns"""
         print("Loading features...")
         with open(self.features_file, 'rb') as f:
             self.features = pickle.load(f)
         
         print(f"Features shape: {self.features.shape}")
-        print(f"Total features available: {self.features.shape[1] - 1}")  # minus label
+        
+        # Identify non-numeric columns
+        non_numeric_cols = []
+        for col in self.features.columns:
+            if not pd.api.types.is_numeric_dtype(self.features[col]):
+                non_numeric_cols.append(col)
+        
+        if non_numeric_cols:
+            print(f"\n⚠️  Non-numeric columns found (will be excluded):")
+            for col in non_numeric_cols:
+                dtype = self.features[col].dtype
+                sample = self.features[col].iloc[0] if len(self.features) > 0 else "N/A"
+                print(f"  - {col}: {dtype} (sample: {sample})")
+        
+        # Get numeric features (exclude 'label' and non-numeric columns)
+        self.numeric_features = []
+        for col in self.features.columns:
+            if col == 'label':
+                continue
+            if pd.api.types.is_numeric_dtype(self.features[col]):
+                self.numeric_features.append(col)
+            else:
+                print(f"  Excluding non-numeric: {col}")
+        
+        print(f"\n✅ Numeric features available: {len(self.numeric_features)}")
+        print(f"Label column found: {'label' in self.features.columns}")
         
         return self.features
     
     def get_feature_importance_ranking(self, n_estimators=100, max_depth=10):
-        """Get initial feature importance ranking"""
-        print("\n🔍 Getting initial feature importance ranking...")
+        """Get initial feature importance ranking - FIXED VERSION"""
+        print(f"\n🔍 Getting initial feature importance ranking...")
         
-        # Read feature columns
-        with open('feature_columns.txt', 'r') as f:
-            all_features = [line.strip() for line in f]
+        if self.numeric_features is None:
+            self.load_features()
         
-        # Filter to existing columns
-        feature_names = [col for col in all_features if col in self.features.columns]
+        # Use only numeric features
+        X = self.features[self.numeric_features].copy()
+        y = self.features['label'].copy()
         
-        X = self.features[feature_names]
-        y = self.features['label']
+        print(f"X shape: {X.shape}")
+        print(f"y shape: {y.shape}")
+        
+        # Handle any NaN values
+        if X.isna().any().any():
+            print(f"Handling NaN values in features...")
+            X = X.fillna(0)
+        
+        # Check for any remaining non-numeric issues
+        for col in X.columns:
+            try:
+                # Try to convert to numeric
+                X[col] = pd.to_numeric(X[col], errors='coerce')
+            except:
+                print(f"Warning: Could not convert {col} to numeric")
+        
+        # Fill any new NaN values created during conversion
+        X = X.fillna(0)
         
         # Train a quick RandomForest for importance
         rf = RandomForestClassifier(
@@ -55,33 +95,38 @@ class FeatureOptimizer:
             min_samples_split=5,
             min_samples_leaf=2,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            class_weight='balanced'
         )
         
+        print("Training RandomForest for feature importance...")
         rf.fit(X, y)
         
         # Get importances
         importances = pd.DataFrame({
-            'feature': feature_names,
+            'feature': self.numeric_features,
             'importance': rf.feature_importances_
         }).sort_values('importance', ascending=False)
         
-        print(f"\nTop 20 features by importance:")
-        for i, (_, row) in enumerate(importances.head(20).iterrows()):
+        print(f"\nTop 30 features by importance:")
+        for i, (_, row) in enumerate(importances.head(30).iterrows()):
             print(f"  {i+1:2}. {row['feature']:30} : {row['importance']:.4f}")
         
-        importances.to_csv('initial_feature_importance.csv', index=False)
-        print(f"\nInitial feature importance saved to 'initial_feature_importance.csv'")
+        importances.to_csv('feature_importance_full.csv', index=False)
+        print(f"\nFull feature importance saved to 'feature_importance_full.csv'")
         
         return importances
     
     def evaluate_feature_set(self, feature_set, cv_folds=5):
-
         """Evaluate a specific feature set using cross-validation"""
-        # Filter to features that actually exist in the DataFrame
-        valid_features = [f for f in feature_set if f in self.features.columns]
+        # Filter to features that actually exist and are numeric
+        valid_features = []
+        for f in feature_set:
+            if f in self.numeric_features:
+                valid_features.append(f)
         
-        if len(valid_features) < 2:  # Need at least 2 features
+        if len(valid_features) < 2:
+            print(f"  Warning: Only {len(valid_features)} valid features in set")
             return {
                 'n_features': len(valid_features),
                 'mean_f1': 0.0,
@@ -89,43 +134,72 @@ class FeatureOptimizer:
                 'cv_scores': [0.0] * cv_folds
             }
         
-        X = self.features[valid_features]
-        y = self.features['label']
+        X = self.features[valid_features].copy()
+        y = self.features['label'].copy()
         
-        # Handle any NaN values
-        if X.isna().any().any():
-            X = X.fillna(0)
-
-       
+        # Handle NaN values
+        X = X.fillna(0)
+        
+        # Convert all columns to numeric to be safe
+        for col in X.columns:
+            X[col] = pd.to_numeric(X[col], errors='coerce')
+        X = X.fillna(0)
+        
         # Use time series cross-validation
-        tscv = TimeSeriesSplit(n_splits=cv_folds)
+        tscv = TimeSeriesSplit(n_splits=min(cv_folds, 5))
         
         model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=10,
+            n_estimators=50,
+            max_depth=8,
             min_samples_split=5,
             min_samples_leaf=2,
             random_state=42,
-            n_jobs=-1
+            n_jobs=-1,
+            class_weight='balanced'
         )
         
         # Cross-validate
-        cv_scores = cross_val_score(model, X, y, cv=tscv, scoring='f1', n_jobs=-1)
+        try:
+            cv_scores = cross_val_score(model, X, y, cv=tscv, scoring='f1', n_jobs=-1)
+            mean_score = cv_scores.mean()
+        except Exception as e:
+            print(f"  Cross-validation error: {e}")
+            mean_score = 0.0
+            cv_scores = [0.0] * cv_folds
         
         return {
-            'n_features': len(feature_set),
-            'mean_f1': cv_scores.mean(),
-            'std_f1': cv_scores.std(),
+            'n_features': len(valid_features),
+            'mean_f1': mean_score,
+            'std_f1': cv_scores.std() if len(cv_scores) > 1 else 0.0,
             'cv_scores': cv_scores.tolist()
         }
     
-    def greedy_forward_selection(self, top_n_features=50, max_features=30):
-        """Greedy forward feature selection"""
-        print(f"\n🚀 Starting greedy forward selection (max {max_features} features)...")
+    def simple_top_n_selection(self):
+        """Simple selection: just take top N features by importance"""
+        print(f"\n📊 Simple top-{self.target_features} feature selection...")
+        
+        importance_df = self.get_feature_importance_ranking()
+        top_features = importance_df['feature'].head(self.target_features).tolist()
+        
+        # Evaluate this simple selection
+        scores = self.evaluate_feature_set(top_features)
+        
+        self.best_features = top_features
+        self.best_score = scores['mean_f1']
+        
+        print(f"\n✅ Simple selection complete!")
+        print(f"Selected {len(self.best_features)} features")
+        print(f"F1 Score: {self.best_score:.4f}")
+        
+        return self.best_features
+    
+    def greedy_forward_selection_targeted(self):
+        """Greedy forward selection targeting 15 features"""
+        print(f"\n🚀 Starting greedy forward selection (target: {self.target_features} features)...")
         
         # Get initial importance ranking
         importance_df = self.get_feature_importance_ranking()
-        top_features = importance_df['feature'].head(top_n_features).tolist()
+        top_features = importance_df['feature'].head(40).tolist()  # Start with top 40
         
         selected_features = []
         available_features = top_features.copy()
@@ -133,20 +207,22 @@ class FeatureOptimizer:
         
         iteration = 0
         
-        while len(selected_features) < max_features and available_features:
+        while len(selected_features) < self.target_features and available_features:
             iteration += 1
             print(f"\n--- Iteration {iteration} ---")
-            print(f"Selected: {len(selected_features)} features")
+            print(f"Selected: {len(selected_features)}/{self.target_features} features")
+            print(f"Available: {len(available_features)} features")
             
             best_candidate = None
             best_candidate_score = -np.inf
             
-            # Try each available feature
-            for i, feature in enumerate(available_features):
+            # Try each available feature (limit to 20 for speed)
+            test_features = available_features[:20]
+            for i, feature in enumerate(test_features):
                 candidate_set = selected_features + [feature]
                 
-                if iteration % 5 == 0 and i % 10 == 0:
-                    print(f"  Testing {i+1}/{len(available_features)}: {feature}")
+                if i % 5 == 0:
+                    print(f"  Testing candidate {i+1}/{len(test_features)}...")
                 
                 # Evaluate candidate set
                 scores = self.evaluate_feature_set(candidate_set, cv_folds=3)
@@ -162,434 +238,198 @@ class FeatureOptimizer:
                 
                 print(f"✓ Added: {best_candidate}")
                 print(f"  Score: {best_candidate_score:.4f}")
-                
-                # Save this state
-                self.optimization_history.append({
-                    'iteration': iteration,
-                    'feature_added': best_candidate,
-                    'selected_features': selected_features.copy(),
-                    'score': best_candidate_score,
-                    'n_features': len(selected_features)
-                })
+                print(f"  Progress: {len(selected_features)}/{self.target_features} features")
                 
                 # Update best overall
                 if best_candidate_score > best_score:
                     best_score = best_candidate_score
                     self.best_features = selected_features.copy()
                     self.best_score = best_score
-        
-        print(f"\n✅ Greedy forward selection complete!")
-        print(f"Best F1 Score: {best_score:.4f}")
-        print(f"Number of features: {len(self.best_features)}")
-        
-        return self.best_features
-    
-    def backward_elimination(self, initial_features, min_features=10):
-        """Backward elimination from full feature set"""
-        print(f"\n🔙 Starting backward elimination (min {min_features} features)...")
-        
-        current_features = initial_features.copy()
-        best_score = self.evaluate_feature_set(current_features)['mean_f1']
-        
-        iteration = 0
-        
-        while len(current_features) > min_features:
-            iteration += 1
-            print(f"\n--- Iteration {iteration} ---")
-            print(f"Current: {len(current_features)} features")
-            
-            worst_feature = None
-            best_removal_score = -np.inf
-            
-            # Try removing each feature
-            for i, feature in enumerate(current_features):
-                candidate_set = [f for f in current_features if f != feature]
-                
-                if iteration % 5 == 0 and i % 10 == 0:
-                    print(f"  Testing removal {i+1}/{len(current_features)}: {feature}")
-                
-                scores = self.evaluate_feature_set(candidate_set, cv_folds=3)
-                
-                if scores['mean_f1'] > best_removal_score:
-                    best_removal_score = scores['mean_f1']
-                    worst_feature = feature
-            
-            # If removing improves score, remove it
-            if best_removal_score >= best_score and worst_feature:
-                current_features.remove(worst_feature)
-                best_score = best_removal_score
-                
-                print(f"✗ Removed: {worst_feature}")
-                print(f"  New score: {best_score:.4f}")
-                
-                self.optimization_history.append({
-                    'iteration': iteration,
-                    'feature_removed': worst_feature,
-                    'remaining_features': current_features.copy(),
-                    'score': best_score,
-                    'n_features': len(current_features)
-                })
-                
-                # Update best overall
-                if best_score > self.best_score:
-                    self.best_features = current_features.copy()
-                    self.best_score = best_score
             else:
-                print(f"⏹️  No improvement from removal. Stopping.")
+                print("No candidate improved score. Stopping.")
                 break
         
-        print(f"\n✅ Backward elimination complete!")
+        print(f"\n✅ Greedy forward selection complete!")
+        print(f"Selected {len(self.best_features)} features")
         print(f"Best F1 Score: {self.best_score:.4f}")
-        print(f"Number of features: {len(self.best_features)}")
         
         return self.best_features
     
-    def category_based_optimization(self):
-        """Optimize features by category (more intelligent)"""
-        print("\n🧠 Starting category-based optimization...")
+    def analyze_feature_categories(self, feature_set):
+        """Analyze the distribution of features across categories"""
+        print(f"\n📊 Feature Category Analysis:")
+        print("-" * 40)
         
-        # Define feature categories (modify based on your actual features)
         categories = {
-            'BB_Features': ['bb_width', 'bb_position', 'bb_pctB', 'bb_band_distance'],
-            'RSI_Features': ['rsi', 'rsi_slope', 'rsi_divergence'],
-            'Price_Action': ['close_ratio', 'high_low_ratio', 'body_size', 'wick_ratio'],
-            'Volume': ['volume_change', 'volume_ratio', 'volume_slope'],
-            'Trend': ['ema_slope', 'trend_strength', 'momentum'],
-            'Patterns': ['hammer', 'doji', 'engulfing', 'pinbar'],
-            'Support_Resistance': ['sr_distance', 'sr_touch_count'],
-            'Time_Features': ['hour', 'day_of_week', 'month']
+            'Bollinger Bands': ['bb_', 'bbw', 'dist_bb', 'bb_position'],
+            'RSI': ['rsi_'],
+            'Price Action': ['close_', 'ret_', 'price_'],
+            'Volume': ['volume_'],
+            'Candle Patterns': ['wick_', 'body_', 'candle_'],
+            'Moving Averages': ['ema_', 'sma_'],
+            'Lagged Features': ['lag', '_lag']
         }
         
-        # Filter to existing features
-        with open('feature_columns.txt', 'r') as f:
-            all_features = [line.strip() for line in f]
+        category_counts = {cat: 0 for cat in categories.keys()}
+        categorized_features = {cat: [] for cat in categories.keys()}
         
-        actual_categories = {}
-        for category, possible_features in categories.items():
-            actual_features = [f for f in possible_features if f in all_features]
-            if actual_features:
-                actual_categories[category] = actual_features
-        
-        print("\nFeature categories identified:")
-        for category, features in actual_categories.items():
-            print(f"  {category}: {len(features)} features")
-        
-        # Start with 1 best feature from each category
-        initial_features = []
-        importance_df = self.get_feature_importance_ranking()
-        
-        for category, features in actual_categories.items():
-            # Find most important feature in this category
-            category_importance = importance_df[importance_df['feature'].isin(features)]
-            if not category_importance.empty:
-                best_in_category = category_importance.iloc[0]['feature']
-                initial_features.append(best_in_category)
-                print(f"  Selected from {category}: {best_in_category}")
-        
-        print(f"\nInitial feature set: {len(initial_features)} features")
-        
-        # Now optimize within each category
-        optimized_features = initial_features.copy()
-        
-        for category, features in actual_categories.items():
-            print(f"\nOptimizing {category}...")
+        for feature in feature_set:
+            feature_lower = feature.lower()
+            categorized = False
             
-            # Evaluate current set
-            current_score = self.evaluate_feature_set(optimized_features)['mean_f1']
+            for category, keywords in categories.items():
+                for keyword in keywords:
+                    if keyword in feature_lower:
+                        category_counts[category] += 1
+                        categorized_features[category].append(feature)
+                        categorized = True
+                        break
+                if categorized:
+                    break
+        
+        # Print category distribution
+        total = 0
+        for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
+            if count > 0:
+                total += count
+                print(f"  {category:20}: {count:2d} features")
+                for feat in categorized_features[category]:
+                    print(f"    - {feat}")
+        
+        # Calculate percentages
+        print(f"\n📈 Category Distribution:")
+        for category, count in sorted(category_counts.items(), key=lambda x: x[1], reverse=True):
+            if count > 0:
+                percentage = (count / total) * 100
+                print(f"  {category:20}: {percentage:5.1f}%")
+        
+        return category_counts
+    
+    def save_optimized_features(self, output_file="optimized_features_15.txt"):
+        """Save the optimized 15-feature set"""
+        if not self.best_features:
+            print("No features to save!")
+            return
+        
+        with open(output_file, 'w') as f:
+            f.write(f"# Optimized Feature Set - {len(self.best_features)} Features\n")
+            f.write(f"# Generated: {pd.Timestamp.now()}\n")
+            f.write(f"# Target Features: {self.target_features}\n")
+            f.write(f"# Best F1 Score: {self.best_score:.4f}\n")
+            f.write("#" * 60 + "\n\n")
             
-            # Try adding other features from this category
-            for feature in features:
-                if feature not in optimized_features:
-                    candidate_set = optimized_features + [feature]
-                    candidate_score = self.evaluate_feature_set(candidate_set)['mean_f1']
-                    
-                    if candidate_score > current_score:
-                        optimized_features.append(feature)
-                        current_score = candidate_score
-                        print(f"  ✓ Added {feature} (score: {candidate_score:.4f})")
-        
-        print(f"\n✅ Category-based optimization complete!")
-        print(f"Final features: {len(optimized_features)}")
-        
-        # Update best
-        final_score = self.evaluate_feature_set(optimized_features)['mean_f1']
-        if final_score > self.best_score:
-            self.best_features = optimized_features
-            self.best_score = final_score
-        
-        return optimized_features
-    
-    def genetic_optimization(self, population_size=20, generations=10, elite_size=4):
-        """Genetic algorithm for feature selection"""
-        print(f"\n🧬 Starting genetic optimization...")
-        
-        importance_df = self.get_feature_importance_ranking()
-        all_features = importance_df['feature'].head(50).tolist()  # Work with top 50
-        
-        # Initialize population
-        population = []
-        for _ in range(population_size):
-            # Random feature set (10-25 features)
-            n_features = np.random.randint(10, 26)
-            features = list(np.random.choice(all_features, n_features, replace=False))
-            score = self.evaluate_feature_set(features)['mean_f1']
-            population.append((features, score))
-        
-        population.sort(key=lambda x: x[1], reverse=True)
-        
-        for generation in range(generations):
-            print(f"\nGeneration {generation + 1}/{generations}")
-            print(f"Best score: {population[0][1]:.4f} ({len(population[0][0])} features)")
+            # Write features
+            for i, feature in enumerate(self.best_features, 1):
+                f.write(f"{feature}\n")
             
-            # Elitism: keep best individuals
-            new_population = population[:elite_size]
+            # Add category analysis
+            f.write("\n" + "#" * 60 + "\n")
+            f.write("# Category Analysis\n")
+            f.write("#" * 60 + "\n")
             
-            # Create next generation
-            while len(new_population) < population_size:
-                # Selection (tournament)
-                parent1 = self._tournament_selection(population)
-                parent2 = self._tournament_selection(population)
-                
-                # Crossover
-                child = self._crossover(parent1[0], parent2[0], all_features)
-                
-                # Mutation
-                if np.random.random() < 0.3:
-                    child = self._mutate(child, all_features)
-                
-                # Evaluate child
-                child_score = self.evaluate_feature_set(child)['mean_f1']
-                new_population.append((child, child_score))
+            # Get category counts
+            categories = self.analyze_feature_categories(self.best_features)
             
-            population = sorted(new_population, key=lambda x: x[1], reverse=True)
+            for category, count in sorted(categories.items(), key=lambda x: x[1], reverse=True):
+                if count > 0:
+                    f.write(f"\n# {category} ({count} features)\n")
         
-        # Update best
-        self.best_features = population[0][0]
-        self.best_score = population[0][1]
+        print(f"\n✅ Optimized feature set saved to '{output_file}'")
         
-        print(f"\n✅ Genetic optimization complete!")
-        print(f"Best F1 Score: {self.best_score:.4f}")
-        print(f"Number of features: {len(self.best_features)}")
+        # Save as JSON with more details
+        metadata = {
+            'optimization_date': pd.Timestamp.now().isoformat(),
+            'target_features': self.target_features,
+            'actual_features': len(self.best_features),
+            'best_score': float(self.best_score),
+            'features': self.best_features,
+            'total_numeric_features': len(self.numeric_features) if self.numeric_features else 0
+        }
         
-        return self.best_features
+        with open('optimization_metadata_15.json', 'w') as f:
+            json.dump(metadata, f, indent=2, default=str)
+        
+        print(f"📊 Optimization metadata saved to 'optimization_metadata_15.json'")
     
-    def _tournament_selection(self, population, tournament_size=3):
-        """Tournament selection for genetic algorithm"""
-        tournament = np.random.choice(len(population), tournament_size, replace=False)
-        tournament = [population[i] for i in tournament]
-        return max(tournament, key=lambda x: x[1])
-    
-    def _crossover(self, parent1, parent2, all_features):
-        """Crossover for genetic algorithm"""
-        # Union crossover
-        child = list(set(parent1) | set(parent2))
-        
-        # Trim if too many features
-        if len(child) > 30:
-            child = list(np.random.choice(child, 30, replace=False))
-        
-        return child
-    
-    def _mutate(self, individual, all_features, mutation_rate=0.1):
-        """Mutation for genetic algorithm"""
-        mutated = individual.copy()
-        
-        # Add random feature
-        if np.random.random() < mutation_rate and len(mutated) < 30:
-            available = [f for f in all_features if f not in mutated]
-            if available:
-                mutated.append(np.random.choice(available))
-        
-        # Remove random feature
-        if np.random.random() < mutation_rate and len(mutated) > 5:
-            mutated.pop(np.random.randint(len(mutated)))
-        
-        return mutated
-    
-    def run_comprehensive_optimization(self):
-        """Run all optimization strategies and select best"""
+    def run_optimization_pipeline(self):
+        """Run the complete optimization pipeline for 15 features"""
         print("="*70)
-        print("🤖 AUTOMATED FEATURE OPTIMIZATION")
+        print(f"🎯 FEATURE OPTIMIZATION PIPELINE - TARGET: {self.target_features} FEATURES")
         print("="*70)
         
-        # Load features
+        # Load data
         self.load_features()
         
-        # Run different optimization strategies
-        strategies = {
-            'greedy_forward': self.greedy_forward_selection,
-            'backward': lambda: self.backward_elimination(
-                self.get_feature_importance_ranking()['feature'].head(40).tolist()
-            ),
-            'category_based': self.category_based_optimization,
-            'genetic': self.genetic_optimization
-        }
+        print(f"\n{'='*60}")
+        print("Strategy 1: Simple Top-N Selection")
+        print(f"{'='*60}")
+        simple_features = self.simple_top_n_selection()
+        simple_score = self.best_score
         
-        results = {}
+        print(f"\n{'='*60}")
+        print("Strategy 2: Greedy Forward Selection")
+        print(f"{'='*60}")
+        # Reset for second strategy
+        temp_features = self.best_features.copy()
+        temp_score = self.best_score
+        self.best_features = None
+        self.best_score = -np.inf
         
-        for strategy_name, strategy_func in strategies.items():
-            print(f"\n{'='*60}")
-            print(f"Running {strategy_name.replace('_', ' ').title()}...")
-            print(f"{'='*60}")
-            
-            try:
-                features = strategy_func()
-                score = self.evaluate_feature_set(features)['mean_f1']
-                results[strategy_name] = {
-                    'features': features,
-                    'score': score,
-                    'n_features': len(features)
-                }
-                print(f"  Score: {score:.4f}, Features: {len(features)}")
-            except Exception as e:
-                print(f"  Error in {strategy_name}: {e}")
+        greedy_features = self.greedy_forward_selection_targeted()
+        greedy_score = self.best_score
         
-        # Select best strategy
-        if results:
-            best_strategy = max(results.items(), key=lambda x: x[1]['score'])
-            best_name, best_result = best_strategy
-            
-            self.best_features = best_result['features']
-            self.best_score = best_result['score']
-            
-            print(f"\n{'='*70}")
-            print(f"🏆 BEST STRATEGY: {best_name.replace('_', ' ').title()}")
-            print(f"{'='*70}")
-            print(f"F1 Score: {self.best_score:.4f}")
-            print(f"Number of features: {len(self.best_features)}")
-            print(f"Features per category:")
-            
-            # Analyze feature categories
-            categories = {}
-            for feature in self.best_features:
-                cat = self._categorize_feature(feature)
-                categories[cat] = categories.get(cat, 0) + 1
-            
-            for cat, count in sorted(categories.items()):
-                print(f"  {cat}: {count}")
-            
-            # Save results
-            self._save_optimization_results(results)
-            
-            # Save best feature set
-            self._save_best_features()
-            
-            return self.best_features
+        # Choose best strategy
+        if greedy_score > simple_score:
+            print(f"\n🏆 Greedy selection is better: {greedy_score:.4f} vs {simple_score:.4f}")
         else:
-            print("No successful optimization strategies!")
-            return None
-    
-    def _categorize_feature(self, feature_name):
-        """Categorize a feature based on its name"""
-        feature_name = feature_name.lower()
+            print(f"\n🏆 Simple selection is better: {simple_score:.4f} vs {greedy_score:.4f}")
+            self.best_features = temp_features
+            self.best_score = temp_score
         
-        if 'bb_' in feature_name or 'bollinger' in feature_name:
-            return 'Bollinger_Bands'
-        elif 'rsi' in feature_name:
-            return 'RSI'
-        elif any(x in feature_name for x in ['close', 'open', 'high', 'low', 'price']):
-            return 'Price_Action'
-        elif 'volume' in feature_name:
-            return 'Volume'
-        elif any(x in feature_name for x in ['ema', 'sma', 'ma', 'trend', 'momentum']):
-            return 'Trend'
-        elif any(x in feature_name for x in ['wick', 'body', 'candle', 'pattern']):
-            return 'Candle_Patterns'
-        elif any(x in feature_name for x in ['hour', 'day', 'week', 'month', 'time']):
-            return 'Time_Features'
-        else:
-            return 'Other'
-    
-    def _save_optimization_results(self, results):
-        """Save all optimization results"""
-        output = {
-            'optimization_date': pd.Timestamp.now().isoformat(),
-            'best_score': self.best_score,
-            'best_features': self.best_features,
-            'all_strategies': {}
-        }
+        # Analyze feature categories
+        print(f"\n{'='*60}")
+        print("Final Feature Category Distribution")
+        print(f"{'='*60}")
+        self.analyze_feature_categories(self.best_features)
         
-        for strategy_name, result in results.items():
-            output['all_strategies'][strategy_name] = {
-                'score': result['score'],
-                'n_features': result['n_features'],
-                'features': result['features']
-            }
+        # Save results
+        self.save_optimized_features()
         
-        with open('feature_optimization_results.json', 'w') as f:
-            json.dump(output, f, indent=2, default=str)
+        print(f"\n{'='*70}")
+        print("✅ OPTIMIZATION COMPLETE!")
+        print(f"{'='*70}")
+        print(f"\n🎯 Target: {self.target_features} features")
+        print(f"📈 Achieved: {len(self.best_features)} features")
+        print(f"🏆 Best F1 Score: {self.best_score:.4f}")
         
-        print(f"\n📊 Optimization results saved to 'feature_optimization_results.json'")
-    
-    def _save_best_features(self):
-        """Save the best feature set to a text file"""
-        with open('optimized_features.txt', 'w') as f:
-            f.write("# Optimized Feature Set - Auto-generated\n")
-            f.write(f"# Generated: {pd.Timestamp.now()}\n")
-            f.write(f"# F1 Score: {self.best_score:.4f}\n")
-            f.write(f"# Number of features: {len(self.best_features)}\n")
-            f.write("#" * 50 + "\n\n")
-            
-            # Group by category
-            categorized = {}
-            for feature in self.best_features:
-                cat = self._categorize_feature(feature)
-                if cat not in categorized:
-                    categorized[cat] = []
-                categorized[cat].append(feature)
-            
-            # Write categorized
-            for category in sorted(categorized.keys()):
-                f.write(f"\n# {category} ({len(categorized[category])} features)\n")
-                for feature in sorted(categorized[category]):
-                    f.write(f"{feature}\n")
-            
-            # Also write flat list for compatibility
-            f.write("\n" + "#" * 50 + "\n")
-            f.write("# Flat list for model training\n")
-            f.write("#" * 50 + "\n")
-            for feature in self.best_features:
-                f.write(f"{feature}\n")
-        
-        print(f"✅ Optimized feature set saved to 'optimized_features.txt'")
-        
-        # Also save as CSV with importance if available
-        try:
-            importance_df = self.get_feature_importance_ranking()
-            best_importance = importance_df[importance_df['feature'].isin(self.best_features)]
-            best_importance.to_csv('optimized_features_with_importance.csv', index=False)
-            print(f"📈 Feature importance saved to 'optimized_features_with_importance.csv'")
-        except:
-            pass
+        return self.best_features
 
 def main():
-    """Run the automated feature optimization"""
+    """Main function to run 15-feature optimization"""
     print("="*70)
-    print("🤖 AUTOMATED FEATURE SELECTION OPTIMIZER")
+    print("🎯 15-FEATURE OPTIMIZATION PIPELINE")
     print("="*70)
     
-    optimizer = FeatureOptimizer()
+    # Initialize optimizer
+    optimizer = FeatureOptimizer15(target_features=15)
     
-    print("\n1. Loading data...")
-    optimizer.load_features()
-    
-    print("\n2. Running comprehensive optimization...")
-    best_features = optimizer.run_comprehensive_optimization()
+    # Run optimization
+    best_features = optimizer.run_optimization_pipeline()
     
     if best_features:
-        print("\n" + "="*70)
-        print("✅ OPTIMIZATION COMPLETE!")
-        print("="*70)
-        print(f"\n🎯 Best feature set: {len(best_features)} features")
-        print(f"📈 Expected F1 Score: {optimizer.best_score:.4f}")
         print(f"\n📄 Output files created:")
-        print("  1. optimized_features.txt - Best feature set")
-        print("  2. feature_optimization_results.json - All results")
-        print("  3. optimized_features_with_importance.csv - With scores")
-        print("\n🔧 Next steps:")
-        print("  1. Use 'optimized_features.txt' in your model training")
-        print("  2. Retrain model with optimized features")
-        print("  3. Compare performance with original feature set")
+        print("  1. optimized_features_15.txt - 15-feature set")
+        print("  2. optimization_metadata_15.json - Detailed metadata")
+        print("  3. feature_importance_full.csv - All feature importances")
+        
+        print(f"\n🔧 Next steps:")
+        print("  1. Update your train_model.py CURATED_FEATURES list with these 15 features")
+        print("  2. Retrain model with the optimized feature set")
+        print("  3. Compare performance with the original 30 features")
+        
+        print(f"\n📋 Optimized Feature List:")
+        for i, feature in enumerate(best_features, 1):
+            print(f"  {i:2}. {feature}")
     else:
         print("\n❌ Optimization failed!")
 

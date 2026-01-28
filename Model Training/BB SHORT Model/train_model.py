@@ -1,3 +1,5 @@
+# train_model.py
+
 import pandas as pd
 import numpy as np
 import pickle
@@ -26,36 +28,19 @@ class BollingerBandsModelTrainer:
         
         # Define your curated feature list - ONLY these 30 features will be used
         self.CURATED_FEATURES = [
-            "rsi_slope_lag1",
+            "candle_body_pct",
             "ret_lag1",
-            "ema_50_slope_lag2",
-            "ema_50_slope_lag3",
-            "body_vs_bb_lag1",
-            "atr_norm_lag3",
-            "volume_lag3",
-            "body_vs_bb_lag3",
-            "bb_width_pct_lag1",
-            "volume_lag2",
-            "dist_bb_upper_lag1",
-            "candle_vs_bb_lag1",
-            "close_pos_in_candle_lag2",
-            "rsi_value_lag1",
-            "ret_lag2",
-            "wick_ratio_lag3",
-            "body_vs_bb_lag2",
-            "close_pos_in_candle_lag1",
-            "bb_width_pct_lag2",
-            "volume_lag1",
-            "wick_ratio_lag1",
-            "lower_wick_lag2",
-            "bb_position_lag2",
-            "dist_bb_upper_lag2",
             "rsi_slope_lag2",
-            "price_slope_3",
-            "ret_lag3",
-            "rsi_value_lag2",
+            "ret",
+            "body_size",
+            "RSI_slope_3",
+            "rsi_slope_lag3",
+            "ret_lag2",
+            "price_momentum",
+            "rsi_slope",
             "dist_bb_upper_lag3",
-            "body_size_lag2"
+            "rsi_slope_lag1",
+            "rsi_value"
         ]
     
     def load_features(self):
@@ -368,7 +353,8 @@ class BollingerBandsModelTrainer:
         print(f"✅ Model info saved to 'model_info.json'")
         
         return filename
-    
+
+
     def generate_trading_signals(self, threshold=0.5):
         """Generate trading signals from test predictions"""
         print("\n" + "="*60)
@@ -381,39 +367,94 @@ class BollingerBandsModelTrainer:
         # Create signals DataFrame
         signals_df = pd.DataFrame({
             'timestamp': self.test_timestamps.values if hasattr(self, 'test_timestamps') else [],
-            'close': self.X_test['close_lag1'].values if 'close_lag1' in self.X_test.columns else np.zeros(len(y_pred)),
             'signal': y_pred,
             'probability': y_pred_proba,
             'actual': self.y_test.values
         })
         
-        # Add signal strength categories
-        signals_df['signal_strength'] = pd.cut(signals_df['probability'], 
-                                               bins=[0, 0.3, 0.5, 0.7, 0.9, 1.0],
-                                               labels=['Very Weak', 'Weak', 'Moderate', 'Strong', 'Very Strong'])
+        # Initialize signal_strength column
+        signals_df['signal_strength'] = 'No Signal'
         
-        # Calculate signal statistics
-        total_signals = signals_df['signal'].sum()
-        correct_signals = signals_df[(signals_df['signal'] == 1) & (signals_df['actual'] == 1)].shape[0]
+        # Analyze signal strength for BUY signals only
+        print(f"\nSignal Strength Distribution for BUY Signals:")
+        print("-" * 50)
         
-        print(f"\nSignal Statistics:")
-        print(f"  Total signals generated: {total_signals}")
-        print(f"  Correct signals: {correct_signals}")
-        if total_signals > 0:
-            print(f"  Signal accuracy: {correct_signals/total_signals:.2%}")
+        if signals_df['signal'].sum() > 0:
+            buy_signals_mask = signals_df['signal'] == 1
+            buy_signals_df = signals_df[buy_signals_mask].copy()
+            
+            # Define categories matching your output
+            categories = {
+                'Very Weak': (0.0, 0.3),
+                'Weak': (0.3, 0.5),
+                'Moderate': (0.5, 0.7),
+                'Strong': (0.7, 0.9),
+                'Very Strong': (0.9, 1.0)
+            }
+            
+            total_buy_signals = len(buy_signals_df)
+            print(f"Total BUY signals: {total_buy_signals}")
+            print("\nStrength Breakdown:")
+            print("Category       | Signals | Percentage | Avg Probability")
+            print("-" * 50)
+            
+            for category, (low, high) in categories.items():
+                # Create mask for current category
+                category_mask = (buy_signals_df['probability'] >= low)
+                if high < 1.0:
+                    category_mask &= (buy_signals_df['probability'] < high)
+                else:
+                    category_mask &= (buy_signals_df['probability'] <= high)
+                
+                category_signals = buy_signals_df[category_mask]
+                count = len(category_signals)
+                
+                if count > 0:
+                    percentage = (count / total_buy_signals) * 100
+                    avg_prob = category_signals['probability'].mean()
+                    print(f"{category:15} | {count:7d} | {percentage:9.1f}% | {avg_prob:.3f}")
+                    
+                    # Get the original indices from buy_signals_df
+                    category_indices = category_signals.index
+                    
+                    # Update signal strength in the main DataFrame
+                    signals_df.loc[category_indices, 'signal_strength'] = category
+                else:
+                    print(f"{category:15} | {count:7d} | {'0.0%':>9} | N/A")
+        else:
+            print("No BUY signals generated")
+        
+        # Calculate signal performance metrics
+        print(f"\nSignal Performance Analysis:")
+        print("-" * 50)
+        
+        buy_signals_df = signals_df[signals_df['signal'] == 1]
+        if len(buy_signals_df) > 0:
+            correct_signals = buy_signals_df[buy_signals_df['actual'] == 1]
+            
+            accuracy = len(correct_signals) / len(buy_signals_df) if len(buy_signals_df) > 0 else 0
+            
+            print(f"Total Signals Generated: {len(buy_signals_df)}")
+            print(f"Correct Signals: {len(correct_signals)}")
+            print(f"Signal Accuracy: {accuracy:.2%}")
+            
+            # Performance by strength category
+            print(f"\nPerformance by Signal Strength:")
+            for strength in signals_df['signal_strength'].unique():
+                if strength != 'No Signal':
+                    strength_signals = signals_df[(signals_df['signal_strength'] == strength) & 
+                                                (signals_df['signal'] == 1)]
+                    if len(strength_signals) > 0:
+                        strength_correct = strength_signals[strength_signals['actual'] == 1]
+                        strength_acc = len(strength_correct) / len(strength_signals) if len(strength_signals) > 0 else 0
+                        print(f"  {strength:15}: {len(strength_signals)} signals, {strength_acc:.2%} accuracy")
         
         # Save signals
         signals_df.to_csv('trading_signals.csv', index=False)
         print(f"\n✅ Trading signals saved to 'trading_signals.csv'")
         
-        # Analyze signal strength
-        print(f"\nSignal Strength Distribution:")
-        if total_signals > 0:
-            strength_counts = signals_df[signals_df['signal'] == 1]['signal_strength'].value_counts().sort_index()
-            for strength, count in strength_counts.items():
-                print(f"  {strength:12}: {count:3d} signals ({count/total_signals:.1%})")
-        
         return signals_df
+
 
 def main():
     """Main execution function"""

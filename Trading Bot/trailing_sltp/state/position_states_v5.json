@@ -6152,29 +6152,34 @@
     "stage_history": [],
     "profit_history": [
       0.0,
-      3.6
+      3.6,
+      3.9
     ],
     "profit_ratio_history": [
       0.0,
-      0.011
+      0.011,
+      0.012
     ],
     "bb_width_history": [
+      338.31,
       338.31,
       338.31
     ],
     "bb_width_price_history": [
       0.03383,
+      0.03383,
       0.03383
     ],
     "profit_pips_threshold_history": [
       8.0,
-      4.4
+      4.4,
+      4.1
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
-    "peak_profit_pips": 3.6,
-    "peak_profit_ratio": 0.011,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "peak_profit_pips": 3.9,
+    "peak_profit_ratio": 0.012,
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110262": {
     "symbol": "USDCAD",
@@ -6183,29 +6188,34 @@
     "stage_history": [],
     "profit_history": [
       -0.1,
-      1.5
+      1.5,
+      -14.6
     ],
     "profit_ratio_history": [
       -0.0,
-      0.006
+      0.006,
+      -0.061
     ],
     "bb_width_history": [
+      241.17,
       241.17,
       241.17
     ],
     "bb_width_price_history": [
       0.02412,
+      0.02412,
       0.02412
     ],
     "profit_pips_threshold_history": [
       8.1,
-      6.5
+      6.5,
+      22.6
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 1.5,
     "peak_profit_ratio": 0.006,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110268": {
     "symbol": "EURAUD",
@@ -6247,29 +6257,34 @@
     "stage_history": [],
     "profit_history": [
       -0.9,
-      6.0
+      6.0,
+      -22.3
     ],
     "profit_ratio_history": [
       -0.011,
-      0.071
+      0.071,
+      -0.266
     ],
     "bb_width_history": [
+      83.98,
       83.98,
       83.98
     ],
     "bb_width_price_history": [
       0.0084,
+      0.0084,
       0.0084
     ],
     "profit_pips_threshold_history": [
       8.9,
-      2.0
+      2.0,
+      30.3
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 6.0,
     "peak_profit_ratio": 0.071,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110283": {
     "symbol": "EURCHF",
@@ -6278,29 +6293,34 @@
     "stage_history": [],
     "profit_history": [
       -0.7,
-      2.8
+      2.8,
+      -5.7
     ],
     "profit_ratio_history": [
       -0.005,
-      0.02
+      0.02,
+      -0.04
     ],
     "bb_width_history": [
+      141.7,
       141.7,
       141.7
     ],
     "bb_width_price_history": [
       0.01417,
+      0.01417,
       0.01417
     ],
     "profit_pips_threshold_history": [
       8.7,
-      5.2
+      5.2,
+      13.7
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 2.8,
     "peak_profit_ratio": 0.02,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110309": {
     "symbol": "GBPCHF",
@@ -6309,29 +6329,34 @@
     "stage_history": [],
     "profit_history": [
       -0.6,
-      0.9
+      0.9,
+      -1.1
     ],
     "profit_ratio_history": [
       -0.004,
-      0.005
+      0.005,
+      -0.007
     ],
     "bb_width_history": [
+      166.75,
       166.75,
       166.75
     ],
     "bb_width_price_history": [
       0.01667,
+      0.01667,
       0.01667
     ],
     "profit_pips_threshold_history": [
       8.6,
-      7.1
+      7.1,
+      9.1
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.9,
     "peak_profit_ratio": 0.005,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110315": {
     "symbol": "AUDCHF",
@@ -6340,29 +6365,34 @@
     "stage_history": [],
     "profit_history": [
       -0.4,
-      -1.4
+      -1.4,
+      5.4
     ],
     "profit_ratio_history": [
       -0.005,
-      -0.016
+      -0.016,
+      0.062
     ],
     "bb_width_history": [
+      87.47,
       87.47,
       87.47
     ],
     "bb_width_price_history": [
       0.00875,
+      0.00875,
       0.00875
     ],
     "profit_pips_threshold_history": [
       8.4,
-      9.4
+      9.4,
+      2.6
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
-    "peak_profit_pips": 0.0,
-    "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "peak_profit_pips": 5.4,
+    "peak_profit_ratio": 0.062,
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110319": {
     "symbol": "NZDCHF",
@@ -6371,29 +6401,34 @@
     "stage_history": [],
     "profit_history": [
       -0.8,
-      -1.8
+      -1.8,
+      2.9
     ],
     "profit_ratio_history": [
       -0.009,
-      -0.02
+      -0.02,
+      0.033
     ],
     "bb_width_history": [
+      87.93,
       87.93,
       87.93
     ],
     "bb_width_price_history": [
       0.00879,
+      0.00879,
       0.00879
     ],
     "profit_pips_threshold_history": [
       8.8,
-      9.8
+      9.8,
+      5.1
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
-    "peak_profit_pips": 0.0,
-    "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "peak_profit_pips": 2.9,
+    "peak_profit_ratio": 0.033,
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110324": {
     "symbol": "CADJPY",
@@ -6402,29 +6437,34 @@
     "stage_history": [],
     "profit_history": [
       -0.7,
-      0.8
+      0.8,
+      -14.9
     ],
     "profit_ratio_history": [
       -0.002,
-      0.002
+      0.002,
+      -0.034
     ],
     "bb_width_history": [
+      442.22,
       442.22,
       442.22
     ],
     "bb_width_price_history": [
       4.42216,
+      4.42216,
       4.42216
     ],
     "profit_pips_threshold_history": [
       8.7,
-      7.2
+      7.2,
+      22.9
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.8,
     "peak_profit_ratio": 0.002,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232110331": {
     "symbol": "CADCHF",
@@ -6433,29 +6473,34 @@
     "stage_history": [],
     "profit_history": [
       -1.1,
-      0.9
+      0.9,
+      7.9
     ],
     "profit_ratio_history": [
       -0.007,
-      0.006
+      0.006,
+      0.051
     ],
     "bb_width_history": [
+      155.11,
       155.11,
       155.11
     ],
     "bb_width_price_history": [
       0.01551,
+      0.01551,
       0.01551
     ],
     "profit_pips_threshold_history": [
       9.1,
-      7.1
+      7.1,
+      0.1
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
-    "peak_profit_pips": 0.9,
-    "peak_profit_ratio": 0.006,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "peak_profit_pips": 7.9,
+    "peak_profit_ratio": 0.051,
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232121039": {
     "symbol": "USDJPY",
@@ -6489,25 +6534,30 @@
     "entry_price": 0.76621,
     "stage_history": [],
     "profit_history": [
-      -0.3
+      -0.3,
+      0.0
     ],
     "profit_ratio_history": [
-      -0.001
+      -0.001,
+      0.0
     ],
     "bb_width_history": [
+      338.31,
       338.31
     ],
     "bb_width_price_history": [
+      0.03383,
       0.03383
     ],
     "profit_pips_threshold_history": [
-      8.3
+      8.3,
+      8.0
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232121043": {
     "symbol": "USDCAD",
@@ -6515,25 +6565,30 @@
     "entry_price": 1.3614600000000001,
     "stage_history": [],
     "profit_history": [
-      -0.3
+      -0.3,
+      -16.4
     ],
     "profit_ratio_history": [
-      -0.001
+      -0.001,
+      -0.068
     ],
     "bb_width_history": [
+      241.17,
       241.17
     ],
     "bb_width_price_history": [
+      0.02412,
       0.02412
     ],
     "profit_pips_threshold_history": [
-      8.3
+      8.3,
+      24.4
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
   "232121045": {
     "symbol": "EURAUD",
@@ -6567,10 +6622,331 @@
     "entry_price": 1.97601,
     "stage_history": [],
     "profit_history": [
-      -0.7
+      -0.7,
+      -29.0
     ],
     "profit_ratio_history": [
-      -0.008
+      -0.008,
+      -0.345
+    ],
+    "bb_width_history": [
+      83.98,
+      83.98
+    ],
+    "bb_width_price_history": [
+      0.0084,
+      0.0084
+    ],
+    "profit_pips_threshold_history": [
+      8.7,
+      37.0
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121056": {
+    "symbol": "EURCHF",
+    "type": "BUY",
+    "entry_price": 0.91882,
+    "stage_history": [],
+    "profit_history": [
+      -0.4,
+      -8.9
+    ],
+    "profit_ratio_history": [
+      -0.003,
+      -0.063
+    ],
+    "bb_width_history": [
+      141.7,
+      141.7
+    ],
+    "bb_width_price_history": [
+      0.01417,
+      0.01417
+    ],
+    "profit_pips_threshold_history": [
+      8.4,
+      16.9
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121064": {
+    "symbol": "GBPCHF",
+    "type": "BUY",
+    "entry_price": 1.05711,
+    "stage_history": [],
+    "profit_history": [
+      -0.9,
+      -2.9
+    ],
+    "profit_ratio_history": [
+      -0.005,
+      -0.017
+    ],
+    "bb_width_history": [
+      166.75,
+      166.75
+    ],
+    "bb_width_price_history": [
+      0.01667,
+      0.01667
+    ],
+    "profit_pips_threshold_history": [
+      8.9,
+      10.9
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121081": {
+    "symbol": "AUDCHF",
+    "type": "BUY",
+    "entry_price": 0.53498,
+    "stage_history": [],
+    "profit_history": [
+      -0.4,
+      6.4
+    ],
+    "profit_ratio_history": [
+      -0.005,
+      0.073
+    ],
+    "bb_width_history": [
+      87.47,
+      87.47
+    ],
+    "bb_width_price_history": [
+      0.00875,
+      0.00875
+    ],
+    "profit_pips_threshold_history": [
+      8.4,
+      1.6
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 6.4,
+    "peak_profit_ratio": 0.073,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121095": {
+    "symbol": "NZDCHF",
+    "type": "BUY",
+    "entry_price": 0.46048,
+    "stage_history": [],
+    "profit_history": [
+      -1.1,
+      3.6
+    ],
+    "profit_ratio_history": [
+      -0.013,
+      0.041
+    ],
+    "bb_width_history": [
+      87.93,
+      87.93
+    ],
+    "bb_width_price_history": [
+      0.00879,
+      0.00879
+    ],
+    "profit_pips_threshold_history": [
+      9.1,
+      4.4
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 3.6,
+    "peak_profit_ratio": 0.041,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121103": {
+    "symbol": "CADJPY",
+    "type": "BUY",
+    "entry_price": 112.419,
+    "stage_history": [],
+    "profit_history": [
+      -0.8,
+      -16.5
+    ],
+    "profit_ratio_history": [
+      -0.002,
+      -0.037
+    ],
+    "bb_width_history": [
+      442.22,
+      442.22
+    ],
+    "bb_width_price_history": [
+      4.42216,
+      4.42216
+    ],
+    "profit_pips_threshold_history": [
+      8.8,
+      24.5
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232121111": {
+    "symbol": "CADCHF",
+    "type": "BUY",
+    "entry_price": 0.56285,
+    "stage_history": [],
+    "profit_history": [
+      -1.0,
+      6.0
+    ],
+    "profit_ratio_history": [
+      -0.006,
+      0.039
+    ],
+    "bb_width_history": [
+      155.11,
+      155.11
+    ],
+    "bb_width_price_history": [
+      0.01551,
+      0.01551
+    ],
+    "profit_pips_threshold_history": [
+      9.0,
+      2.0
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 6.0,
+    "peak_profit_ratio": 0.039,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232217571": {
+    "symbol": "USDJPY",
+    "type": "BUY",
+    "entry_price": 152.645,
+    "stage_history": [],
+    "profit_history": [
+      -0.3
+    ],
+    "profit_ratio_history": [
+      -0.0
+    ],
+    "bb_width_history": [
+      837.66
+    ],
+    "bb_width_price_history": [
+      8.37658
+    ],
+    "profit_pips_threshold_history": [
+      8.3
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232217575": {
+    "symbol": "USDCHF",
+    "type": "BUY",
+    "entry_price": 0.76623,
+    "stage_history": [],
+    "profit_history": [
+      -0.2
+    ],
+    "profit_ratio_history": [
+      -0.001
+    ],
+    "bb_width_history": [
+      338.31
+    ],
+    "bb_width_price_history": [
+      0.03383
+    ],
+    "profit_pips_threshold_history": [
+      8.2
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232217576": {
+    "symbol": "USDCAD",
+    "type": "BUY",
+    "entry_price": 1.35983,
+    "stage_history": [],
+    "profit_history": [
+      -0.1
+    ],
+    "profit_ratio_history": [
+      -0.0
+    ],
+    "bb_width_history": [
+      241.17
+    ],
+    "bb_width_price_history": [
+      0.02412
+    ],
+    "profit_pips_threshold_history": [
+      8.1
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232217577": {
+    "symbol": "EURAUD",
+    "type": "BUY",
+    "entry_price": 1.7139,
+    "stage_history": [],
+    "profit_history": [
+      -1.5
+    ],
+    "profit_ratio_history": [
+      -0.023
+    ],
+    "bb_width_history": [
+      65.22
+    ],
+    "bb_width_price_history": [
+      0.00652
+    ],
+    "profit_pips_threshold_history": [
+      9.5
+    ],
+    "previous_stage": "STAGE_0",
+    "current_stage": "STAGE_0",
+    "peak_profit_pips": 0.0,
+    "peak_profit_ratio": 0.0,
+    "last_update": "2026-01-28T13:05:57.182350"
+  },
+  "232217578": {
+    "symbol": "GBPAUD",
+    "type": "BUY",
+    "entry_price": 1.97317,
+    "stage_history": [],
+    "profit_history": [
+      -0.6
+    ],
+    "profit_ratio_history": [
+      -0.007
     ],
     "bb_width_history": [
       83.98
@@ -6579,24 +6955,24 @@
       0.0084
     ],
     "profit_pips_threshold_history": [
-      8.7
+      8.6
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121056": {
+  "232217579": {
     "symbol": "EURCHF",
     "type": "BUY",
-    "entry_price": 0.91882,
+    "entry_price": 0.91801,
     "stage_history": [],
     "profit_history": [
-      -0.4
+      -0.8
     ],
     "profit_ratio_history": [
-      -0.003
+      -0.006
     ],
     "bb_width_history": [
       141.7
@@ -6605,24 +6981,24 @@
       0.01417
     ],
     "profit_pips_threshold_history": [
-      8.4
+      8.8
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121064": {
+  "232217580": {
     "symbol": "GBPCHF",
     "type": "BUY",
-    "entry_price": 1.05711,
+    "entry_price": 1.05688,
     "stage_history": [],
     "profit_history": [
-      -0.9
+      -0.6
     ],
     "profit_ratio_history": [
-      -0.005
+      -0.004
     ],
     "bb_width_history": [
       166.75
@@ -6631,24 +7007,24 @@
       0.01667
     ],
     "profit_pips_threshold_history": [
-      8.9
+      8.6
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121081": {
+  "232217583": {
     "symbol": "AUDCHF",
     "type": "BUY",
-    "entry_price": 0.53498,
+    "entry_price": 0.53564,
     "stage_history": [],
     "profit_history": [
-      -0.4
+      -0.2
     ],
     "profit_ratio_history": [
-      -0.005
+      -0.002
     ],
     "bb_width_history": [
       87.47
@@ -6657,24 +7033,24 @@
       0.00875
     ],
     "profit_pips_threshold_history": [
-      8.4
+      8.2
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121095": {
+  "232217585": {
     "symbol": "NZDCHF",
     "type": "BUY",
-    "entry_price": 0.46048,
+    "entry_price": 0.46092,
     "stage_history": [],
     "profit_history": [
-      -1.1
+      -0.8
     ],
     "profit_ratio_history": [
-      -0.013
+      -0.009
     ],
     "bb_width_history": [
       87.93
@@ -6683,21 +7059,21 @@
       0.00879
     ],
     "profit_pips_threshold_history": [
-      9.1
+      8.8
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121103": {
+  "232217586": {
     "symbol": "CADJPY",
     "type": "BUY",
-    "entry_price": 112.419,
+    "entry_price": 112.265,
     "stage_history": [],
     "profit_history": [
-      -0.8
+      -1.1
     ],
     "profit_ratio_history": [
       -0.002
@@ -6709,21 +7085,21 @@
       4.42216
     ],
     "profit_pips_threshold_history": [
-      8.8
+      9.1
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   },
-  "232121111": {
+  "232217589": {
     "symbol": "CADCHF",
     "type": "BUY",
-    "entry_price": 0.56285,
+    "entry_price": 0.56354,
     "stage_history": [],
     "profit_history": [
-      -1.0
+      -0.9
     ],
     "profit_ratio_history": [
       -0.006
@@ -6735,12 +7111,12 @@
       0.01551
     ],
     "profit_pips_threshold_history": [
-      9.0
+      8.9
     ],
     "previous_stage": "STAGE_0",
     "current_stage": "STAGE_0",
     "peak_profit_pips": 0.0,
     "peak_profit_ratio": 0.0,
-    "last_update": "2026-01-28T10:11:30.083767"
+    "last_update": "2026-01-28T13:05:57.182350"
   }
 }

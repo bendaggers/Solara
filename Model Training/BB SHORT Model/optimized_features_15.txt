@@ -1,0 +1,31 @@
+# Optimized Feature Set - 13 Features
+# Generated: 2026-01-28 13:23:33.075169
+# Target Features: 15
+# Best F1 Score: 0.9418
+############################################################
+
+candle_body_pct
+ret_lag1
+rsi_slope_lag2
+ret
+body_size
+RSI_slope_3
+rsi_slope_lag3
+ret_lag2
+price_momentum
+rsi_slope
+dist_bb_upper_lag3
+rsi_slope_lag1
+rsi_value
+
+############################################################
+# Category Analysis
+############################################################
+
+# RSI (6 features)
+
+# Price Action (3 features)
+
+# Candle Patterns (2 features)
+
+# Bollinger Bands (1 features)

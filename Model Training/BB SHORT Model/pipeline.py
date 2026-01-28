@@ -1,3 +1,5 @@
+# pipeline.py
+
 import pandas as pd
 import numpy as np
 from features.feature_engineering import BollingerBandsFeatureEngineer

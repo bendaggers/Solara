@@ -1,27 +1,29 @@
 {
   "summary": {
-    "generated_at": "2026-01-27T14:50:43.724669",
+    "generated_at": "2026-01-28T13:33:44.235744",
     "total_rows": 1386,
-    "raw_signals_count": 694,
-    "raw_signal_rate": 0.5007215007215007,
-    "filtered_signals_count": 694,
-    "filtered_signal_rate": 0.5007215007215007,
-    "average_confidence": 0.781654213954509,
-    "min_confidence": 0.65,
-    "min_signal_strength": "Medium"
+    "raw_signals_count": 308,
+    "raw_signal_rate": 0.2222222222222222,
+    "filtered_signals_count": 308,
+    "filtered_signal_rate": 0.2222222222222222,
+    "average_confidence": 0.9220565841867756,
+    "min_confidence": 0.8,
+    "min_signal_strength": "Strong"
   },
   "signal_distribution": {
-    "strong": 376,
-    "medium": 318,
-    "weak": 692,
-    "none": 0,
-    "raw_signals": 694,
-    "filtered_signals": 694
+    "very_strong": 210,
+    "strong": 98,
+    "moderate": 164,
+    "weak": 190,
+    "very_weak": 653,
+    "raw_signals": 308,
+    "filtered_signals": 308
   },
   "confidence_thresholds": {
-    "strong": 0.75,
-    "medium": 0.65,
-    "weak": 0.5,
-    "none": 0.0
+    "very_strong": 0.9,
+    "strong": 0.7,
+    "moderate": 0.5,
+    "weak": 0.3,
+    "very_weak": 0.0
   }
 }
