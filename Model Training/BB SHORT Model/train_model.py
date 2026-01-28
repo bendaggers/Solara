@@ -4,9 +4,7 @@ import pickle
 import json
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, precision_recall_curve
-from sklearn.model_selection import cross_val_score, TimeSeriesSplit
 import matplotlib.pyplot as plt
-import seaborn as sns
 from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
@@ -26,6 +24,40 @@ class BollingerBandsModelTrainer:
         self.y_test = None
         self.feature_names = None
         
+        # Define your curated feature list - ONLY these 30 features will be used
+        self.CURATED_FEATURES = [
+            "rsi_slope_lag1",
+            "ret_lag1",
+            "ema_50_slope_lag2",
+            "ema_50_slope_lag3",
+            "body_vs_bb_lag1",
+            "atr_norm_lag3",
+            "volume_lag3",
+            "body_vs_bb_lag3",
+            "bb_width_pct_lag1",
+            "volume_lag2",
+            "dist_bb_upper_lag1",
+            "candle_vs_bb_lag1",
+            "close_pos_in_candle_lag2",
+            "rsi_value_lag1",
+            "ret_lag2",
+            "wick_ratio_lag3",
+            "body_vs_bb_lag2",
+            "close_pos_in_candle_lag1",
+            "bb_width_pct_lag2",
+            "volume_lag1",
+            "wick_ratio_lag1",
+            "lower_wick_lag2",
+            "bb_position_lag2",
+            "dist_bb_upper_lag2",
+            "rsi_slope_lag2",
+            "price_slope_3",
+            "ret_lag3",
+            "rsi_value_lag2",
+            "dist_bb_upper_lag3",
+            "body_size_lag2"
+        ]
+    
     def load_features(self):
         """Load processed features"""
         print("Loading features...")
@@ -38,19 +70,25 @@ class BollingerBandsModelTrainer:
         
         return self.features
     
-    def prepare_data(self, test_size=0.2, random_state=42):
-        """Prepare training and testing data"""
+    def prepare_data(self, test_size=0.2):
+        """Prepare training and testing data using ONLY curated features"""
         if self.features is None:
             self.load_features()
         
-        # Read feature columns from file
-        with open('feature_columns.txt', 'r') as f:
-            feature_names = [line.strip() for line in f]
+        # Use ONLY curated features that exist in the data
+        self.feature_names = [col for col in self.CURATED_FEATURES if col in self.features.columns]
         
-        # Filter to existing columns
-        self.feature_names = [col for col in feature_names if col in self.features.columns]
+        # Find missing features
+        missing_features = [col for col in self.CURATED_FEATURES if col not in self.features.columns]
+        if missing_features:
+            print(f"\n⚠️  Warning: {len(missing_features)} features not found in data:")
+            for feat in missing_features:
+                print(f"  - {feat}")
+            print("\nPlease ensure these features are created in your feature engineering step.")
         
-        print(f"\nUsing {len(self.feature_names)} features")
+        print(f"\n✅ Using {len(self.feature_names)} curated features:")
+        for i, feat in enumerate(self.feature_names, 1):
+            print(f"  {i:2}. {feat}")
         
         # For time series, use chronological split
         split_idx = int(len(self.features) * (1 - test_size))
@@ -65,9 +103,9 @@ class BollingerBandsModelTrainer:
         self.y_train = y.iloc[:split_idx]
         self.y_test = y.iloc[split_idx:]
         
-        print(f"\nData Split:")
-        print(f"  Train: {self.X_train.shape} ({self.y_train.sum()}/{len(self.y_train)} positive)")
-        print(f"  Test:  {self.X_test.shape} ({self.y_test.sum()}/{len(self.y_test)} positive)")
+        print(f"\n📊 Data Split:")
+        print(f"  Train: {self.X_train.shape} ({self.y_train.sum()}/{len(self.y_train)} positive = {self.y_train.mean():.3%})")
+        print(f"  Test:  {self.X_test.shape} ({self.y_test.sum()}/{len(self.y_test)} positive = {self.y_test.mean():.3%})")
         
         # Add timestamps if available
         if 'timestamp' in self.features.columns:
@@ -84,6 +122,8 @@ class BollingerBandsModelTrainer:
         print("\n" + "="*60)
         print("TRAINING RANDOM FOREST CLASSIFIER")
         print("="*60)
+        
+        print(f"📈 Training with {len(self.feature_names)} features")
         
         # Initialize model
         self.model = RandomForestClassifier(
@@ -170,8 +210,8 @@ class BollingerBandsModelTrainer:
         
         return y_pred_proba, y_pred
     
-    def analyze_feature_importance(self, top_n=20):
-        """Analyze and visualize feature importance"""
+    def analyze_feature_importance(self):
+        """Analyze and visualize feature importance for curated features"""
         if self.model is None:
             raise ValueError("Model not trained yet.")
         
@@ -181,18 +221,6 @@ class BollingerBandsModelTrainer:
         
         # Get feature importances
         importances = self.model.feature_importances_
-        indices = np.argsort(importances)[::-1]
-        
-        print(f"\nTop {top_n} Most Important Features:")
-        print("-" * 50)
-        
-        top_features = []
-        for i in range(min(top_n, len(self.feature_names))):
-            feat_idx = indices[i]
-            feat_name = self.feature_names[feat_idx]
-            importance = importances[feat_idx]
-            top_features.append((feat_name, importance))
-            print(f"{i+1:2}. {feat_name:30} : {importance:.4f}")
         
         # Create feature importance DataFrame
         importance_df = pd.DataFrame({
@@ -200,51 +228,63 @@ class BollingerBandsModelTrainer:
             'importance': importances
         }).sort_values('importance', ascending=False)
         
+        print(f"\nFeature Importance Ranking (all {len(self.feature_names)} features):")
+        print("-" * 60)
+        
+        for i, row in importance_df.iterrows():
+            print(f"{i+1:2}. {row['feature']:30} : {row['importance']:.6f}")
+        
         # Save to CSV
         importance_df.to_csv('feature_importance.csv', index=False)
-        print(f"\nFull feature importance saved to 'feature_importance.csv'")
+        print(f"\n✅ Feature importance saved to 'feature_importance.csv'")
         
-        # Group features by category
-        print("\nFeature Importance by Category:")
-        print("-" * 50)
+        # Group features by type
+        print("\nFeature Importance by Type:")
+        print("-" * 40)
         
-        categories = {
-            'BB Features': [f for f in importance_df['feature'] if 'bb_' in f],
-            'RSI Features': [f for f in importance_df['feature'] if 'rsi_' in f],
-            'Price Features': [f for f in importance_df['feature'] if any(x in f for x in ['close', 'open', 'high', 'low'])],
-            'Volume Features': [f for f in importance_df['feature'] if 'volume' in f],
-            'Candle Features': [f for f in importance_df['feature'] if any(x in f for x in ['wick', 'body', 'candle'])],
-            'Trend Features': [f for f in importance_df['feature'] if any(x in f for x in ['trend', 'momentum', 'slope', 'ema'])],
-            'Derived Features': [f for f in importance_df['feature'] if any(x in f for x in ['rejection', 'signal', 'score'])]
+        feature_types = {
+            'RSI Features': ['rsi_slope_lag1', 'rsi_slope_lag2', 'rsi_value_lag1', 'rsi_value_lag2'],
+            'Return Features': ['ret_lag1', 'ret_lag2', 'ret_lag3'],
+            'EMA Features': ['ema_50_slope_lag2', 'ema_50_slope_lag3'],
+            'BB Features': ['bb_width_pct_lag1', 'bb_width_pct_lag2', 'dist_bb_upper_lag1', 
+                          'dist_bb_upper_lag2', 'dist_bb_upper_lag3', 'bb_position_lag2'],
+            'Candle Features': ['body_vs_bb_lag1', 'body_vs_bb_lag2', 'body_vs_bb_lag3',
+                               'candle_vs_bb_lag1', 'wick_ratio_lag1', 'wick_ratio_lag3',
+                               'lower_wick_lag2', 'close_pos_in_candle_lag1', 
+                               'close_pos_in_candle_lag2', 'body_size_lag2'],
+            'Volume Features': ['volume_lag1', 'volume_lag2', 'volume_lag3'],
+            'ATR Feature': ['atr_norm_lag3'],
+            'Price Feature': ['price_slope_3']
         }
         
-        for category, features in categories.items():
-            if features:
-                cat_importance = importance_df[importance_df['feature'].isin(features)]['importance'].sum()
-                print(f"  {category:20}: {cat_importance:.4f}")
+        for ftype, features in feature_types.items():
+            existing_features = [f for f in features if f in importance_df['feature'].values]
+            if existing_features:
+                type_importance = importance_df[importance_df['feature'].isin(existing_features)]['importance'].sum()
+                print(f"  {ftype:20}: {type_importance:.4f} ({len(existing_features)} features)")
         
-        # Visualize top features
-        self._plot_feature_importance(importance_df.head(top_n))
+        # Visualize all features
+        self._plot_feature_importance(importance_df)
         
         return importance_df
     
     def _plot_feature_importance(self, importance_df):
-        """Plot feature importance"""
-        plt.figure(figsize=(12, 8))
+        """Plot feature importance - all features since we only have 30"""
+        plt.figure(figsize=(10, 12))
         bars = plt.barh(range(len(importance_df)), importance_df['importance'][::-1])
         plt.yticks(range(len(importance_df)), importance_df['feature'][::-1])
         plt.xlabel('Feature Importance')
-        plt.title('Top Feature Importances - Bollinger Bands Short Model')
+        plt.title(f'Feature Importances - {len(importance_df)} Curated Features')
         
         # Add value labels
         for i, (bar, importance) in enumerate(zip(bars, importance_df['importance'][::-1])):
-            plt.text(bar.get_width() + 0.001, bar.get_y() + bar.get_height()/2,
-                    f'{importance:.4f}', va='center')
+            plt.text(bar.get_width() + 0.0001, bar.get_y() + bar.get_height()/2,
+                    f'{importance:.4f}', va='center', fontsize=8)
         
         plt.tight_layout()
         plt.savefig('feature_importance_plot.png', dpi=300, bbox_inches='tight')
         plt.close()
-        print(f"\nFeature importance plot saved to 'feature_importance_plot.png'")
+        print(f"\n✅ Feature importance plot saved to 'feature_importance_plot.png'")
     
     def optimize_threshold(self):
         """Find optimal probability threshold"""
@@ -264,6 +304,9 @@ class BollingerBandsModelTrainer:
         optimal_idx = np.argmax(f1_scores)
         optimal_threshold = thresholds[optimal_idx] if optimal_idx < len(thresholds) else 0.5
         
+        # Store for later use
+        self.optimal_threshold = optimal_threshold
+        
         print(f"\nOptimal threshold based on F1-score: {optimal_threshold:.4f}")
         print(f"Maximum F1-score: {f1_scores[optimal_idx]:.4f}")
         
@@ -279,57 +322,53 @@ class BollingerBandsModelTrainer:
             cm = confusion_matrix(self.y_test, y_pred)
             tn, fp, fn, tp = cm.ravel()
             
-            precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-            recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
+            precision_val = tp / (tp + fp) if (tp + fp) > 0 else 0
+            recall_val = tp / (tp + fn) if (tp + fn) > 0 else 0
+            f1_val = 2 * precision_val * recall_val / (precision_val + recall_val) if (precision_val + recall_val) > 0 else 0
             
-            print(f"{thresh:9.2f} | {precision:9.4f} | {recall:8.4f} | {f1:8.4f}")
+            print(f"{thresh:9.2f} | {precision_val:9.4f} | {recall_val:8.4f} | {f1_val:8.4f}")
         
         return optimal_threshold
     
-
     def save_model(self, filename='BB_SHORT_REVERSAL_Model.pkl'):
-        """Save the trained model (just the model, no dictionary wrapper)"""
+        """Save the trained model"""
         if self.model is None:
             raise ValueError("Model not trained yet.")
         
         # Save ONLY the model (not wrapped in dictionary)
         with open(filename, 'wb') as f:
-            pickle.dump(self.model, f)  # <-- JUST the model object
+            pickle.dump(self.model, f)
         
-        print(f"\nModel saved to '{filename}'")
+        print(f"\n✅ Model saved to '{filename}'")
         
-        # Save feature names separately (for reference)
+        # Save feature names separately
         feature_names_path = 'feature_columns.txt'
         with open(feature_names_path, 'w') as f:
             for feature in self.feature_names:
                 f.write(f"{feature}\n")
-        print(f"Feature names saved to '{feature_names_path}'")
+        print(f"✅ Feature names saved to '{feature_names_path}'")
         
-        # Save model info as JSON (separate file)
+        # Save model info as JSON
         model_info = {
             'model_type': 'RandomForestClassifier',
             'training_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'n_features': len(self.feature_names),
+            'features_used': self.feature_names,
             'train_samples': int(self.X_train.shape[0]),
             'test_samples': int(self.X_test.shape[0]),
             'train_positive': int(self.y_train.sum()),
             'test_positive': int(self.y_test.sum()),
             'optimal_threshold': self.optimal_threshold if hasattr(self, 'optimal_threshold') else 0.5,
-            'save_format': 'model_only'  # Indicates no dictionary wrapper
+            'feature_selection': 'curated_30_features'
         }
         
         with open('model_info.json', 'w') as f:
             json.dump(model_info, f, indent=2)
         
-        print(f"Model info saved to 'model_info.json'")
+        print(f"✅ Model info saved to 'model_info.json'")
         
         return filename
-
-
-
-
-
+    
     def generate_trading_signals(self, threshold=0.5):
         """Generate trading signals from test predictions"""
         print("\n" + "="*60)
@@ -360,17 +399,19 @@ class BollingerBandsModelTrainer:
         print(f"\nSignal Statistics:")
         print(f"  Total signals generated: {total_signals}")
         print(f"  Correct signals: {correct_signals}")
-        print(f"  Signal accuracy: {correct_signals/max(1, total_signals):.2%}")
+        if total_signals > 0:
+            print(f"  Signal accuracy: {correct_signals/total_signals:.2%}")
         
         # Save signals
         signals_df.to_csv('trading_signals.csv', index=False)
-        print(f"\nTrading signals saved to 'trading_signals.csv'")
+        print(f"\n✅ Trading signals saved to 'trading_signals.csv'")
         
         # Analyze signal strength
         print(f"\nSignal Strength Distribution:")
-        strength_counts = signals_df[signals_df['signal'] == 1]['signal_strength'].value_counts().sort_index()
-        for strength, count in strength_counts.items():
-            print(f"  {strength:12}: {count:3d} signals")
+        if total_signals > 0:
+            strength_counts = signals_df[signals_df['signal'] == 1]['signal_strength'].value_counts().sort_index()
+            for strength, count in strength_counts.items():
+                print(f"  {strength:12}: {count:3d} signals ({count/total_signals:.1%})")
         
         return signals_df
 
@@ -379,6 +420,8 @@ def main():
     print("="*70)
     print("BOLLINGER BANDS REVERSAL SHORT - MODEL TRAINING")
     print("="*70)
+    print("⚠️  Using ONLY 30 curated features")
+    print("="*70)
     
     # Initialize trainer
     trainer = BollingerBandsModelTrainer()
@@ -386,7 +429,7 @@ def main():
     # Step 1: Load features
     trainer.load_features()
     
-    # Step 2: Prepare data (80/20 split)
+    # Step 2: Prepare data (80/20 split) with curated features
     trainer.prepare_data(test_size=0.2)
     
     # Step 3: Train Random Forest
@@ -400,13 +443,13 @@ def main():
     y_pred_proba, y_pred = trainer.evaluate_model(threshold=0.5)
     
     # Step 5: Analyze feature importance
-    importance_df = trainer.analyze_feature_importance(top_n=20)
+    importance_df = trainer.analyze_feature_importance()
     
     # Step 6: Optimize threshold
     optimal_threshold = trainer.optimize_threshold()
     
     # Step 7: Save model
-    trainer.save_model('BB_SHORT_REVERSAL_Model.pkl')
+    trainer.save_model('BB_SHORT_REVERSAL_Model_v2.pkl')
     
     # Step 8: Generate trading signals
     signals_df = trainer.generate_trading_signals(threshold=optimal_threshold)
@@ -414,18 +457,23 @@ def main():
     print("\n" + "="*70)
     print("MODEL TRAINING COMPLETE")
     print("="*70)
-    print("\nGenerated Files:")
-    print("  1. bb_rev_short_model.pkl    - Trained model")
-    print("  2. model_info.json           - Model metadata")
-    print("  3. feature_importance.csv    - Feature rankings")
-    print("  4. feature_importance_plot.png - Feature importance visualization")
-    print("  5. model_predictions.csv     - Test set predictions")
-    print("  6. trading_signals.csv       - Trading signals")
-    print("\nNext Steps:")
-    print("  1. Review feature importance to understand what drives predictions")
-    print("  2. Adjust threshold based on risk tolerance (current optimal: {:.3f})".format(optimal_threshold))
-    print("  3. Test model on new data")
-    print("  4. Integrate with trading system")
+    print(f"\n✅ Model trained with {trainer.X_train.shape[1]} curated features")
+    print(f"✅ Optimal threshold: {optimal_threshold:.4f}")
+    
+    print("\n📁 Generated Files:")
+    print("  1. BB_SHORT_REVERSAL_Model_Curated.pkl - Trained model")
+    print("  2. model_info.json                     - Model metadata")
+    print("  3. feature_importance.csv              - Feature rankings")
+    print("  4. feature_importance_plot.png         - Feature importance visualization")
+    print("  5. model_predictions.csv               - Test set predictions")
+    print("  6. trading_signals.csv                 - Trading signals")
+    print("  7. feature_columns.txt                 - Feature names used")
+    
+    print("\n📊 Next Steps:")
+    print("  1. Review feature importance analysis")
+    print("  2. Test with different thresholds for risk management")
+    print("  3. Validate on out-of-sample data")
+    print("  4. Monitor performance over time")
 
 if __name__ == "__main__":
     main()
