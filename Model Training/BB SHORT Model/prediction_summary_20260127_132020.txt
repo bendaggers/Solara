@@ -1,0 +1,28 @@
+============================================================
+BOLLINGER BANDS SHORT PREDICTIONS SUMMARY
+============================================================
+
+Data file: C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Model Training\BB SHORT Model\GBPUSD_2024-2025.csv
+Total samples: 3032
+Prediction date: 2026-01-27 13:20:20.383671
+Threshold: 0.5357
+
+MODEL METADATA:
+  Training date: 2026-01-27 12:31:19
+  Train shape: (1768, 82)
+  Test shape: (443, 82)
+
+SHORT SIGNALS:
+  Total: 1386 (45.7%)
+
+SIGNAL STRENGTH DISTRIBUTION:
+  Very Strong :   286 (  9.4%)
+  Strong      :   691 ( 22.8%)
+  Moderate    :   409 ( 13.5%)
+  No Signal   :  1646 ( 54.3%)
+
+PROBABILITY STATISTICS:
+  Mean: 0.487
+  Min:  0.019
+  Max:  0.984
+  Std:  0.227

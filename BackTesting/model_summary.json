@@ -1,33 +1,27 @@
 {
   "summary": {
-    "generated_at": "2026-01-15T15:37:16.851543",
-    "total_rows": 13970,
-    "raw_signals_count": 1800,
-    "raw_signal_rate": 0.12884753042233357,
-    "filtered_signals_count": 1800,
-    "filtered_signal_rate": 0.12884753042233357,
-    "average_confidence": 0.7869662764910497,
+    "generated_at": "2026-01-27T14:50:43.724669",
+    "total_rows": 1386,
+    "raw_signals_count": 694,
+    "raw_signal_rate": 0.5007215007215007,
+    "filtered_signals_count": 694,
+    "filtered_signal_rate": 0.5007215007215007,
+    "average_confidence": 0.781654213954509,
     "min_confidence": 0.65,
     "min_signal_strength": "Medium"
   },
   "signal_distribution": {
-    "strong": 1072,
-    "medium": 728,
-    "weak": 1639,
-    "none": 10531,
-    "raw_signals": 1800,
-    "filtered_signals": 1800
+    "strong": 376,
+    "medium": 318,
+    "weak": 692,
+    "none": 0,
+    "raw_signals": 694,
+    "filtered_signals": 694
   },
   "confidence_thresholds": {
     "strong": 0.75,
     "medium": 0.65,
     "weak": 0.5,
     "none": 0.0
-  },
-  "performance": {
-    "win_rate": 0.0,
-    "filtered_correct_predictions": 0,
-    "filtered_accuracy": 0.0,
-    "total_accuracy": 0.0
   }
 }

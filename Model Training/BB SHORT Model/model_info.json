@@ -1,10 +1,11 @@
 {
   "model_type": "RandomForestClassifier",
-  "training_date": "2026-01-23 18:22:58",
+  "training_date": "2026-01-27 13:40:38",
   "n_features": 82,
   "train_samples": 1768,
   "test_samples": 443,
   "train_positive": 712,
   "test_positive": 173,
-  "feature_count": 82
+  "optimal_threshold": 0.5,
+  "save_format": "model_only"
 }

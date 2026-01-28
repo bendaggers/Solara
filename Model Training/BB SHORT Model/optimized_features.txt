@@ -1,0 +1,84 @@
+# Optimized Feature Set - Auto-generated
+# Generated: 2026-01-27 18:07:55.997655
+# F1 Score: 0.8322
+# Number of features: 30
+##################################################
+
+
+# Bollinger_Bands (10 features)
+bb_position_lag2
+bb_width_pct_lag1
+bb_width_pct_lag2
+body_vs_bb_lag1
+body_vs_bb_lag2
+body_vs_bb_lag3
+candle_vs_bb_lag1
+dist_bb_upper_lag1
+dist_bb_upper_lag2
+dist_bb_upper_lag3
+
+# Candle_Patterns (3 features)
+body_size_lag2
+wick_ratio_lag1
+wick_ratio_lag3
+
+# Other (4 features)
+atr_norm_lag3
+ret_lag1
+ret_lag2
+ret_lag3
+
+# Price_Action (4 features)
+close_pos_in_candle_lag1
+close_pos_in_candle_lag2
+lower_wick_lag2
+price_slope_3
+
+# RSI (4 features)
+rsi_slope_lag1
+rsi_slope_lag2
+rsi_value_lag1
+rsi_value_lag2
+
+# Trend (2 features)
+ema_50_slope_lag2
+ema_50_slope_lag3
+
+# Volume (3 features)
+volume_lag1
+volume_lag2
+volume_lag3
+
+##################################################
+# Flat list for model training
+##################################################
+rsi_slope_lag1
+ret_lag1
+ema_50_slope_lag2
+ema_50_slope_lag3
+body_vs_bb_lag1
+atr_norm_lag3
+volume_lag3
+body_vs_bb_lag3
+bb_width_pct_lag1
+volume_lag2
+dist_bb_upper_lag1
+candle_vs_bb_lag1
+close_pos_in_candle_lag2
+rsi_value_lag1
+ret_lag2
+wick_ratio_lag3
+body_vs_bb_lag2
+close_pos_in_candle_lag1
+bb_width_pct_lag2
+volume_lag1
+wick_ratio_lag1
+lower_wick_lag2
+bb_position_lag2
+dist_bb_upper_lag2
+rsi_slope_lag2
+price_slope_3
+ret_lag3
+rsi_value_lag2
+dist_bb_upper_lag3
+body_size_lag2

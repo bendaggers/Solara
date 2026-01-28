@@ -287,36 +287,36 @@ class BollingerBandsModelTrainer:
         
         return optimal_threshold
     
+
     def save_model(self, filename='BB_SHORT_REVERSAL_Model.pkl'):
-        """Save the trained model and metadata"""
+        """Save the trained model (just the model, no dictionary wrapper)"""
         if self.model is None:
             raise ValueError("Model not trained yet.")
         
-        model_data = {
-            'model': self.model,
-            'feature_names': self.feature_names,
-            'training_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'train_shape': self.X_train.shape,
-            'test_shape': self.X_test.shape,
-            'train_positive_ratio': self.y_train.mean(),
-            'test_positive_ratio': self.y_test.mean()
-        }
-        
+        # Save ONLY the model (not wrapped in dictionary)
         with open(filename, 'wb') as f:
-            pickle.dump(model_data, f)
+            pickle.dump(self.model, f)  # <-- JUST the model object
         
         print(f"\nModel saved to '{filename}'")
         
-        # Also save model info as JSON
+        # Save feature names separately (for reference)
+        feature_names_path = 'feature_columns.txt'
+        with open(feature_names_path, 'w') as f:
+            for feature in self.feature_names:
+                f.write(f"{feature}\n")
+        print(f"Feature names saved to '{feature_names_path}'")
+        
+        # Save model info as JSON (separate file)
         model_info = {
             'model_type': 'RandomForestClassifier',
-            'training_date': model_data['training_date'],
+            'training_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             'n_features': len(self.feature_names),
             'train_samples': int(self.X_train.shape[0]),
             'test_samples': int(self.X_test.shape[0]),
             'train_positive': int(self.y_train.sum()),
             'test_positive': int(self.y_test.sum()),
-            'feature_count': len(self.feature_names)
+            'optimal_threshold': self.optimal_threshold if hasattr(self, 'optimal_threshold') else 0.5,
+            'save_format': 'model_only'  # Indicates no dictionary wrapper
         }
         
         with open('model_info.json', 'w') as f:
@@ -325,7 +325,11 @@ class BollingerBandsModelTrainer:
         print(f"Model info saved to 'model_info.json'")
         
         return filename
-    
+
+
+
+
+
     def generate_trading_signals(self, threshold=0.5):
         """Generate trading signals from test predictions"""
         print("\n" + "="*60)

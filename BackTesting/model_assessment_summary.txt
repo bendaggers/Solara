@@ -1,17 +1,16 @@
 Model Assessment Summary
 =======================
-Date: 2026-01-15 15:37:16
-Input file: GBPUSD_Stacking_Data.csv
+Date: 2026-01-27 14:50:43
+Input file: GBPUSD_2024-2025_backtest.csv
 Output files:
-  - CSV: model_assessments_GBPUSD.csv
-  - Full JSON: model_assessments_GBPUSD.json
+  - CSV: GBPUSD_2024-2025_backtest_RESULTS.csv
+  - Full JSON: GBPUSD_2024-2025_backtest_RESULTS.json
   - Signals JSON: trading_signals_GBPUSD.json (Medium+ only)
   - Summary JSON: model_summary.json
 
 Statistics:
-  Total rows: 13970
-  Raw signals (>= 0.65): 1800 (12.9%)
-  Filtered signals (Medium+): 1800 (12.9%)
-    - Strong signals: 1072
-    - Medium signals: 728
-  Win rate on filtered signals: 0.0%
+  Total rows: 1386
+  Raw signals (>= 0.65): 694 (50.1%)
+  Filtered signals (Medium+): 694 (50.1%)
+    - Strong signals: 376
+    - Medium signals: 318
