@@ -142,7 +142,7 @@ class SurvivorEngineV5:
         return str(position.get('ticket', 0))
     
     def calculate_profit_pips(self, position: Dict) -> float:
-        """Calculate current profit in pips"""
+        """Calculate current profit in pips (positive = profit, negative = loss)"""
         try:
             symbol = position['symbol']
             pip_size = self.get_pip_size(symbol)
@@ -152,7 +152,12 @@ class SurvivorEngineV5:
             
             entry = position['entry_price']
             current = position['current_price']
-            profit = abs(current - entry) / pip_size
+            
+            # Calculate signed profit
+            if position['type'] == 0:  # BUY
+                profit = (current - entry) / pip_size
+            else:  # SELL
+                profit = (entry - current) / pip_size
             
             return round(profit, 2)
             
@@ -190,7 +195,10 @@ class SurvivorEngineV5:
         return 0.0
     
     def determine_stage(self, profit_pips: float) -> str:
-        """Determine protection stage based on profit in pips"""
+        """Determine protection stage based on profit in pips (only positive profit)"""
+        if profit_pips <= 0:
+            return 'STAGE_0'
+        
         for stage_name in reversed(self.STAGE_ORDER):
             if stage_name in self.STAGE_DEFINITIONS:
                 threshold = self.STAGE_DEFINITIONS[stage_name]['threshold_pips']
