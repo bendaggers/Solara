@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-SOLARA CLEAN WATCHDOG WITH TEMP FILE PROTECTION
-Prevents feedback loops by using temporary file copies
+SOLARA DEBUG WATCHDOG - Fixed hash detection
 """
 
 import os
@@ -12,242 +11,229 @@ import shutil
 import subprocess
 import uuid
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
+import importlib.util
 
-# ===== IMPORT CONFIG =====
-current_dir = Path(__file__).parent.absolute()
-trading_bot_dir = current_dir.parent / "Trading Bot"
-sys.path.insert(0, str(trading_bot_dir))
 
-try:
-    import config
-    MT5_FILES_DIR = Path(config.TERMINAL_PATH) / "MQL5" / "Files"
-    if hasattr(config, 'MARKET_DATA_FILE'):
-        WATCHED_FILE = config.MARKET_DATA_FILE
-    else:
-        WATCHED_FILE = "marketdata_PERIOD_H4.json"
-    USE_CONFIG = True
-except ImportError:
-    MT5_FILES_DIR = Path(
-        r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
-        r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files"
-    )
-    WATCHED_FILE = "marketdata_PERIOD_H4.json"
-    USE_CONFIG = False
+# Load Watched File and Market Data path
+current_folder = Path(__file__).resolve().parent
+trading_bot_folder = current_folder.parent / "Trading Bot"
+config_path = trading_bot_folder / "config.py"
 
-# ===== SCRIPT PATHS =====
+if not config_path.exists():
+    raise FileNotFoundError(f"Cannot find config.py at {config_path}")
+
+spec = importlib.util.spec_from_file_location("config", str(config_path))
+config = importlib.util.module_from_spec(spec)
+sys.modules["config"] = config
+spec.loader.exec_module(config)
+
+MT5_FILES_DIR = Path(config.TERMINAL_PATH) / "MQL5" / "Files"
+WATCHED_FILE = config.MARKET_DATA_FILE
+
+
 TRADING_BOT_DIR = Path(
     r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal"
     r"\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Trading Bot"
 )
 SOLARA_SCRIPT = TRADING_BOT_DIR / "solara.py"
-SLTP_SCRIPT = TRADING_BOT_DIR / "trailing_sltp" / "sltp.py"
 
-# ===== WATCHER SETTINGS (YOUR ORIGINAL VALUES) =====
-CHECK_INTERVAL = 5
+# ===== WATCHER SETTINGS =====
+CHECK_INTERVAL = 2
 COOLDOWN = 10
-# =========================
 
-class TempFileManager:
-    """Manages temporary file creation and cleanup"""
-    
-    @staticmethod
-    def create_temp_copy(original_path):
-        """Create a unique temporary copy of the file"""
-        # Generate unique filename
-        timestamp = int(time.time())
-        unique_id = str(uuid.uuid4())[:8]
-        temp_filename = f"marketdata_{timestamp}_{unique_id}.json"
-        
-        # Create temp file in same directory
-        temp_path = Path(original_path).parent / temp_filename
-        
-        try:
-            # Copy the file
-            shutil.copy2(original_path, temp_path)
-            print(f"  [Temp] Created: {temp_filename}")
-            return str(temp_path)
-        except Exception as e:
-            print(f"  [Temp] Error creating copy: {e}")
-            return None
-    
-    @staticmethod
-    def cleanup_temp_file(temp_path):
-        """Clean up temporary file"""
-        if temp_path and os.path.exists(temp_path):
-            try:
-                os.remove(temp_path)
-                print(f"  [Temp] Cleaned: {os.path.basename(temp_path)}")
-            except Exception as e:
-                print(f"  [Temp] Error cleaning up: {e}")
-
-class CleanWatcher:
+class DebugWatcher:
     def __init__(self):
         self.last_hash = None
         self.last_run = None
         self.total_runs = 0
         self.start_time = datetime.now()
-        self.temp_manager = TempFileManager()
+        self.file_path = MT5_FILES_DIR / WATCHED_FILE
+        self.last_size = 0
+        self.last_mtime = 0
+        self.file_initialized = False
         
-    def should_run(self):
-        """Check if we should run trading"""
-        now = datetime.now()
-        
-        # Check cooldown - USING YOUR 10 SECONDS
-        if self.last_run:
-            seconds_since = (now - self.last_run).total_seconds()
-            if seconds_since < COOLDOWN:
-                return False
-        
-        return True
+    def show(self, msg):
+        """Show message with timestamp"""
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")
     
-    def run_trading(self):
-        """Run trading sequence with temp file protection"""
-        now = datetime.now()
+    def check_file(self):
+        """Check for file changes - BETTER DETECTION"""
+        if not self.file_path.exists():
+            if self.file_initialized or self.last_hash is not None:
+                self.show("❌ File not found")
+            return False
+        
+        try:
+            # Get file stats first
+            stat = self.file_path.stat()
+            current_size = stat.st_size
+            current_mtime = stat.st_mtime
+            
+            # Calculate FULL hash (not just first 8 chars)
+            with open(self.file_path, 'rb') as f:
+                current_hash = hashlib.md5(f.read()).hexdigest()  # FULL 32-char hash
+            
+            # For display, show first 8 chars
+            hash_display = current_hash[:8]
+            
+            if self.last_hash is None:
+                self.last_hash = current_hash
+                self.last_size = current_size
+                self.last_mtime = current_mtime
+                self.file_initialized = True
+                mod_time = datetime.fromtimestamp(current_mtime).strftime('%H:%M:%S')
+                self.show(f"📂 Initial file: {self.file_path.name} (hash: {hash_display}..., size: {current_size}, modified: {mod_time})")
+                return False
+            
+            # Check if ANYTHING changed
+            if (current_hash != self.last_hash or 
+                current_size != self.last_size or 
+                current_mtime != self.last_mtime):
+                
+                mod_time = datetime.fromtimestamp(current_mtime).strftime('%H:%M:%S')
+                self.show(f"🔄 File changed!")
+                self.show(f"   Hash: {self.last_hash[:8]}... → {hash_display}...")
+                self.show(f"   Size: {self.last_size} → {current_size} bytes")
+                self.show(f"   Modified: {mod_time}")
+                self.last_hash = current_hash
+                self.last_size = current_size
+                self.last_mtime = current_mtime
+                return True
+            
+            return False
+            
+        except Exception as e:
+            self.show(f"❌ Error checking file: {e}")
+            return False
+    
+    def run_test(self):
+        """Run solara.py"""
         self.total_runs += 1
+        self.show(f"🚀 RUN #{self.total_runs}")
+        print()
         
-        # Show minimal header
-        print(f"\n")
-        print(f"[{now.strftime('%H:%M:%S')}] TRADING CYCLE #{self.total_runs}")
-        print(f"[Using temp file protection")
-        print(f"\n")
-        
-        # Get the original file path
-        original_file = MT5_FILES_DIR / WATCHED_FILE
-        
-        # Create temp copy
-        temp_file = self.temp_manager.create_temp_copy(original_file)
-        
+        # Create temp file
+        temp_file = self.create_temp()
         if not temp_file:
-            print("  ERROR: Could not create temp file, aborting cycle")
             return
         
         try:
-            # Run SOLARA with temp file
-            solara_success = self.run_script_with_temp(SOLARA_SCRIPT, "SOLARA", temp_file)
-            
-            if solara_success:
-                # Brief pause between scripts
-                time.sleep(2)
-                
-                # Run SLTP with SAME temp file
-                print(f"\n")
-                self.run_script_with_temp(SLTP_SCRIPT, "SLTP", temp_file)
-            
-            # Show footer
-            print(f"\n")
-            print(f"[{now.strftime('%H:%M:%S')}] CYCLE COMPLETE")
-            print(f"\n")
-            
+            # Run solara.py
+            self.run_solara(temp_file)
         finally:
-            # ALWAYS clean up temp file
-            self.temp_manager.cleanup_temp_file(temp_file)
+            self.cleanup_temp(temp_file)
         
-        self.last_run = now
+        self.last_run = datetime.now()
+        print()
+        self.show(f"✅ Run #{self.total_runs} complete")
+        print("-" * 50)
     
-    def run_script_with_temp(self, script_path, script_name, temp_file_path):
-        """Run a script with temp file environment variable"""
+    def create_temp(self):
+        """Create temp file"""
+        timestamp = int(time.time())
+        unique_id = str(uuid.uuid4())[:8]
+        temp_name = f"temp_{timestamp}_{unique_id}.csv"
+        temp_path = self.file_path.parent / temp_name
+        
         try:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] Starting {script_name}...")
-            
-            # Create environment with temp file path
-            env = os.environ.copy()
-            env['PYTHONIOENCODING'] = 'utf-8'
-            env['MARKET_DATA_TEMP'] = temp_file_path  # Pass temp file to script
-            
+            shutil.copy2(self.file_path, temp_path)
+            self.show(f"📄 Created: {temp_name}")
+            return str(temp_path)
+        except Exception as e:
+            self.show(f"❌ Failed to create temp: {e}")
+            return None
+    
+    def cleanup_temp(self, temp_path):
+        """Clean up temp file"""
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+                self.show(f"🧹 Cleaned: {os.path.basename(temp_path)}")
+            except:
+                pass
+    
+    def run_solara(self, temp_file):
+        """Run solara.py"""
+        if not SOLARA_SCRIPT.exists():
+            self.show(f"❌ Script not found: {SOLARA_SCRIPT}")
+            return
+        
+        # Set environment with UTF-8
+        env = os.environ.copy()
+        env['MARKET_DATA_TEMP'] = temp_file
+        env['PYTHONIOENCODING'] = 'utf-8'
+        env['PYTHONUTF8'] = '1'
+        
+        self.show(f"💻 Starting solara.py...")
+        print()
+        
+        try:
             result = subprocess.run(
-                [sys.executable, "-X", "utf8", str(script_path), "--mode", "once"],
+                [sys.executable, "-X", "utf8", str(SOLARA_SCRIPT)],
+                env=env,
+                cwd=SOLARA_SCRIPT.parent,
                 capture_output=True,
                 text=True,
                 encoding='utf-8',
                 errors='replace',
-                env=env,
-                cwd=script_path.parent,
                 timeout=30
             )
             
-            # SHOW THE SCRIPT'S OUTPUT
+            # Show output
             if result.stdout:
-                lines = result.stdout.strip().split('\n')
-                for line in lines:
-                    if line.strip():  # Only show non-empty lines
-                        print(f"  {line}")
+                print(result.stdout)
             
-            if result.returncode != 0:
-                # Show errors
-                if result.stderr:
-                    error_lines = result.stderr.strip().split('\n')
-                    for line in error_lines[:5]:
-                        if line.strip():
-                            print(f"  ERROR: {line}")
-                return False
+            if result.stderr:
+                print("\n=== ERRORS ===")
+                print(result.stderr)
             
-            return True
+            print(f"\n📊 Return code: {result.returncode}")
             
         except subprocess.TimeoutExpired:
-            print(f"  {script_name} timed out after 30 seconds")
-            return False
+            self.show("⏰ Timeout")
         except Exception as e:
-            print(f"  {script_name} error: {e}")
+            self.show(f"❌ Run error: {e}")
+    
+    def should_run(self):
+        """Check cooldown"""
+        if self.last_run is None:
+            return True
+        
+        now = datetime.now()
+        seconds_since = (now - self.last_run).total_seconds()
+        
+        if seconds_since < COOLDOWN:
+            remaining = int(COOLDOWN - seconds_since)
+            self.show(f"⏳ Cooldown: {remaining}s")
             return False
+        
+        return True
 
 def main():
-    # Set UTF-8 encoding for the entire script
-    if sys.platform == "win32":
-        os.system('chcp 65001 >nul')
-    
-    print(f"\n")
-    print("SOLARA WATCHDOG WITH TEMP PROTECTION")
+    print("\n" + "="*60)
+    print("SOLARA WATCHDOG - Fixed detection")
+    print("="*60)
     print(f"Watching: {MT5_FILES_DIR / WATCHED_FILE}")
-    print(f"Cooldown: {COOLDOWN} seconds")
-    print("Temp files: marketdata_TIMESTAMP_RANDOM.json")
-    print(f"\n")
-    print("Monitoring... (Ctrl+C to stop)")
-    print(f"\n")
+    print(f"Check: every {CHECK_INTERVAL}s")
+    print(f"Cooldown: {COOLDOWN}s")
+    print("="*60 + "\n")
     
-    file_path = MT5_FILES_DIR / WATCHED_FILE
-    watcher = CleanWatcher()
-    
-    check_count = 0
+    watcher = DebugWatcher()
     
     try:
         while True:
-            check_count += 1
-            
-            # Check file
-            if file_path.exists():
-                try:
-                    with open(file_path, 'rb') as f:
-                        current_hash = hashlib.md5(f.read()).hexdigest()
-                except:
-                    time.sleep(CHECK_INTERVAL)
-                    continue
-                
-                # Check for changes
-                if watcher.last_hash is None:
-                    watcher.last_hash = current_hash
-                elif current_hash != watcher.last_hash:
-                    watcher.last_hash = current_hash
-                    
-                    # Check if we should run (10-second cooldown)
-                    if watcher.should_run():
-                        watcher.run_trading()
-                    else:
-                        # Silent - no output for cooldown
-                        pass
-            
-            # SILENT monitoring - no status spam
-            # Just sleep and check again
+            if watcher.check_file() and watcher.should_run():
+                watcher.run_test()
             time.sleep(CHECK_INTERVAL)
             
     except KeyboardInterrupt:
-        now = datetime.now()
-        hours_up = (now - watcher.start_time).total_seconds() / 3600
-        print(f"\n")
-        print(f"[{now.strftime('%H:%M:%S')}] WATCHDOG STOPPED")
-        print(f"Uptime: {hours_up:.1f} hours")
-        print(f"Total cycles: {watcher.total_runs}")
-        print(f"\n")
+        print("\n" + "="*60)
+        print("👋 Stopped")
+        print(f"Runs: {watcher.total_runs}")
+        print("="*60)
 
 if __name__ == "__main__":
+    if sys.platform == "win32":
+        os.system('chcp 65001 >nul')
     main()

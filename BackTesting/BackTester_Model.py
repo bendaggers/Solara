@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-BB_LONG_REVERSAL Model Assessment Script
+BackTester_Model.py
+BB_Short_REVERSAL Model Assessment Script
 Processes CSV data row-by-row and adds model predictions
 Outputs both CSV and JSON formats - Only Medium and Strong signals
 """

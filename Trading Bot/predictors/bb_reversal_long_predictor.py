@@ -193,7 +193,9 @@ class BBReversalLongPredictor:
                 'price': row['price'],
                 'symbol': symbol,
                 'unique_key': unique_key,
-                'features_used': self.CONFIG['features']
+                'features_used': self.CONFIG['features'],
+                'model_type': 'LONG',
+                'magic': 201000
             }
         
         return predictions

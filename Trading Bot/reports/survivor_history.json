@@ -1,0 +1,5469 @@
+[
+  {
+    "event_id": "20260204_140013_6923",
+    "event_timestamp": "2026-02-04T14:00:13.153713",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T14:00:13.152371",
+      "positions_count": 49,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5690",
+    "event_timestamp": "2026-02-04T14:00:13.154852",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236506997",
+    "symbol": "EURGBP",
+    "ticket": 236506997,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86536,
+      "lot_size": 0.01,
+      "initial_sl": 0.86482,
+      "initial_tp": 0.86136,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.368
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7748",
+    "event_timestamp": "2026-02-04T14:00:13.159820",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236580478",
+    "symbol": "CADCHF",
+    "ticket": 236580478,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56992,
+      "lot_size": 0.01,
+      "initial_sl": 0.57292,
+      "initial_tp": 0.56592,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.307
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2797",
+    "event_timestamp": "2026-02-04T14:00:13.164563",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236587715",
+    "symbol": "CADCHF",
+    "ticket": 236587715,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56991,
+      "lot_size": 0.01,
+      "initial_sl": 0.57291,
+      "initial_tp": 0.56591,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.305
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5935",
+    "event_timestamp": "2026-02-04T14:00:13.168960",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236607262",
+    "symbol": "CADCHF",
+    "ticket": 236607262,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57004,
+      "lot_size": 0.01,
+      "initial_sl": 0.57301,
+      "initial_tp": 0.56604,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.333
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4403",
+    "event_timestamp": "2026-02-04T14:00:13.174147",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236626222",
+    "symbol": "CADCHF",
+    "ticket": 236626222,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57022,
+      "lot_size": 0.01,
+      "initial_sl": 0.57322,
+      "initial_tp": 0.56622,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.373
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1038",
+    "event_timestamp": "2026-02-04T14:00:13.179596",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236631452",
+    "symbol": "EURGBP",
+    "ticket": 236631452,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86513,
+      "lot_size": 0.01,
+      "initial_sl": 0.86474,
+      "initial_tp": 0.86113,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.335
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7098",
+    "event_timestamp": "2026-02-04T14:00:13.185007",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236687986",
+    "symbol": "NZDCHF",
+    "ticket": 236687986,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46846,
+      "lot_size": 0.01,
+      "initial_sl": 0.47146,
+      "initial_tp": 0.46446,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.053
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6611",
+    "event_timestamp": "2026-02-04T14:00:13.189592",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236718003",
+    "symbol": "CADCHF",
+    "ticket": 236718003,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57027,
+      "lot_size": 0.01,
+      "initial_sl": 0.57327,
+      "initial_tp": 0.56627,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.384
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4691",
+    "event_timestamp": "2026-02-04T14:00:13.194031",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236718012",
+    "symbol": "EURGBP",
+    "ticket": 236718012,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86468,
+      "lot_size": 0.01,
+      "initial_sl": 0.86446,
+      "initial_tp": 0.86068,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.271
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9601",
+    "event_timestamp": "2026-02-04T14:00:13.199524",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236722323",
+    "symbol": "CADCHF",
+    "ticket": 236722323,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57007,
+      "lot_size": 0.01,
+      "initial_sl": 0.57306,
+      "initial_tp": 0.56606,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.34
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4459",
+    "event_timestamp": "2026-02-04T14:00:13.204090",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236725975",
+    "symbol": "CADCHF",
+    "ticket": 236725975,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56983,
+      "lot_size": 0.01,
+      "initial_sl": 0.57282,
+      "initial_tp": 0.56583,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.287
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7682",
+    "event_timestamp": "2026-02-04T14:00:13.209866",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236738353",
+    "symbol": "CADCHF",
+    "ticket": 236738353,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57025,
+      "lot_size": 0.01,
+      "initial_sl": 0.57323,
+      "initial_tp": 0.56625,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.379
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6355",
+    "event_timestamp": "2026-02-04T14:00:13.215514",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236741259",
+    "symbol": "CADCHF",
+    "ticket": 236741259,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.57009,
+      "lot_size": 0.01,
+      "initial_sl": 0.57309,
+      "initial_tp": 0.56609,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.344
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9603",
+    "event_timestamp": "2026-02-04T14:00:13.219806",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236747730",
+    "symbol": "CADCHF",
+    "ticket": 236747730,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56981,
+      "lot_size": 0.01,
+      "initial_sl": 0.57281,
+      "initial_tp": 0.56581,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.283
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4438",
+    "event_timestamp": "2026-02-04T14:00:13.226277",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236753680",
+    "symbol": "CADCHF",
+    "ticket": 236753680,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56987,
+      "lot_size": 0.01,
+      "initial_sl": 0.57287,
+      "initial_tp": 0.56587,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.296
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3649",
+    "event_timestamp": "2026-02-04T14:00:13.233101",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236756732",
+    "symbol": "CADCHF",
+    "ticket": 236756732,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56993,
+      "lot_size": 0.01,
+      "initial_sl": 0.57293,
+      "initial_tp": 0.56593,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.309
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5707",
+    "event_timestamp": "2026-02-04T14:00:13.239789",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236775825",
+    "symbol": "CADCHF",
+    "ticket": 236775825,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56974,
+      "lot_size": 0.01,
+      "initial_sl": 0.57274,
+      "initial_tp": 0.56574,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.268
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1586",
+    "event_timestamp": "2026-02-04T14:00:13.244163",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236779348",
+    "symbol": "EURGBP",
+    "ticket": 236779348,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.8635,
+      "lot_size": 0.01,
+      "initial_sl": 0.86649,
+      "initial_tp": 0.8595,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.104
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9768",
+    "event_timestamp": "2026-02-04T14:00:13.249322",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236790480",
+    "symbol": "CADCHF",
+    "ticket": 236790480,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56976,
+      "lot_size": 0.01,
+      "initial_sl": 0.57276,
+      "initial_tp": 0.56576,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.272
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2293",
+    "event_timestamp": "2026-02-04T14:00:13.254712",
+    "event_type": "POSITION_OPENED",
+    "position_id": "GBPCAD-236796050",
+    "symbol": "GBPCAD",
+    "ticket": 236796050,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.86988,
+      "lot_size": 0.01,
+      "initial_sl": 1.8728799999999999,
+      "initial_tp": 1.86588,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 144.07999999999976,
+      "bb_upper": 1.873107,
+      "bb_middle": 1.865903,
+      "bb_lower": 1.858699,
+      "profit_ratio": -0.015
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9077",
+    "event_timestamp": "2026-02-04T14:00:13.259397",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCAD-236799025",
+    "symbol": "EURCAD",
+    "ticket": 236799025,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.61334,
+      "lot_size": 0.01,
+      "initial_sl": 1.61634,
+      "initial_tp": 1.60934,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 75.30999999999953,
+      "bb_upper": 1.617766,
+      "bb_middle": 1.614001,
+      "bb_lower": 1.610235,
+      "profit_ratio": -0.023
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2494",
+    "event_timestamp": "2026-02-04T14:00:13.264825",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236876909",
+    "symbol": "CADCHF",
+    "ticket": 236876909,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56996,
+      "lot_size": 0.01,
+      "initial_sl": 0.57296,
+      "initial_tp": 0.56596,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.316
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7126",
+    "event_timestamp": "2026-02-04T14:00:13.270118",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236878887",
+    "symbol": "CADCHF",
+    "ticket": 236878887,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56985,
+      "lot_size": 0.01,
+      "initial_sl": 0.57285,
+      "initial_tp": 0.56585,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.292
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4646",
+    "event_timestamp": "2026-02-04T14:00:13.275439",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236882026",
+    "symbol": "CADCHF",
+    "ticket": 236882026,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56979,
+      "lot_size": 0.01,
+      "initial_sl": 0.57279,
+      "initial_tp": 0.56579,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.279
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8513",
+    "event_timestamp": "2026-02-04T14:00:13.280410",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236883378",
+    "symbol": "CADCHF",
+    "ticket": 236883378,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56968,
+      "lot_size": 0.01,
+      "initial_sl": 0.57267,
+      "initial_tp": 0.56567,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.254
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4249",
+    "event_timestamp": "2026-02-04T14:00:13.286346",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236886383",
+    "symbol": "EURGBP",
+    "ticket": 236886383,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86233,
+      "lot_size": 0.01,
+      "initial_sl": 0.86533,
+      "initial_tp": 0.85833,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": -0.062
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4912",
+    "event_timestamp": "2026-02-04T14:00:13.292078",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236887910",
+    "symbol": "CADCHF",
+    "ticket": 236887910,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56949,
+      "lot_size": 0.01,
+      "initial_sl": 0.57249,
+      "initial_tp": 0.56549,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.213
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6071",
+    "event_timestamp": "2026-02-04T14:00:13.297791",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236888064",
+    "symbol": "EURGBP",
+    "ticket": 236888064,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86275,
+      "lot_size": 0.01,
+      "initial_sl": 0.86575,
+      "initial_tp": 0.85875,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": -0.003
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7406",
+    "event_timestamp": "2026-02-04T14:00:13.305270",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236902676",
+    "symbol": "CADCHF",
+    "ticket": 236902676,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56973,
+      "lot_size": 0.01,
+      "initial_sl": 0.57273,
+      "initial_tp": 0.56573,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.265
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8068",
+    "event_timestamp": "2026-02-04T14:00:13.311827",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236908795",
+    "symbol": "CADCHF",
+    "ticket": 236908795,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56978,
+      "lot_size": 0.01,
+      "initial_sl": 0.57278,
+      "initial_tp": 0.56578,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.276
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6552",
+    "event_timestamp": "2026-02-04T14:00:13.317016",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236910392",
+    "symbol": "CADCHF",
+    "ticket": 236910392,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56972,
+      "lot_size": 0.01,
+      "initial_sl": 0.57272,
+      "initial_tp": 0.56572,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.263
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4609",
+    "event_timestamp": "2026-02-04T14:00:13.322603",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236930446",
+    "symbol": "CADCHF",
+    "ticket": 236930446,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56976,
+      "lot_size": 0.01,
+      "initial_sl": 0.57276,
+      "initial_tp": 0.56576,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.272
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8981",
+    "event_timestamp": "2026-02-04T14:00:13.327836",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236934041",
+    "symbol": "CADCHF",
+    "ticket": 236934041,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56966,
+      "lot_size": 0.01,
+      "initial_sl": 0.57266,
+      "initial_tp": 0.56566,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.25
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3141",
+    "event_timestamp": "2026-02-04T14:00:13.334439",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236934044",
+    "symbol": "NZDCHF",
+    "ticket": 236934044,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46861,
+      "lot_size": 0.01,
+      "initial_sl": 0.47161,
+      "initial_tp": 0.46461,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.073
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2640",
+    "event_timestamp": "2026-02-04T14:00:13.339913",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCAD-236934050",
+    "symbol": "USDCAD",
+    "ticket": 236934050,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.36633,
+      "lot_size": 0.01,
+      "initial_sl": 1.36933,
+      "initial_tp": 1.36233,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 255.75000000000125,
+      "bb_upper": 1.374081,
+      "bb_middle": 1.361293,
+      "bb_lower": 1.348506,
+      "profit_ratio": 0.11
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1705",
+    "event_timestamp": "2026-02-04T14:00:13.345287",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236939280",
+    "symbol": "EURGBP",
+    "ticket": 236939280,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86306,
+      "lot_size": 0.01,
+      "initial_sl": 0.86606,
+      "initial_tp": 0.85906,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.041
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1671",
+    "event_timestamp": "2026-02-04T14:00:13.351845",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236948691",
+    "symbol": "CADCHF",
+    "ticket": 236948691,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56966,
+      "lot_size": 0.01,
+      "initial_sl": 0.57266,
+      "initial_tp": 0.56566,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.25
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3948",
+    "event_timestamp": "2026-02-04T14:00:13.357430",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236948694",
+    "symbol": "NZDCHF",
+    "ticket": 236948694,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46862,
+      "lot_size": 0.01,
+      "initial_sl": 0.47162,
+      "initial_tp": 0.46462,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.074
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5376",
+    "event_timestamp": "2026-02-04T14:00:13.362989",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236952817",
+    "symbol": "NZDCHF",
+    "ticket": 236952817,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46855,
+      "lot_size": 0.01,
+      "initial_sl": 0.47155,
+      "initial_tp": 0.46455,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.065
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5424",
+    "event_timestamp": "2026-02-04T14:00:13.370452",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236954446",
+    "symbol": "CADCHF",
+    "ticket": 236954446,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56958,
+      "lot_size": 0.01,
+      "initial_sl": 0.57258,
+      "initial_tp": 0.56558,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.232
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9393",
+    "event_timestamp": "2026-02-04T14:00:13.375671",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236954449",
+    "symbol": "NZDCHF",
+    "ticket": 236954449,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46851,
+      "lot_size": 0.01,
+      "initial_sl": 0.47151,
+      "initial_tp": 0.46451,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.06
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7244",
+    "event_timestamp": "2026-02-04T14:00:13.383286",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236955141",
+    "symbol": "CADCHF",
+    "ticket": 236955141,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56956,
+      "lot_size": 0.01,
+      "initial_sl": 0.57256,
+      "initial_tp": 0.56556,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.228
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8972",
+    "event_timestamp": "2026-02-04T14:00:13.389590",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236955144",
+    "symbol": "NZDCHF",
+    "ticket": 236955144,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46856,
+      "lot_size": 0.01,
+      "initial_sl": 0.47155,
+      "initial_tp": 0.46455,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.066
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_7062",
+    "event_timestamp": "2026-02-04T14:00:13.395332",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236956275",
+    "symbol": "NZDCHF",
+    "ticket": 236956275,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46853,
+      "lot_size": 0.01,
+      "initial_sl": 0.47153,
+      "initial_tp": 0.46453,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.062
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5746",
+    "event_timestamp": "2026-02-04T14:00:13.401723",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236957977",
+    "symbol": "NZDCHF",
+    "ticket": 236957977,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46855,
+      "lot_size": 0.01,
+      "initial_sl": 0.47155,
+      "initial_tp": 0.46455,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.065
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3984",
+    "event_timestamp": "2026-02-04T14:00:13.406858",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-236959582",
+    "symbol": "NZDCHF",
+    "ticket": 236959582,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46851,
+      "lot_size": 0.01,
+      "initial_sl": 0.47151,
+      "initial_tp": 0.46451,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 77.0599999999999,
+      "bb_upper": 0.470508,
+      "bb_middle": 0.466655,
+      "bb_lower": 0.462802,
+      "profit_ratio": 0.06
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5892",
+    "event_timestamp": "2026-02-04T14:00:13.412994",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-236962260",
+    "symbol": "CADCHF",
+    "ticket": 236962260,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56953,
+      "lot_size": 0.01,
+      "initial_sl": 0.57253,
+      "initial_tp": 0.56553,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 45.60000000000008,
+      "bb_upper": 0.570541,
+      "bb_middle": 0.568261,
+      "bb_lower": 0.565981,
+      "profit_ratio": 0.221
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6692",
+    "event_timestamp": "2026-02-04T14:00:13.418231",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-236962268",
+    "symbol": "EURGBP",
+    "ticket": 236962268,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86318,
+      "lot_size": 0.01,
+      "initial_sl": 0.86618,
+      "initial_tp": 0.85918,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 70.47000000000025,
+      "bb_upper": 0.868525,
+      "bb_middle": 0.865002,
+      "bb_lower": 0.861478,
+      "profit_ratio": 0.058
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6221",
+    "event_timestamp": "2026-02-04T14:00:13.424776",
+    "event_type": "POSITION_OPENED",
+    "position_id": "GBPCAD-236962272",
+    "symbol": "GBPCAD",
+    "ticket": 236962272,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.86966,
+      "lot_size": 0.01,
+      "initial_sl": 1.87266,
+      "initial_tp": 1.86566,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 144.07999999999976,
+      "bb_upper": 1.873107,
+      "bb_middle": 1.865903,
+      "bb_lower": 1.858699,
+      "profit_ratio": -0.031
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5541",
+    "event_timestamp": "2026-02-04T14:00:13.430998",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236506997",
+    "symbol": "EURGBP",
+    "ticket": 236506997,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_5",
+      "new_stage_number": 5,
+      "old_sl": 0.86482,
+      "new_sl": 0.0,
+      "protection_percent": 30
+    },
+    "profit_data": {
+      "profit_pips": 25.9,
+      "profit_ratio": 0.368,
+      "peak_profit_pips": 25.9
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (25 pips)",
+      "threshold_pips": 25,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 57.55
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1464",
+    "event_timestamp": "2026-02-04T14:00:13.437016",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236580478",
+    "symbol": "CADCHF",
+    "ticket": 236580478,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57292,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.0,
+      "profit_ratio": 0.307,
+      "peak_profit_pips": 14.0
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2021",
+    "event_timestamp": "2026-02-04T14:00:13.443512",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236587715",
+    "symbol": "CADCHF",
+    "ticket": 236587715,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57291,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.9,
+      "profit_ratio": 0.305,
+      "peak_profit_pips": 13.9
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2306",
+    "event_timestamp": "2026-02-04T14:00:13.449329",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236607262",
+    "symbol": "CADCHF",
+    "ticket": 236607262,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57301,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 15.2,
+      "profit_ratio": 0.333,
+      "peak_profit_pips": 15.2
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1175",
+    "event_timestamp": "2026-02-04T14:00:13.455806",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236626222",
+    "symbol": "CADCHF",
+    "ticket": 236626222,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57322,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 17.0,
+      "profit_ratio": 0.373,
+      "peak_profit_pips": 17.0
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4170",
+    "event_timestamp": "2026-02-04T14:00:13.461383",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236631452",
+    "symbol": "EURGBP",
+    "ticket": 236631452,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_4",
+      "new_stage_number": 4,
+      "old_sl": 0.86474,
+      "new_sl": 0.0,
+      "protection_percent": 25
+    },
+    "profit_data": {
+      "profit_pips": 23.6,
+      "profit_ratio": 0.335,
+      "peak_profit_pips": 23.6
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (20 pips)",
+      "threshold_pips": 20,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 57.55
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1217",
+    "event_timestamp": "2026-02-04T14:00:13.468156",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236718003",
+    "symbol": "CADCHF",
+    "ticket": 236718003,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57327,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 17.5,
+      "profit_ratio": 0.384,
+      "peak_profit_pips": 17.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3411",
+    "event_timestamp": "2026-02-04T14:00:13.475992",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236718012",
+    "symbol": "EURGBP",
+    "ticket": 236718012,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.86446,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 19.1,
+      "profit_ratio": 0.271,
+      "peak_profit_pips": 19.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 57.55
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8188",
+    "event_timestamp": "2026-02-04T14:00:13.482810",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236722323",
+    "symbol": "CADCHF",
+    "ticket": 236722323,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57306,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 15.5,
+      "profit_ratio": 0.34,
+      "peak_profit_pips": 15.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3840",
+    "event_timestamp": "2026-02-04T14:00:13.490909",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236725975",
+    "symbol": "CADCHF",
+    "ticket": 236725975,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57282,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.1,
+      "profit_ratio": 0.287,
+      "peak_profit_pips": 13.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2036",
+    "event_timestamp": "2026-02-04T14:00:13.497936",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236738353",
+    "symbol": "CADCHF",
+    "ticket": 236738353,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57323,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 17.3,
+      "profit_ratio": 0.379,
+      "peak_profit_pips": 17.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9776",
+    "event_timestamp": "2026-02-04T14:00:13.506503",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236741259",
+    "symbol": "CADCHF",
+    "ticket": 236741259,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.57309,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 15.7,
+      "profit_ratio": 0.344,
+      "peak_profit_pips": 15.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1568",
+    "event_timestamp": "2026-02-04T14:00:13.512930",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236747730",
+    "symbol": "CADCHF",
+    "ticket": 236747730,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57281,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.9,
+      "profit_ratio": 0.283,
+      "peak_profit_pips": 12.9
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_1163",
+    "event_timestamp": "2026-02-04T14:00:13.520877",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236753680",
+    "symbol": "CADCHF",
+    "ticket": 236753680,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57287,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.5,
+      "profit_ratio": 0.296,
+      "peak_profit_pips": 13.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5370",
+    "event_timestamp": "2026-02-04T14:00:13.527668",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236756732",
+    "symbol": "CADCHF",
+    "ticket": 236756732,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57293,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.1,
+      "profit_ratio": 0.309,
+      "peak_profit_pips": 14.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4114",
+    "event_timestamp": "2026-02-04T14:00:13.533263",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236775825",
+    "symbol": "CADCHF",
+    "ticket": 236775825,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57274,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.2,
+      "profit_ratio": 0.268,
+      "peak_profit_pips": 12.2
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8759",
+    "event_timestamp": "2026-02-04T14:00:13.541388",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236790480",
+    "symbol": "CADCHF",
+    "ticket": 236790480,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57276,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.4,
+      "profit_ratio": 0.272,
+      "peak_profit_pips": 12.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_9623",
+    "event_timestamp": "2026-02-04T14:00:13.548853",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236876909",
+    "symbol": "CADCHF",
+    "ticket": 236876909,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57296,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.4,
+      "profit_ratio": 0.316,
+      "peak_profit_pips": 14.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8456",
+    "event_timestamp": "2026-02-04T14:00:13.556043",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236878887",
+    "symbol": "CADCHF",
+    "ticket": 236878887,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57285,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.3,
+      "profit_ratio": 0.292,
+      "peak_profit_pips": 13.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4350",
+    "event_timestamp": "2026-02-04T14:00:13.562827",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236882026",
+    "symbol": "CADCHF",
+    "ticket": 236882026,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57279,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.7,
+      "profit_ratio": 0.279,
+      "peak_profit_pips": 12.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8424",
+    "event_timestamp": "2026-02-04T14:00:13.570656",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236883378",
+    "symbol": "CADCHF",
+    "ticket": 236883378,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57267,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 11.6,
+      "profit_ratio": 0.254,
+      "peak_profit_pips": 11.6
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_3701",
+    "event_timestamp": "2026-02-04T14:00:13.576516",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236887910",
+    "symbol": "CADCHF",
+    "ticket": 236887910,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.57249,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.7,
+      "profit_ratio": 0.213,
+      "peak_profit_pips": 9.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6423",
+    "event_timestamp": "2026-02-04T14:00:13.584967",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236902676",
+    "symbol": "CADCHF",
+    "ticket": 236902676,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57273,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.1,
+      "profit_ratio": 0.265,
+      "peak_profit_pips": 12.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_2553",
+    "event_timestamp": "2026-02-04T14:00:13.592142",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236908795",
+    "symbol": "CADCHF",
+    "ticket": 236908795,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57278,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.6,
+      "profit_ratio": 0.276,
+      "peak_profit_pips": 12.6
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_6858",
+    "event_timestamp": "2026-02-04T14:00:13.598939",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236910392",
+    "symbol": "CADCHF",
+    "ticket": 236910392,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57272,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.0,
+      "profit_ratio": 0.263,
+      "peak_profit_pips": 12.0
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5781",
+    "event_timestamp": "2026-02-04T14:00:13.606516",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236930446",
+    "symbol": "CADCHF",
+    "ticket": 236930446,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57276,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.4,
+      "profit_ratio": 0.272,
+      "peak_profit_pips": 12.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4528",
+    "event_timestamp": "2026-02-04T14:00:13.612070",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236934041",
+    "symbol": "CADCHF",
+    "ticket": 236934041,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57266,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 11.4,
+      "profit_ratio": 0.25,
+      "peak_profit_pips": 11.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4844",
+    "event_timestamp": "2026-02-04T14:00:13.618987",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "USDCAD-236934050",
+    "symbol": "USDCAD",
+    "ticket": 236934050,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_5",
+      "new_stage_number": 5,
+      "old_sl": 1.36933,
+      "new_sl": 0.0,
+      "protection_percent": 30
+    },
+    "profit_data": {
+      "profit_pips": 28.1,
+      "profit_ratio": 0.11,
+      "peak_profit_pips": 28.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (25 pips)",
+      "threshold_pips": 25,
+      "bb_width_pips": 255.75000000000125,
+      "distance_to_upper": 105.61
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_5129",
+    "event_timestamp": "2026-02-04T14:00:13.625748",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236948691",
+    "symbol": "CADCHF",
+    "ticket": 236948691,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57266,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 11.4,
+      "profit_ratio": 0.25,
+      "peak_profit_pips": 11.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8897",
+    "event_timestamp": "2026-02-04T14:00:13.633069",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236954446",
+    "symbol": "CADCHF",
+    "ticket": 236954446,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57258,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.6,
+      "profit_ratio": 0.232,
+      "peak_profit_pips": 10.6
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_8570",
+    "event_timestamp": "2026-02-04T14:00:13.639872",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236955141",
+    "symbol": "CADCHF",
+    "ticket": 236955141,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57256,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.4,
+      "profit_ratio": 0.228,
+      "peak_profit_pips": 10.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_140013_4181",
+    "event_timestamp": "2026-02-04T14:00:13.645769",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236962260",
+    "symbol": "CADCHF",
+    "ticket": 236962260,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.57253,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.1,
+      "profit_ratio": 0.221,
+      "peak_profit_pips": 10.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 20.21
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_142608_1976",
+    "event_timestamp": "2026-02-04T14:26:08.127707",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T14:26:08.126573",
+      "positions_count": 1,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_142635_7100",
+    "event_timestamp": "2026-02-04T14:26:35.583712",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T14:26:35.583712",
+      "positions_count": 49,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_142635_2310",
+    "event_timestamp": "2026-02-04T14:26:35.592025",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236607262",
+    "symbol": "CADCHF",
+    "ticket": 236607262,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56974,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.8,
+      "profit_ratio": 0.325,
+      "peak_profit_pips": 15.2
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 19.81
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_142635_7611",
+    "event_timestamp": "2026-02-04T14:26:35.602076",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236631452",
+    "symbol": "EURGBP",
+    "ticket": 236631452,
+    "stage_data": {
+      "old_stage": "STAGE_4",
+      "old_stage_number": 4,
+      "new_stage": "STAGE_5",
+      "new_stage_number": 5,
+      "old_sl": 0.86454,
+      "new_sl": 0.0,
+      "protection_percent": 30
+    },
+    "profit_data": {
+      "profit_pips": 25.7,
+      "profit_ratio": 0.365,
+      "peak_profit_pips": 25.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (25 pips)",
+      "threshold_pips": 25,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 59.65
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_142635_6036",
+    "event_timestamp": "2026-02-04T14:26:35.612195",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236718012",
+    "symbol": "EURGBP",
+    "ticket": 236718012,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_4",
+      "new_stage_number": 4,
+      "old_sl": 0.8643,
+      "new_sl": 0.0,
+      "protection_percent": 25
+    },
+    "profit_data": {
+      "profit_pips": 21.2,
+      "profit_ratio": 0.301,
+      "peak_profit_pips": 21.2
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (20 pips)",
+      "threshold_pips": 20,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 59.65
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_142635_1293",
+    "event_timestamp": "2026-02-04T14:26:35.615358",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236779348",
+    "symbol": "EURGBP",
+    "ticket": 236779348,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.86649,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.4,
+      "profit_ratio": 0.133,
+      "peak_profit_pips": 9.4
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 70.47000000000025,
+      "distance_to_upper": 59.65
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_142635_3963",
+    "event_timestamp": "2026-02-04T14:26:35.621822",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236962260",
+    "symbol": "CADCHF",
+    "ticket": 236962260,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.56938,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.7,
+      "profit_ratio": 0.213,
+      "peak_profit_pips": 10.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 45.60000000000008,
+      "distance_to_upper": 19.81
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_8945",
+    "event_timestamp": "2026-02-04T16:56:53.527188",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T16:56:53.521640",
+      "positions_count": 37,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_165653_8368",
+    "event_timestamp": "2026-02-04T16:56:53.536878",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236506997",
+    "symbol": "EURGBP",
+    "ticket": 236506997,
+    "stage_data": {
+      "old_stage": "STAGE_5",
+      "old_stage_number": 5,
+      "new_stage": "STAGE_7",
+      "new_stage_number": 7,
+      "old_sl": 0.86452,
+      "new_sl": 0.0,
+      "protection_percent": 40
+    },
+    "profit_data": {
+      "profit_pips": 37.1,
+      "profit_ratio": 2.238,
+      "peak_profit_pips": 37.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (35 pips)",
+      "threshold_pips": 35,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_6945",
+    "event_timestamp": "2026-02-04T16:56:53.547150",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236626222",
+    "symbol": "CADCHF",
+    "ticket": 236626222,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56988,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.5,
+      "profit_ratio": 1.88,
+      "peak_profit_pips": 17.0
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_1565",
+    "event_timestamp": "2026-02-04T16:56:53.556456",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236631452",
+    "symbol": "EURGBP",
+    "ticket": 236631452,
+    "stage_data": {
+      "old_stage": "STAGE_5",
+      "old_stage_number": 5,
+      "new_stage": "STAGE_6",
+      "new_stage_number": 6,
+      "old_sl": 0.86436,
+      "new_sl": 0.0,
+      "protection_percent": 35
+    },
+    "profit_data": {
+      "profit_pips": 34.8,
+      "profit_ratio": 2.099,
+      "peak_profit_pips": 34.8
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (30 pips)",
+      "threshold_pips": 30,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_1693",
+    "event_timestamp": "2026-02-04T16:56:53.564893",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236718003",
+    "symbol": "CADCHF",
+    "ticket": 236718003,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56992,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.0,
+      "profit_ratio": 1.95,
+      "peak_profit_pips": 17.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_3961",
+    "event_timestamp": "2026-02-04T16:56:53.573826",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236718012",
+    "symbol": "EURGBP",
+    "ticket": 236718012,
+    "stage_data": {
+      "old_stage": "STAGE_4",
+      "old_stage_number": 4,
+      "new_stage": "STAGE_6",
+      "new_stage_number": 6,
+      "old_sl": 0.86415,
+      "new_sl": 0.0,
+      "protection_percent": 35
+    },
+    "profit_data": {
+      "profit_pips": 30.3,
+      "profit_ratio": 1.828,
+      "peak_profit_pips": 30.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (30 pips)",
+      "threshold_pips": 30,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_8232",
+    "event_timestamp": "2026-02-04T16:56:53.583603",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236722323",
+    "symbol": "CADCHF",
+    "ticket": 236722323,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56976,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.0,
+      "profit_ratio": 1.671,
+      "peak_profit_pips": 15.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_3721",
+    "event_timestamp": "2026-02-04T16:56:53.593243",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236725975",
+    "symbol": "CADCHF",
+    "ticket": 236725975,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.56963,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.6,
+      "profit_ratio": 1.337,
+      "peak_profit_pips": 13.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_1193",
+    "event_timestamp": "2026-02-04T16:56:53.602112",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236738353",
+    "symbol": "CADCHF",
+    "ticket": 236738353,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.5699,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 13.8,
+      "profit_ratio": 1.922,
+      "peak_profit_pips": 17.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_5777",
+    "event_timestamp": "2026-02-04T16:56:53.611812",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236741259",
+    "symbol": "CADCHF",
+    "ticket": 236741259,
+    "stage_data": {
+      "old_stage": "STAGE_3",
+      "old_stage_number": 3,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56978,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 12.2,
+      "profit_ratio": 1.699,
+      "peak_profit_pips": 15.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_1413",
+    "event_timestamp": "2026-02-04T16:56:53.621914",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236747730",
+    "symbol": "CADCHF",
+    "ticket": 236747730,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.56962,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.4,
+      "profit_ratio": 1.309,
+      "peak_profit_pips": 12.9
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_3651",
+    "event_timestamp": "2026-02-04T16:56:53.630473",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236779348",
+    "symbol": "EURGBP",
+    "ticket": 236779348,
+    "stage_data": {
+      "old_stage": "STAGE_1",
+      "old_stage_number": 1,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.86341,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 18.5,
+      "profit_ratio": 1.116,
+      "peak_profit_pips": 18.5
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_5591",
+    "event_timestamp": "2026-02-04T16:56:53.640920",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236878887",
+    "symbol": "CADCHF",
+    "ticket": 236878887,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.56965,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.8,
+      "profit_ratio": 1.365,
+      "peak_profit_pips": 13.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_3176",
+    "event_timestamp": "2026-02-04T16:56:53.649588",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236882026",
+    "symbol": "CADCHF",
+    "ticket": 236882026,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.5696,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.2,
+      "profit_ratio": 1.281,
+      "peak_profit_pips": 12.7
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_6458",
+    "event_timestamp": "2026-02-04T16:56:53.658081",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236888064",
+    "symbol": "EURGBP",
+    "ticket": 236888064,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.86575,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 11.0,
+      "profit_ratio": 0.663,
+      "peak_profit_pips": 11.0
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_3592",
+    "event_timestamp": "2026-02-04T16:56:53.667844",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236908795",
+    "symbol": "CADCHF",
+    "ticket": 236908795,
+    "stage_data": {
+      "old_stage": "STAGE_2",
+      "old_stage_number": 2,
+      "new_stage": "STAGE_1",
+      "new_stage_number": 1,
+      "old_sl": 0.56959,
+      "new_sl": 0.0,
+      "protection_percent": 10
+    },
+    "profit_data": {
+      "profit_pips": 9.1,
+      "profit_ratio": 1.267,
+      "peak_profit_pips": 12.6
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (8 pips)",
+      "threshold_pips": 8,
+      "bb_width_pips": 7.179999999999964,
+      "distance_to_upper": 4.48
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_2924",
+    "event_timestamp": "2026-02-04T16:56:53.676679",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236939280",
+    "symbol": "EURGBP",
+    "ticket": 236939280,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.86606,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 14.1,
+      "profit_ratio": 0.85,
+      "peak_profit_pips": 14.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165653_2897",
+    "event_timestamp": "2026-02-04T16:56:53.685014",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "EURGBP-236962268",
+    "symbol": "EURGBP",
+    "ticket": 236962268,
+    "stage_data": {
+      "old_stage": "STAGE_0",
+      "old_stage_number": 0,
+      "new_stage": "STAGE_3",
+      "new_stage_number": 3,
+      "old_sl": 0.86618,
+      "new_sl": 0.0,
+      "protection_percent": 20
+    },
+    "profit_data": {
+      "profit_pips": 15.3,
+      "profit_ratio": 0.923,
+      "peak_profit_pips": 15.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (15 pips)",
+      "threshold_pips": 15,
+      "bb_width_pips": 16.579999999999373,
+      "distance_to_upper": 15.54
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_165826_6824",
+    "event_timestamp": "2026-02-04T16:58:26.147187",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T16:58:26.147187",
+      "positions_count": 1,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_170755_2769",
+    "event_timestamp": "2026-02-04T17:07:55.228780",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:07:55.228780",
+      "positions_count": 1,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171103_2746",
+    "event_timestamp": "2026-02-04T17:11:03.262035",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:11:03.261037",
+      "positions_count": 49,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171103_4985",
+    "event_timestamp": "2026-02-04T17:11:03.271324",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237814183",
+    "symbol": "AUDCHF",
+    "ticket": 237814183,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.54582,
+      "lot_size": 0.01,
+      "initial_sl": 0.54882,
+      "initial_tp": 0.54182,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.014
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_3066",
+    "event_timestamp": "2026-02-04T17:11:03.279326",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237814195",
+    "symbol": "AUDJPY",
+    "ticket": 237814195,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 110.093,
+      "lot_size": 0.01,
+      "initial_sl": 110.392,
+      "initial_tp": 109.692,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.049
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_1977",
+    "event_timestamp": "2026-02-04T17:11:03.288772",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237814207",
+    "symbol": "CADCHF",
+    "ticket": 237814207,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.56878,
+      "lot_size": 0.01,
+      "initial_sl": 0.57178,
+      "initial_tp": 0.56478,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.102
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_9291",
+    "event_timestamp": "2026-02-04T17:11:03.295833",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237814212",
+    "symbol": "CADJPY",
+    "ticket": 237814212,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 114.727,
+      "lot_size": 0.01,
+      "initial_sl": 115.027,
+      "initial_tp": 114.327,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.163
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_1528",
+    "event_timestamp": "2026-02-04T17:11:03.303830",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237814216",
+    "symbol": "CHFJPY",
+    "ticket": 237814216,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 201.689,
+      "lot_size": 0.01,
+      "initial_sl": 201.989,
+      "initial_tp": 201.289,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": -0.165
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_3914",
+    "event_timestamp": "2026-02-04T17:11:03.310857",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237814220",
+    "symbol": "EURCHF",
+    "ticket": 237814220,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.91731,
+      "lot_size": 0.01,
+      "initial_sl": 0.92031,
+      "initial_tp": 0.91331,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.047
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_3807",
+    "event_timestamp": "2026-02-04T17:11:03.317908",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237814223",
+    "symbol": "EURGBP",
+    "ticket": 237814223,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86166,
+      "lot_size": 0.01,
+      "initial_sl": 0.86466,
+      "initial_tp": 0.85766,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": 0.0
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_6102",
+    "event_timestamp": "2026-02-04T17:11:03.326476",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237814228",
+    "symbol": "NZDCAD",
+    "ticket": 237814228,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.82389,
+      "lot_size": 0.01,
+      "initial_sl": 0.82687,
+      "initial_tp": 0.81987,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.056
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_9628",
+    "event_timestamp": "2026-02-04T17:11:03.333475",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237814231",
+    "symbol": "NZDCHF",
+    "ticket": 237814231,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46851,
+      "lot_size": 0.01,
+      "initial_sl": 0.47153,
+      "initial_tp": 0.46453,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.082
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_1476",
+    "event_timestamp": "2026-02-04T17:11:03.341464",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237814234",
+    "symbol": "NZDJPY",
+    "ticket": 237814234,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 94.512,
+      "lot_size": 0.01,
+      "initial_sl": 94.812,
+      "initial_tp": 94.112,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.074
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_6850",
+    "event_timestamp": "2026-02-04T17:11:03.349552",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237814238",
+    "symbol": "NZDUSD",
+    "ticket": 237814238,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.60437,
+      "lot_size": 0.01,
+      "initial_sl": 0.60737,
+      "initial_tp": 0.60037,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.016
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_9435",
+    "event_timestamp": "2026-02-04T17:11:03.356544",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237814240",
+    "symbol": "USDCHF",
+    "ticket": 237814240,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.77548,
+      "lot_size": 0.01,
+      "initial_sl": 0.77848,
+      "initial_tp": 0.77148,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": -0.025
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171103_7539",
+    "event_timestamp": "2026-02-04T17:11:03.364914",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236878887",
+    "symbol": "CADCHF",
+    "ticket": 236878887,
+    "stage_data": {
+      "old_stage": "STAGE_1",
+      "old_stage_number": 1,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56965,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.1,
+      "profit_ratio": 1.724,
+      "peak_profit_pips": 13.3
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 5.859999999999754,
+      "distance_to_upper": 4.51
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_171145_1272",
+    "event_timestamp": "2026-02-04T17:11:45.771629",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:11:45.769623",
+      "positions_count": 61,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171145_2172",
+    "event_timestamp": "2026-02-04T17:11:45.780596",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237814443",
+    "symbol": "AUDCHF",
+    "ticket": 237814443,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.54589,
+      "lot_size": 0.01,
+      "initial_sl": 0.54288,
+      "initial_tp": 0.54988,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.043
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_3188",
+    "event_timestamp": "2026-02-04T17:11:45.788947",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237814447",
+    "symbol": "AUDJPY",
+    "ticket": 237814447,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 110.114,
+      "lot_size": 0.01,
+      "initial_sl": 109.814,
+      "initial_tp": 110.514,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.053
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_7940",
+    "event_timestamp": "2026-02-04T17:11:45.797339",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237814449",
+    "symbol": "CADCHF",
+    "ticket": 237814449,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.56881,
+      "lot_size": 0.01,
+      "initial_sl": 0.56581,
+      "initial_tp": 0.57281,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.205
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_5830",
+    "event_timestamp": "2026-02-04T17:11:45.804767",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237814452",
+    "symbol": "CADJPY",
+    "ticket": 237814452,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 114.73,
+      "lot_size": 0.01,
+      "initial_sl": 114.429,
+      "initial_tp": 115.129,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.148
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_5193",
+    "event_timestamp": "2026-02-04T17:11:45.812742",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237814453",
+    "symbol": "CHFJPY",
+    "ticket": 237814453,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 201.723,
+      "lot_size": 0.01,
+      "initial_sl": 201.423,
+      "initial_tp": 202.123,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": -0.083
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_7525",
+    "event_timestamp": "2026-02-04T17:11:45.822185",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237814456",
+    "symbol": "EURCHF",
+    "ticket": 237814456,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.91735,
+      "lot_size": 0.01,
+      "initial_sl": 0.91435,
+      "initial_tp": 0.92135,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.047
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_6922",
+    "event_timestamp": "2026-02-04T17:11:45.830454",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237814459",
+    "symbol": "EURGBP",
+    "ticket": 237814459,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.86168,
+      "lot_size": 0.01,
+      "initial_sl": 0.85868,
+      "initial_tp": 0.86568,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": -0.005
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_4946",
+    "event_timestamp": "2026-02-04T17:11:45.838711",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237814460",
+    "symbol": "NZDCAD",
+    "ticket": 237814460,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.82402,
+      "lot_size": 0.01,
+      "initial_sl": 0.82102,
+      "initial_tp": 0.82802,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.056
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_3195",
+    "event_timestamp": "2026-02-04T17:11:45.849341",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237814461",
+    "symbol": "NZDCHF",
+    "ticket": 237814461,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.4686,
+      "lot_size": 0.01,
+      "initial_sl": 0.4656,
+      "initial_tp": 0.4726,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.082
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_7380",
+    "event_timestamp": "2026-02-04T17:11:45.857980",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237814462",
+    "symbol": "NZDJPY",
+    "ticket": 237814462,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 94.526,
+      "lot_size": 0.01,
+      "initial_sl": 94.226,
+      "initial_tp": 94.926,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.064
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_9995",
+    "event_timestamp": "2026-02-04T17:11:45.866226",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237814463",
+    "symbol": "NZDUSD",
+    "ticket": 237814463,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.60448,
+      "lot_size": 0.01,
+      "initial_sl": 0.60148,
+      "initial_tp": 0.60848,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.016
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_6098",
+    "event_timestamp": "2026-02-04T17:11:45.875162",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237814464",
+    "symbol": "USDCHF",
+    "ticket": 237814464,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.77539,
+      "lot_size": 0.01,
+      "initial_sl": 0.77239,
+      "initial_tp": 0.77939,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": -0.012
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171145_8907",
+    "event_timestamp": "2026-02-04T17:11:45.883908",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236725975",
+    "symbol": "CADCHF",
+    "ticket": 236725975,
+    "stage_data": {
+      "old_stage": "STAGE_1",
+      "old_stage_number": 1,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56963,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.3,
+      "profit_ratio": 1.758,
+      "peak_profit_pips": 13.1
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 5.859999999999754,
+      "distance_to_upper": 4.91
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_171145_2724",
+    "event_timestamp": "2026-02-04T17:11:45.892217",
+    "event_type": "STAGE_CHANGE",
+    "position_id": "CADCHF-236747730",
+    "symbol": "CADCHF",
+    "ticket": 236747730,
+    "stage_data": {
+      "old_stage": "STAGE_1",
+      "old_stage_number": 1,
+      "new_stage": "STAGE_2",
+      "new_stage_number": 2,
+      "old_sl": 0.56962,
+      "new_sl": 0.0,
+      "protection_percent": 15
+    },
+    "profit_data": {
+      "profit_pips": 10.1,
+      "profit_ratio": 1.724,
+      "peak_profit_pips": 12.9
+    },
+    "trigger_data": {
+      "trigger_type": "Profit threshold (10 pips)",
+      "threshold_pips": 10,
+      "bb_width_pips": 5.859999999999754,
+      "distance_to_upper": 4.91
+    },
+    "market_condition": {
+      "bb_width_change": 0.0,
+      "trend_strength": "unknown"
+    }
+  },
+  {
+    "event_id": "20260204_171307_3471",
+    "event_timestamp": "2026-02-04T17:13:07.992067",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:13:07.992067",
+      "positions_count": 12,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171308_8447",
+    "event_timestamp": "2026-02-04T17:13:08.000809",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237815000",
+    "symbol": "AUDCHF",
+    "ticket": 237815000,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.54572,
+      "lot_size": 0.01,
+      "initial_sl": 0.54272,
+      "initial_tp": 0.54972,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.071
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_7070",
+    "event_timestamp": "2026-02-04T17:13:08.016552",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237815008",
+    "symbol": "AUDJPY",
+    "ticket": 237815008,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 110.092,
+      "lot_size": 0.01,
+      "initial_sl": 109.793,
+      "initial_tp": 110.493,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.033
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_2644",
+    "event_timestamp": "2026-02-04T17:13:08.016552",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237815013",
+    "symbol": "CADCHF",
+    "ticket": 237815013,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.56874,
+      "lot_size": 0.01,
+      "initial_sl": 0.56574,
+      "initial_tp": 0.57274,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.273
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_7318",
+    "event_timestamp": "2026-02-04T17:13:08.032331",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237815020",
+    "symbol": "CADJPY",
+    "ticket": 237815020,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 114.733,
+      "lot_size": 0.01,
+      "initial_sl": 114.434,
+      "initial_tp": 115.134,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.118
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_2209",
+    "event_timestamp": "2026-02-04T17:13:08.048416",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237815027",
+    "symbol": "CHFJPY",
+    "ticket": 237815027,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 201.749,
+      "lot_size": 0.01,
+      "initial_sl": 201.449,
+      "initial_tp": 202.149,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": 0.019
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_8057",
+    "event_timestamp": "2026-02-04T17:13:08.048416",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237815033",
+    "symbol": "EURCHF",
+    "ticket": 237815033,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.91729,
+      "lot_size": 0.01,
+      "initial_sl": 0.91429,
+      "initial_tp": 0.92129,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.13
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_7360",
+    "event_timestamp": "2026-02-04T17:13:08.064060",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237815036",
+    "symbol": "EURGBP",
+    "ticket": 237815036,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.86162,
+      "lot_size": 0.01,
+      "initial_sl": 0.85862,
+      "initial_tp": 0.86562,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": 0.0
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_3597",
+    "event_timestamp": "2026-02-04T17:13:08.064060",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237815042",
+    "symbol": "NZDCAD",
+    "ticket": 237815042,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.82397,
+      "lot_size": 0.01,
+      "initial_sl": 0.82095,
+      "initial_tp": 0.82795,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.063
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_5101",
+    "event_timestamp": "2026-02-04T17:13:08.079942",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237815046",
+    "symbol": "NZDCHF",
+    "ticket": 237815046,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.46847,
+      "lot_size": 0.01,
+      "initial_sl": 0.46547,
+      "initial_tp": 0.47247,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.1
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_7934",
+    "event_timestamp": "2026-02-04T17:13:08.079942",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237815049",
+    "symbol": "NZDJPY",
+    "ticket": 237815049,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 94.526,
+      "lot_size": 0.01,
+      "initial_sl": 94.224,
+      "initial_tp": 94.924,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.084
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_5898",
+    "event_timestamp": "2026-02-04T17:13:08.098666",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237815050",
+    "symbol": "NZDUSD",
+    "ticket": 237815050,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.60441,
+      "lot_size": 0.01,
+      "initial_sl": 0.60143,
+      "initial_tp": 0.60843,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.016
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171308_5043",
+    "event_timestamp": "2026-02-04T17:13:08.111507",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237815053",
+    "symbol": "USDCHF",
+    "ticket": 237815053,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.77525,
+      "lot_size": 0.01,
+      "initial_sl": 0.77225,
+      "initial_tp": 0.77925,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": 0.0
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_4212",
+    "event_timestamp": "2026-02-04T17:13:41.178241",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:13:41.178241",
+      "positions_count": 12,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171341_5717",
+    "event_timestamp": "2026-02-04T17:13:41.188763",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237815278",
+    "symbol": "AUDCHF",
+    "ticket": 237815278,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.54556,
+      "lot_size": 0.01,
+      "initial_sl": 0.54256,
+      "initial_tp": 0.54956,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.036
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7678",
+    "event_timestamp": "2026-02-04T17:13:41.198501",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237815280",
+    "symbol": "AUDJPY",
+    "ticket": 237815280,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 110.076,
+      "lot_size": 0.01,
+      "initial_sl": 109.776,
+      "initial_tp": 110.476,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.037
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7377",
+    "event_timestamp": "2026-02-04T17:13:41.207124",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237815282",
+    "symbol": "CADCHF",
+    "ticket": 237815282,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.56863,
+      "lot_size": 0.01,
+      "initial_sl": 0.56563,
+      "initial_tp": 0.57263,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.171
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_3093",
+    "event_timestamp": "2026-02-04T17:13:41.215420",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237815301",
+    "symbol": "CADJPY",
+    "ticket": 237815301,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 114.727,
+      "lot_size": 0.01,
+      "initial_sl": 114.428,
+      "initial_tp": 115.128,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.148
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7081",
+    "event_timestamp": "2026-02-04T17:13:41.224940",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237815306",
+    "symbol": "CHFJPY",
+    "ticket": 237815306,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 201.778,
+      "lot_size": 0.01,
+      "initial_sl": 201.478,
+      "initial_tp": 202.178,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": -0.102
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_1797",
+    "event_timestamp": "2026-02-04T17:13:41.233703",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237815308",
+    "symbol": "EURCHF",
+    "ticket": 237815308,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.91718,
+      "lot_size": 0.01,
+      "initial_sl": 0.91418,
+      "initial_tp": 0.92118,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.047
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_8920",
+    "event_timestamp": "2026-02-04T17:13:41.242352",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237815313",
+    "symbol": "EURGBP",
+    "ticket": 237815313,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.86161,
+      "lot_size": 0.01,
+      "initial_sl": 0.85861,
+      "initial_tp": 0.86561,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": -0.005
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7663",
+    "event_timestamp": "2026-02-04T17:13:41.250733",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237815317",
+    "symbol": "NZDCAD",
+    "ticket": 237815317,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.82397,
+      "lot_size": 0.01,
+      "initial_sl": 0.82096,
+      "initial_tp": 0.82796,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.063
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7644",
+    "event_timestamp": "2026-02-04T17:13:41.260197",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237815324",
+    "symbol": "NZDCHF",
+    "ticket": 237815324,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.46843,
+      "lot_size": 0.01,
+      "initial_sl": 0.46543,
+      "initial_tp": 0.47243,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.091
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_3149",
+    "event_timestamp": "2026-02-04T17:13:41.268769",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237815328",
+    "symbol": "NZDJPY",
+    "ticket": 237815328,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 94.516,
+      "lot_size": 0.01,
+      "initial_sl": 94.219,
+      "initial_tp": 94.919,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.069
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_7769",
+    "event_timestamp": "2026-02-04T17:13:41.277521",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237815332",
+    "symbol": "NZDUSD",
+    "ticket": 237815332,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.60441,
+      "lot_size": 0.01,
+      "initial_sl": 0.60141,
+      "initial_tp": 0.60841,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.016
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171341_6760",
+    "event_timestamp": "2026-02-04T17:13:41.286896",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237815335",
+    "symbol": "USDCHF",
+    "ticket": 237815335,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.77521,
+      "lot_size": 0.01,
+      "initial_sl": 0.77221,
+      "initial_tp": 0.77921,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": -0.025
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_7957",
+    "event_timestamp": "2026-02-04T17:15:19.583969",
+    "event_type": "ENGINE_CYCLE",
+    "cycle_data": {
+      "cycle_timestamp": "2026-02-04T17:15:19.582972",
+      "positions_count": 28,
+      "engine_version": "5.0.2",
+      "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",
+      "history_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_history.json",
+      "last_run_file": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports\\survivor_last_run.json"
+    }
+  },
+  {
+    "event_id": "20260204_171519_9572",
+    "event_timestamp": "2026-02-04T17:15:19.596299",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCAD-237815932",
+    "symbol": "AUDCAD",
+    "ticket": 237815932,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.95932,
+      "lot_size": 0.01,
+      "initial_sl": 0.96232,
+      "initial_tp": 0.95532,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 17.569999999998974,
+      "bb_upper": 0.959926,
+      "bb_middle": 0.959047,
+      "bb_lower": 0.958169,
+      "profit_ratio": -0.023
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_3541",
+    "event_timestamp": "2026-02-04T17:15:19.605612",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237815935",
+    "symbol": "AUDCHF",
+    "ticket": 237815935,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.54542,
+      "lot_size": 0.01,
+      "initial_sl": 0.54842,
+      "initial_tp": 0.54142,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.029
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_6679",
+    "event_timestamp": "2026-02-04T17:15:19.615102",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237815939",
+    "symbol": "AUDJPY",
+    "ticket": 237815939,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 110.05,
+      "lot_size": 0.01,
+      "initial_sl": 110.35,
+      "initial_tp": 109.65,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.033
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_1186",
+    "event_timestamp": "2026-02-04T17:15:19.624697",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237815940",
+    "symbol": "CADCHF",
+    "ticket": 237815940,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.5685,
+      "lot_size": 0.01,
+      "initial_sl": 0.57151,
+      "initial_tp": 0.56451,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.188
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_3076",
+    "event_timestamp": "2026-02-04T17:15:19.633173",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237815944",
+    "symbol": "CADJPY",
+    "ticket": 237815944,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 114.718,
+      "lot_size": 0.01,
+      "initial_sl": 115.018,
+      "initial_tp": 114.318,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.089
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_2087",
+    "event_timestamp": "2026-02-04T17:15:19.642362",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237815947",
+    "symbol": "CHFJPY",
+    "ticket": 237815947,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 201.768,
+      "lot_size": 0.01,
+      "initial_sl": 202.068,
+      "initial_tp": 201.368,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": -0.053
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_4519",
+    "event_timestamp": "2026-02-04T17:15:19.654578",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237815949",
+    "symbol": "EURCHF",
+    "ticket": 237815949,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.91701,
+      "lot_size": 0.01,
+      "initial_sl": 0.92001,
+      "initial_tp": 0.91301,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.118
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_8111",
+    "event_timestamp": "2026-02-04T17:15:19.664577",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237815951",
+    "symbol": "EURGBP",
+    "ticket": 237815951,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.86161,
+      "lot_size": 0.01,
+      "initial_sl": 0.86461,
+      "initial_tp": 0.85761,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": -0.011
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_5836",
+    "event_timestamp": "2026-02-04T17:15:19.673455",
+    "event_type": "POSITION_OPENED",
+    "position_id": "GBPCAD-237815954",
+    "symbol": "GBPCAD",
+    "ticket": 237815954,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.87196,
+      "lot_size": 0.01,
+      "initial_sl": 1.87496,
+      "initial_tp": 1.86796,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 38.549999999999415,
+      "bb_upper": 1.872499,
+      "bb_middle": 1.870572,
+      "bb_lower": 1.868644,
+      "profit_ratio": -0.039
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_2016",
+    "event_timestamp": "2026-02-04T17:15:19.683793",
+    "event_type": "POSITION_OPENED",
+    "position_id": "GBPCHF-237815957",
+    "symbol": "GBPCHF",
+    "ticket": 237815957,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 1.0643,
+      "lot_size": 0.01,
+      "initial_sl": 1.06731,
+      "initial_tp": 1.06031,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 26.479999999999837,
+      "bb_upper": 1.065757,
+      "bb_middle": 1.064433,
+      "bb_lower": 1.063109,
+      "profit_ratio": -0.045
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_6921",
+    "event_timestamp": "2026-02-04T17:15:19.692483",
+    "event_type": "POSITION_OPENED",
+    "position_id": "GBPJPY-237815959",
+    "symbol": "GBPJPY",
+    "ticket": 237815959,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 214.757,
+      "lot_size": 0.01,
+      "initial_sl": 215.054,
+      "initial_tp": 214.354,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 53.348200000002066,
+      "bb_upper": 214.901091,
+      "bb_middle": 214.63435,
+      "bb_lower": 214.367609,
+      "profit_ratio": -0.019
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_6860",
+    "event_timestamp": "2026-02-04T17:15:19.701894",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237815961",
+    "symbol": "NZDCAD",
+    "ticket": 237815961,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.82362,
+      "lot_size": 0.01,
+      "initial_sl": 0.82662,
+      "initial_tp": 0.81962,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.119
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_9408",
+    "event_timestamp": "2026-02-04T17:15:19.711274",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237815965",
+    "symbol": "NZDCHF",
+    "ticket": 237815965,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.46816,
+      "lot_size": 0.01,
+      "initial_sl": 0.47116,
+      "initial_tp": 0.46416,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.137
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_6507",
+    "event_timestamp": "2026-02-04T17:15:19.719796",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237815976",
+    "symbol": "NZDJPY",
+    "ticket": 237815976,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 94.472,
+      "lot_size": 0.01,
+      "initial_sl": 94.775,
+      "initial_tp": 94.075,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.108
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_7643",
+    "event_timestamp": "2026-02-04T17:15:19.732220",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237815991",
+    "symbol": "NZDUSD",
+    "ticket": 237815991,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.60413,
+      "lot_size": 0.01,
+      "initial_sl": 0.60713,
+      "initial_tp": 0.60013,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.063
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_1317",
+    "event_timestamp": "2026-02-04T17:15:19.746030",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237815997",
+    "symbol": "USDCHF",
+    "ticket": 237815997,
+    "position_type": "SELL",
+    "entry_data": {
+      "entry_price": 0.77523,
+      "lot_size": 0.01,
+      "initial_sl": 0.77824,
+      "initial_tp": 0.77124,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": -0.025
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_9137",
+    "event_timestamp": "2026-02-04T17:15:19.759066",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDCHF-237816000",
+    "symbol": "AUDCHF",
+    "ticket": 237816000,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.54546,
+      "lot_size": 0.01,
+      "initial_sl": 0.54246,
+      "initial_tp": 0.54946,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.030000000000431,
+      "bb_upper": 0.546439,
+      "bb_middle": 0.545738,
+      "bb_lower": 0.545036,
+      "profit_ratio": -0.029
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_1468",
+    "event_timestamp": "2026-02-04T17:15:19.772101",
+    "event_type": "POSITION_OPENED",
+    "position_id": "AUDJPY-237816003",
+    "symbol": "AUDJPY",
+    "ticket": 237816003,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 110.056,
+      "lot_size": 0.01,
+      "initial_sl": 109.756,
+      "initial_tp": 110.456,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 24.51240000000041,
+      "bb_upper": 110.164962,
+      "bb_middle": 110.0424,
+      "bb_lower": 109.919838,
+      "profit_ratio": -0.033
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_8477",
+    "event_timestamp": "2026-02-04T17:15:19.783363",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADCHF-237816004",
+    "symbol": "CADCHF",
+    "ticket": 237816004,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.5686,
+      "lot_size": 0.01,
+      "initial_sl": 0.5656,
+      "initial_tp": 0.5726,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 5.859999999999754,
+      "bb_upper": 0.569291,
+      "bb_middle": 0.568998,
+      "bb_lower": 0.568705,
+      "profit_ratio": -0.154
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_3862",
+    "event_timestamp": "2026-02-04T17:15:19.792647",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CADJPY-237816007",
+    "symbol": "CADJPY",
+    "ticket": 237816007,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 114.724,
+      "lot_size": 0.01,
+      "initial_sl": 114.424,
+      "initial_tp": 115.124,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 6.759999999999877,
+      "bb_upper": 114.7715,
+      "bb_middle": 114.7377,
+      "bb_lower": 114.7039,
+      "profit_ratio": -0.163
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_3412",
+    "event_timestamp": "2026-02-04T17:15:19.802673",
+    "event_type": "POSITION_OPENED",
+    "position_id": "CHFJPY-237816009",
+    "symbol": "CHFJPY",
+    "ticket": 237816009,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 201.781,
+      "lot_size": 0.01,
+      "initial_sl": 201.481,
+      "initial_tp": 202.181,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.58280000000252,
+      "bb_upper": 201.734314,
+      "bb_middle": 201.6314,
+      "bb_lower": 201.528486,
+      "profit_ratio": -0.112
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_5866",
+    "event_timestamp": "2026-02-04T17:15:19.814358",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURCHF-237816010",
+    "symbol": "EURCHF",
+    "ticket": 237816010,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.91709,
+      "lot_size": 0.01,
+      "initial_sl": 0.91409,
+      "initial_tp": 0.92109,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.44000000000067,
+      "bb_upper": 0.918212,
+      "bb_middle": 0.91779,
+      "bb_lower": 0.917368,
+      "profit_ratio": -0.036
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_7980",
+    "event_timestamp": "2026-02-04T17:15:19.825578",
+    "event_type": "POSITION_OPENED",
+    "position_id": "EURGBP-237816012",
+    "symbol": "EURGBP",
+    "ticket": 237816012,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.86162,
+      "lot_size": 0.01,
+      "initial_sl": 0.85863,
+      "initial_tp": 0.86563,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 18.7499999999996,
+      "bb_upper": 0.863165,
+      "bb_middle": 0.862228,
+      "bb_lower": 0.86129,
+      "profit_ratio": 0.0
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_4775",
+    "event_timestamp": "2026-02-04T17:15:19.834964",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCAD-237816017",
+    "symbol": "NZDCAD",
+    "ticket": 237816017,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.8238,
+      "lot_size": 0.01,
+      "initial_sl": 0.8208,
+      "initial_tp": 0.8278,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 14.290000000000136,
+      "bb_upper": 0.82437,
+      "bb_middle": 0.823656,
+      "bb_lower": 0.822941,
+      "profit_ratio": -0.07
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_1237",
+    "event_timestamp": "2026-02-04T17:15:19.847029",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDCHF-237816020",
+    "symbol": "NZDCHF",
+    "ticket": 237816020,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.46831,
+      "lot_size": 0.01,
+      "initial_sl": 0.46531,
+      "initial_tp": 0.47231,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 10.949999999999571,
+      "bb_upper": 0.469139,
+      "bb_middle": 0.468592,
+      "bb_lower": 0.468044,
+      "profit_ratio": -0.091
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_3358",
+    "event_timestamp": "2026-02-04T17:15:19.856711",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDJPY-237816023",
+    "symbol": "NZDJPY",
+    "ticket": 237816023,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 94.494,
+      "lot_size": 0.01,
+      "initial_sl": 94.194,
+      "initial_tp": 94.894,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 20.28800000000075,
+      "bb_upper": 94.59614,
+      "bb_middle": 94.4947,
+      "bb_lower": 94.39326,
+      "profit_ratio": -0.069
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_2776",
+    "event_timestamp": "2026-02-04T17:15:19.867173",
+    "event_type": "POSITION_OPENED",
+    "position_id": "NZDUSD-237816025",
+    "symbol": "NZDUSD",
+    "ticket": 237816025,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.60421,
+      "lot_size": 0.01,
+      "initial_sl": 0.60121,
+      "initial_tp": 0.60821,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 12.760000000000549,
+      "bb_upper": 0.604821,
+      "bb_middle": 0.604183,
+      "bb_lower": 0.603545,
+      "profit_ratio": -0.016
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  },
+  {
+    "event_id": "20260204_171519_7599",
+    "event_timestamp": "2026-02-04T17:15:19.877255",
+    "event_type": "POSITION_OPENED",
+    "position_id": "USDCHF-237816027",
+    "symbol": "USDCHF",
+    "ticket": 237816027,
+    "position_type": "BUY",
+    "entry_data": {
+      "entry_price": 0.77525,
+      "lot_size": 0.01,
+      "initial_sl": 0.77225,
+      "initial_tp": 0.77925,
+      "commission": 0.0,
+      "swap": 0.0
+    },
+    "market_context": {
+      "bb_width_pips": 8.089999999999486,
+      "bb_upper": 0.776281,
+      "bb_middle": 0.775877,
+      "bb_lower": 0.775472,
+      "profit_ratio": -0.012
+    },
+    "engine_data": {
+      "engine_version": "5.0.2",
+      "strategy": "survivor_v5"
+    }
+  }
+]

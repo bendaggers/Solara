@@ -1,15 +1,5 @@
 """
 Base Preprocessor - The Blueprint
-
-Think of this as the architectural blueprint that all specialized 
-preprocessors follow. It defines the fundamental operations every data 
-preprocessor needs: checking for missing information, organizing features, 
-and providing a consistent structure. Other preprocessors (like the 
-BB reversal one) inherit from this blueprint, adding their specific 
-requirements while keeping the core functionality consistent. It's the 
-foundation that ensures all data preparation follows the same quality 
-standards, much like how all houses in a neighborhood follow the same 
-building codes while having unique interior designs.
 """
 
 import pandas as pd
@@ -34,10 +24,18 @@ class BasePreprocessor:
     
     def validate_features(self, data_dict):
         """
-        Validate that all required features are present
+        Validate that data can be processed
+        Default implementation checks required_features
+        
         Args:
             data_dict: dict with symbol data
+        Returns:
+            bool: True if valid, raises ValueError if not
         """
+        if not self.required_features:
+            # If no required features specified, assume all valid
+            return True
+            
         missing_features = []
         for feature in self.required_features:
             if feature not in data_dict:
@@ -45,6 +43,8 @@ class BasePreprocessor:
         
         if missing_features:
             raise ValueError(f"Missing required features: {missing_features}")
+        
+        return True
     
     def normalize_features(self, features_dict):
         """
@@ -72,3 +72,14 @@ class BasePreprocessor:
                 processed[key] = value
         
         return processed
+    
+    def get_feature_info(self):
+        """
+        Get information about features (optional)
+        Returns: dict with feature information
+        """
+        return {
+            'required_features': self.required_features.copy(),
+            'feature_names': self.feature_names.copy(),
+            'total_features': len(self.feature_names)
+        }

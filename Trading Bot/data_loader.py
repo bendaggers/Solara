@@ -1,97 +1,97 @@
 """
-Data Loader - The Information Gatherer
+Data Loader - Simple CSV Loader
+MINIMAL VERSION: Only loads data, no processing
 """
 
-import json
 import pandas as pd
-from datetime import datetime
-import config
+import os
 
 
 class DataLoader:
-    """Handles loading and basic validation of market data"""
+    """Minimal CSV loader - just reads data and returns it"""
     
     def __init__(self, data_path=None):
-        self.data_path = data_path or config.DATA_PATH
+        self.data_path = data_path
+    
+    def load(self):
+        """
+        Load CSV data (MINIMAL - just reads and returns)
+        Returns: DataFrame with raw data
+        """
+        if not self.data_path:
+            raise Exception("No data path provided")
         
-    def load_json(self):
-        """
-        Load JSON data from file
-        Returns: dict with market data
-        """
-        try:
-            with open(self.data_path, 'r') as f:
-                data = json.load(f)
-            
-            # Validate data structure
-            self._validate_data(data)
-            print(f"✅ Loaded data for {len(data.get('data', []))} symbols")
-            
-            return data
-            
-        except FileNotFoundError:
+        if not os.path.exists(self.data_path):
             raise Exception(f"Data file not found: {self.data_path}")
-        except json.JSONDecodeError:
-            raise Exception(f"Invalid JSON format in: {self.data_path}")
+        
+        try:
+            # Load CSV file - NO PROCESSING
+            df = pd.read_csv(self.data_path)
+            
+            print(f"✅ Loaded {len(df)} rows from {self.data_path}")
+            # print(f"📊 Shape: {df.shape}")
+            
+            return df
+            
+        except pd.errors.EmptyDataError:
+            raise Exception(f"CSV file is empty: {self.data_path}")
+        except pd.errors.ParserError as e:
+            raise Exception(f"Error parsing CSV: {str(e)}")
+        except Exception as e:
+            raise Exception(f"Error loading CSV: {str(e)}")
     
-    def get_all_symbols(self, data):
+    def get_symbols(self, df):
         """
-        Extract all symbols from the loaded data
-        Returns: List of symbol names
+        Get list of symbols from data (optional helper)
         """
-        symbols = []
-        if 'data' in data:
-            for symbol_data in data['data']:
-                if 'pair' in symbol_data:
-                    symbols.append(symbol_data['pair'])
-        return symbols
+        if 'pair' in df.columns:
+            return df['pair'].unique().tolist()
+        elif 'symbol' in df.columns:
+            return df['symbol'].unique().tolist()
+        return []
     
-    def get_symbol_data(self, data, symbol):
+    def detect_timeframe(self, df=None):
         """
-        Get data for a specific symbol
-        Returns: Dictionary with symbol data or None if not found
+        Try to detect timeframe from filename (optional helper)
         """
-        if 'data' in data:
-            for symbol_data in data['data']:
-                if symbol_data.get('pair') == symbol:
-                    return symbol_data
+        if self.data_path:
+            filename = os.path.basename(self.data_path).lower()
+            if 'h4' in filename:
+                return 'H4'
+            elif 'h1' in filename:
+                return 'H1'
+            elif 'd1' in filename:
+                return 'D1'
+            elif 'w1' in filename:
+                return 'W1'
+            elif 'm15' in filename:
+                return 'M15'
+            elif 'm30' in filename:
+                return 'M30'
+            elif 'm5' in filename:
+                return 'M5'
+            elif 'm1' in filename:
+                return 'M1'
         return None
+
+
+# Even simpler version if you want it super minimal
+class SimpleDataLoader:
+    """Ultra-minimal CSV loader"""
     
-    def _validate_data(self, data):
-        """Validate data structure and required fields"""
-        required_keys = ['timestamp', 'timeframe', 'data']
-        for key in required_keys:
-            if key not in data:
-                raise Exception(f"Missing required key in data: {key}")
-        
-        # Check if data array has entries
-        if not isinstance(data['data'], list) or len(data['data']) == 0:
-            raise Exception("No symbol data found in JSON")
-        
-        # Check required fields in each symbol's data
-        required_symbol_fields = ['pair', 'timestamp', 'open', 'high', 'low', 'close', 'volume']
-        for symbol_data in data['data']:
-            for field in required_symbol_fields:
-                if field not in symbol_data:
-                    raise Exception(f"Missing field {field} in symbol data: {symbol_data.get('pair', 'unknown')}")
+    @staticmethod
+    def load_csv(filepath):
+        """
+        Just load the CSV, that's it
+        """
+        return pd.read_csv(filepath)
+
+
+# Usage examples
+if __name__ == "__main__":
+    # Option 1: Use the class
+    loader = DataLoader(data_path="marketdata_H4.csv")
+    df = loader.load()
     
-    def to_dataframe(self, data):
-        """
-        Convert JSON data to pandas DataFrame
-        Args:
-            data: dict from load_json()
-        Returns: pandas DataFrame
-        """
-        # Extract symbol data
-        symbols_data = data['data']
-        
-        # Create DataFrame
-        df = pd.DataFrame(symbols_data)
-        
-        # Convert timestamp to datetime
-        df['timestamp'] = pd.to_datetime(df['timestamp'])
-        
-        # Set index
-        df.set_index(['pair', 'timestamp'], inplace=True)
-        
-        return df
+    # Option 2: Just use pandas directly (simplest)
+    df = pd.read_csv("marketdata_H4.csv")
