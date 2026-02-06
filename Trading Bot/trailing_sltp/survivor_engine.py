@@ -133,8 +133,6 @@ class SurvivorEngineV5:
                 print(f"❌ Market data file not found: {market_data_path}")
                 return {}
 
-            print(f"📊 Loading market data from: {market_data_path}")
-
             market_data = {}
             loaded_symbols = 0
 

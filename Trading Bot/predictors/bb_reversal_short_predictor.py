@@ -30,7 +30,6 @@ class BBReversalShortPredictor:
         # Get values from predictor_config if available, otherwise use defaults
         model_filename = self.predictor_config.get('model_file', "BB_SHORT_REVERSAL_Model_v2.pkl")
         min_conf = self.predictor_config.get('min_confidence', 0.85)
-        min_strength = self.predictor_config.get('min_signal_strength', "Strong")
         
         # SHORT MODEL configuration - 13 HARDCODED FEATURES
         self.CONFIG = {
@@ -52,17 +51,7 @@ class BBReversalShortPredictor:
                 "rsi_value"             # 12. Current RSI value
             ],
             'model_file': model_filename,
-            'min_confidence': min_conf,
-            'min_signal_strength': min_strength
-        }
-        
-        # Signal strength mapping (5 levels for short model)
-        self.SIGNAL_STRENGTH_ORDER = {
-            'Very Weak': 0,
-            'Weak': 1,
-            'Moderate': 2,
-            'Strong': 3,
-            'Very Strong': 4
+            'min_confidence': min_conf
         }
         
         # Simple one-line initialization message
@@ -142,52 +131,17 @@ class BBReversalShortPredictor:
         # Add prediction columns
         df['model_prediction'] = predictions
         df['model_confidence'] = probabilities
-        df['model_signal_raw'] = (probabilities >= self.CONFIG['min_confidence']).astype(int)
         
-        # Signal strength
-        df['signal_strength'] = df['model_confidence'].apply(
-            lambda x: 'Very Strong' if x >= 0.90 else
-                    'Strong' if x >= 0.70 else
-                    'Moderate' if x >= 0.50 else
-                    'Weak' if x >= 0.30 else 'Very Weak'
-        )
-        
-        df['signal_strength_value'] = df['signal_strength'].map(self.SIGNAL_STRENGTH_ORDER)
-        
-        # Filter signals
-        min_strength_value = self.SIGNAL_STRENGTH_ORDER[self.CONFIG['min_signal_strength']]
-        
-        
-        df['model_signal'] = (
-            (df['model_confidence'] >= self.CONFIG['min_confidence']) & 
-            (df['signal_strength_value'] >= min_strength_value)
-        ).astype(int)
+        # Simplified: Just use confidence threshold
+        df['model_signal'] = (probabilities >= self.CONFIG['min_confidence']).astype(int)
         
         return df
 
 
     def get_filtered_signals(self, df):
         """Get filtered signals"""
-        min_strength_value = self.SIGNAL_STRENGTH_ORDER[self.CONFIG['min_signal_strength']]
-        
-        filtered = df[
-            (df['model_signal'] == 1) & 
-            (df['signal_strength_value'] >= min_strength_value)
-        ].copy()
-        
+        filtered = df[df['model_signal'] == 1].copy()
         return filtered
-    
-    def generate_clean_summary(self, df, filtered_df):
-        """Generate clean summary"""
-
-        total_signals = len(filtered_df)
-        
-        if total_signals > 0:
-            avg_confidence = filtered_df['model_confidence'].mean()
-            print(f"📊 Found {total_signals} signals (avg confidence: {avg_confidence:.1%})")
-        else:
-            print(f"📊 No signals meeting criteria")
-            
 
     def predict(self, processed_data):
         """Main prediction - expects DataFrame with pre-calculated features from UniversalPreprocessor"""
@@ -219,14 +173,10 @@ class BBReversalShortPredictor:
         
         # Expect DataFrame from UniversalPreprocessor
         if not isinstance(processed_data, pd.DataFrame):
-            print(f"❌ Error: Predictor expects DataFrame from UniversalPreprocessor, got {type(processed_data)}")
             return {}
         
         if processed_data.empty:
-            print("❌ No data to process")
             return {}
-        
-        print(f"📊 Processing DataFrame with {len(processed_data)} rows...")
         
         # Create a clean working copy
         df = processed_data.copy()
@@ -256,9 +206,6 @@ class BBReversalShortPredictor:
 
         filtered_df = self.get_filtered_signals(df_with_predictions)
         
-        # Generate clean summary
-        self.generate_clean_summary(df_with_predictions, filtered_df)
-        
         # Create predictions dict with trimmed data using config values
         predictions = {}
         
@@ -267,12 +214,15 @@ class BBReversalShortPredictor:
             confidence = float(row['model_confidence'])
 
             volume = self.volume_manager.calculate_volume(confidence)
+            magic = self.predictor_config.get('magic', 100000)
+
+            volume_manager = VolumeManager(magic=magic)
+            volume = volume_manager.calculate_volume(confidence)
 
             predictions[symbol] = {
                 'prediction': int(row['model_signal']),
                 'probability': float(row['model_confidence']),
                 'confidence': float(row['model_confidence']),
-                'signal_strength': row['signal_strength'],
                 'timestamp': row.get('timestamp', ''),
                 'price': float(row.get('price', 0)),
                 'symbol': symbol,
@@ -281,11 +231,10 @@ class BBReversalShortPredictor:
                 'min_confidence': self.predictor_config.get('min_confidence', self.CONFIG['min_confidence']),
                 'features_present': all(feat in row for feat in self.CONFIG['features']),
                 'comment': f"{self.predictor_config.get('comment', 'ML Model Signal')} {(row['model_confidence']):.2f}",
-                'magic': self.predictor_config.get('magic', 100000),
+                'magic': magic,
                 'volume': volume
             }
-        
-            print(f"{self.predictor_config.get('comment', 'ML Model Signal')} - {float(row['model_confidence']):.2f}",)
+                
         return predictions
        
 

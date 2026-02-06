@@ -33,17 +33,21 @@ MT5_SERVER = mt5_credentials.MT5_SERVER
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # The EA saves files to the terminal's MQL5/Files directory
-TERMINAL_PATH = r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075"
+# TERMINAL_PATH = r"C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075"
+SERVER_USER = "Ben Michael Oracion"
+MT5_TERMINAL_FOLDER = "D0E8209F77C8CF37AD8BF550E51FF075"
+TERMINAL_PATH = fr"C:\Users\{SERVER_USER}\AppData\Roaming\MetaQuotes\Terminal\{MT5_TERMINAL_FOLDER}"
 
 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #  
 #
 # WATCHED MARKET DATA FILE
-PERIOD = "M5"
+PERIOD = "H4"
 MARKET_DATA_FILE = f"marketdata_PERIOD_{PERIOD}.csv"
 DATA_PATH = os.path.join(TERMINAL_PATH, "MQL5", "Files", MARKET_DATA_FILE)
+#
 # 
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 
 # Models are in the Solara project folder
@@ -83,7 +87,6 @@ PREDICTOR_CONFIGS = [
         'model_file': "BB_SHORT_REVERSAL_Model_v2.pkl",# CHANGE THIS
         'model_type': "LONG", # CHANGE THIS
         'min_confidence': .40, # CHANGE THIS
-        'min_signal_strength': "Weak", # CHANGE THIS
         'enabled': True, 
         'weight': 1.0,
         'timeout': 30,
@@ -96,8 +99,7 @@ PREDICTOR_CONFIGS = [
         'class_path': 'predictors.bb_reversal_short_predictor.BBReversalShortPredictor', # CHANGE THIS
         'model_file': "BB_SHORT_REVERSAL_Model_v2.pkl", # CHANGE THIS
         'model_type': "SHORT", # CHANGE THIS
-        'min_confidence': .20, # CHANGE THIS
-        'min_signal_strength': "Weak", # CHANGE THIS
+        'min_confidence': .70, # CHANGE THIS
         'enabled': True, # CHANGE THIS
         'weight': 1.0,
         'timeout': 30,

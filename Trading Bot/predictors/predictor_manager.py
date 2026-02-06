@@ -303,36 +303,6 @@ class PredictorManager:
             print("\n🔶 No trading signals generated - skipping trade execution")
             return
         
-        print("\n" + "=" * 50)
-        print("📊 PREDICTION RESULTS")
-        print("=" * 50)
-        
-        # Group by predictor type
-        long_signals = {k:v for k,v in final_predictions.items() 
-                       if v.get('predictor_type') == 'LONG'}
-        short_signals = {k:v for k,v in final_predictions.items() 
-                        if v.get('predictor_type') == 'SHORT'}
-        
-        if long_signals:
-            print(f"\n📈 LONG Signals ({len(long_signals)}):")
-            for key, data in long_signals.items():
-                symbol = data.get('symbol', 'Unknown')
-                confidence = data.get('predictor_confidence', 0)
-                if data.get('consensus_count', 1) > 1:
-                    print(f"   ✅ {symbol} - (Conf: {confidence:.1%}, Consensus: {data['consensus_count']})")
-                else:
-                    print(f"   ✅ {symbol} - (Conf: {confidence:.1%})")
-
-        if short_signals:
-            print(f"\n📉 SHORT Signals ({len(short_signals)}):")
-            for key, data in short_signals.items():
-                symbol = data.get('symbol', 'Unknown')
-                confidence = data.get('predictor_confidence', 0)
-                if data.get('consensus_count', 1) > 1:
-                    print(f"   ✅ {symbol} - (Conf: {confidence:.1%}, Consensus: {data['consensus_count']})")
-                else:
-                    print(f"   ✅ {symbol} - (Conf: {confidence:.1%})")
-        
         # Get summary
         summary = self.get_summary(final_predictions)
         
@@ -340,7 +310,6 @@ class PredictorManager:
         print(f"   • Total unique symbols: {summary['total_signals']}")
         print(f"   • LONG signals: {summary['long_signals']}")
         print(f"   • SHORT signals: {summary['short_signals']}")
-        print(f"   • Successful predictors: {summary['predictor_success']}/{len(self.results)}")
         if summary['predictor_failures'] > 0:
             print(f"   • Failed predictors: {summary['predictor_failures']}")
         

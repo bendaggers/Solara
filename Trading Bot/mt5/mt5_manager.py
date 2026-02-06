@@ -77,7 +77,7 @@ class MT5Manager:
             mt5.shutdown()
             self.connected = False
             self.symbol_cache.clear()  # Clear cache on disconnect
-            print("🔌 Disconnected from MT5")
+            print("\n🔌 Disconnected from MT5")
     
     def get_account_info(self):
         """Get account information"""
@@ -100,6 +100,7 @@ class MT5Manager:
         return 0
 
     def execute_trades(self, predictions):
+
         """One method that does everything - handles 1 to thousands of trades"""
         if not self.connected:
             print("❌ Not connected to MT5")
@@ -110,10 +111,11 @@ class MT5Manager:
             return []
         
         total_trades = len(predictions)
-        print(f"💸 Executing {total_trades} trades...")
         
         executed_trades = []
         failed_trades = []
+        
+        print(f"💸 Executing {total_trades} trades...")
         
         for idx, (key, pred) in enumerate(predictions.items(), 1):
             # 1. Extract and validate
@@ -126,11 +128,9 @@ class MT5Manager:
             model_type = pred.get('model_type', 'LONG').upper()
             if model_type == 'SHORT':
                 trade_type = 'SELL'
-                trade_desc = "SHORT"
                 emoji = "📉"
             elif model_type == 'LONG':
                 trade_type = 'BUY'
-                trade_desc = "LONG"
                 emoji = "📈"
             else:
                 failed_trades.append({'key': key, 'reason': f'Unknown model type: {model_type}'})
@@ -142,21 +142,11 @@ class MT5Manager:
             comment = pred.get('comment', 'Trading Signal')
             confidence = pred.get('confidence', 0)
             
-            # Log progress
-            if total_trades > 10 and idx % 10 == 0:
-                print(f"  ⏳ Processed {idx}/{total_trades} trades...")
-            
-            print(f"  {emoji} {symbol}: {trade_desc} signal ({idx}/{total_trades})")
-            print(f"      ├─ Volume: {volume} lot")
-            print(f"      ├─ Confidence: {confidence:.1%}")
-            print(f"      └─ Magic: {magic}")
-            
             try:
                 # 4. Get symbol info
                 symbol_info = self._get_symbol_info(symbol)
                 if not symbol_info:
                     failed_trades.append({'key': key, 'reason': 'Symbol not found'})
-                    print(f"    ❌ Symbol not found: {symbol}")
                     continue
                 
                 # 5. Validate and adjust volume
@@ -164,7 +154,6 @@ class MT5Manager:
                 
                 # 6. Ensure symbol is visible
                 if not symbol_info.visible:
-                    print(f"    ⚠️ Symbol not visible, selecting: {symbol}")
                     mt5.symbol_select(symbol, True)
                     time.sleep(0.05)
                 
@@ -172,7 +161,6 @@ class MT5Manager:
                 tick = mt5.symbol_info_tick(symbol)
                 if not tick:
                     failed_trades.append({'key': key, 'reason': 'No tick data'})
-                    print(f"    ❌ No tick data for: {symbol}")
                     continue
                 
                 # 8. Determine prices
@@ -220,11 +208,13 @@ class MT5Manager:
                 if result is None:
                     error = mt5.last_error()
                     failed_trades.append({'key': key, 'reason': f'MT5 error: {error}'})
-                    print(f"    ❌ {trade_type} failed: {error}")
                     continue
                 
                 if hasattr(result, 'retcode'):
                     if result.retcode == mt5.TRADE_RETCODE_DONE:
+                        # Print simplified log format
+                        print(f"{emoji} {symbol} ({volume}) - {comment}")
+                        
                         executed_trades.append({
                             'symbol': symbol,
                             'trade_type': trade_type,
@@ -238,14 +228,11 @@ class MT5Manager:
                             'order_result': result,
                             'prediction_data': pred
                         })
-                        print(f"    ✅ {trade_type} executed (Order #{result.order})")
                     else:
                         error_msg = getattr(result, 'comment', 'Unknown error')
-                        print(f"    ⚠️ {trade_type} rejected: {error_msg}")
                         
                         # Retry with larger stops if "invalid stops" error
                         if hasattr(result, 'comment') and "invalid stops" in str(result.comment).lower():
-                            print(f"    🔄 Retrying with larger stops...")
                             retry_result = self._retry_with_larger_stops(
                                 symbol=symbol,
                                 entry_price=entry_price,
@@ -256,6 +243,9 @@ class MT5Manager:
                             )
                             
                             if retry_result:
+                                # Print simplified log format for retry success
+                                print(f"{emoji} {symbol} ({volume}) - {comment}")
+                                
                                 executed_trades.append({
                                     'symbol': symbol,
                                     'trade_type': trade_type,
@@ -269,19 +259,15 @@ class MT5Manager:
                                     'order_result': retry_result,
                                     'prediction_data': pred
                                 })
-                                print(f"    ✅ {trade_type} executed on retry")
                             else:
                                 failed_trades.append({'key': key, 'reason': error_msg})
                         else:
                             failed_trades.append({'key': key, 'reason': error_msg})
-                
                 else:
                     failed_trades.append({'key': key, 'reason': 'No retcode in result'})
-                    print(f"    ⚠️ {trade_type} completed but no retcode")
             
             except Exception as e:
                 failed_trades.append({'key': key, 'reason': f'Exception: {str(e)}'})
-                print(f"    ❌ Error: {str(e)}")
                 continue
             
             # Small delay between trades
@@ -452,8 +438,8 @@ class MT5Manager:
                 'volume_step': info.volume_step,
             }
         return None
-    
-    def modify_position(self, ticket, sl=None, tp=None):
+
+    def modify_position(self, ticket, sl=None, tp=None, silent=False):
         """
         Modify an existing position's stop loss and/or take profit
         
@@ -461,25 +447,29 @@ class MT5Manager:
             ticket (int): Position ticket number
             sl (float, optional): New stop loss price
             tp (float, optional): New take profit price
+            silent (bool): If True, don't print individual modification logs
             
         Returns:
             bool: True if modification was successful, False otherwise
         """
         if not self.connected:
-            print(f"❌ Cannot modify position - MT5 not connected")
+            if not silent:
+                print(f"❌ Cannot modify position - MT5 not connected")
             return False
         
         try:
             # Get the position by ticket
             positions = mt5.positions_get(ticket=ticket)
             if not positions:
-                print(f"❌ Position #{ticket} not found")
+                if not silent:
+                    print(f"❌ Position #{ticket} not found")
                 return False
             
             position = positions[0]
             symbol = position.symbol
             
-            print(f"🔄 Modifying position #{ticket} ({symbol})")
+            if not silent:
+                print(f"🔄 Modifying position #{ticket} ({symbol})")
             
             # Prepare modification request
             request = {
@@ -498,16 +488,20 @@ class MT5Manager:
             
             if result is None:
                 error = mt5.last_error()
-                print(f"❌ Modification failed for #{ticket}: {error}")
+                if not silent:
+                    print(f"❌ Modification failed for #{ticket}: {error}")
                 return False
             
             if result.retcode == mt5.TRADE_RETCODE_DONE:
-                print(f"✅ Modified position #{ticket}: SL={sl or 'unchanged'}, TP={tp or 'unchanged'}")
+                if not silent:
+                    print(f"✅ Modified position #{ticket}: SL={sl or 'unchanged'}, TP={tp or 'unchanged'}")
                 return True
             else:
-                print(f"❌ Modification rejected for #{ticket}: {result.comment}")
+                if not silent:
+                    print(f"❌ Modification rejected for #{ticket}: {result.comment}")
                 return False
                 
         except Exception as e:
-            print(f"❌ Error modifying position #{ticket}: {str(e)}")
+            if not silent:
+                print(f"❌ Error modifying position #{ticket}: {str(e)}")
             return False

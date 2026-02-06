@@ -188,7 +188,8 @@ class DebugWatcher:
                 print("\n=== ERRORS ===")
                 print(result.stderr)
             
-            print(f"\n📊 Return code: {result.returncode}")
+            if result.returncode != 0:
+                print(f"\n📊 Return code: {result.returncode}")
             
         except subprocess.TimeoutExpired:
             self.show("⏰ Timeout")
@@ -212,7 +213,7 @@ class DebugWatcher:
 
 def main():
     print("\n" + "="*60)
-    print("SOLARA WATCHDOG - Fixed detection")
+    print("SOLARA WATCHDOG")
     print("="*60)
     print(f"Watching: {MT5_FILES_DIR / WATCHED_FILE}")
     print(f"Check: every {CHECK_INTERVAL}s")

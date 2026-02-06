@@ -73,30 +73,83 @@ class SurvivorRunner:
         return updates
     
     def _print_summary(self, updates):
-        """Print clean summary of updates"""
+        """Print clean summary of updates grouped by stage"""
         needs_update = sum(1 for u in updates if u['needs_update'])
         
         if needs_update > 0:
             print(f"\n📋 UPDATES NEEDED ({needs_update} positions):")
+            
+            # Group updates by stage
+            updates_by_stage = {}
             for update in updates:
                 if update['needs_update']:
-                    print(f"   • {update['symbol']} (#{update['ticket']}):")
+                    stage_name = update['stage_name']
+                    protection_percent = update['protection_percent']
                     
-                    # Show SL update if needed
-                    if update['update_sl']:
-                        print(f"     SL: {update['current_sl']:.5f} → {update['new_sl']:.5f}")
+                    # Get stage order from engine definitions
+                    stage_order = None
+                    for stage_key, stage_def in self.engine.STAGE_DEFINITIONS.items():
+                        if stage_def['name'] == stage_name:
+                            # Use threshold_pips for sorting (higher protection = higher threshold)
+                            stage_order = stage_def['threshold_pips']
+                            break
                     
-                    # Show TP update if needed
-                    if update['update_tp']:
-                        print(f"     TP: {update['current_tp']:.5f} → {update['new_tp']:.5f}")
+                    if stage_order is None:
+                        stage_order = protection_percent
                     
-                    # Show stage info
-                    print(f"     Stage: {update['stage_name']} ({update['protection_percent']}% protection)")
-                    print(f"     Profit: {update['profit_pips']} pips ({update['profit_ratio']:.1%} of BB width)")
+                    stage_key = (stage_order, stage_name, protection_percent)
+                    
+                    if stage_key not in updates_by_stage:
+                        updates_by_stage[stage_key] = []
+                    
+                    updates_by_stage[stage_key].append(update)
+            
+            # Sort stages by protection level (highest first)
+            sorted_stages = sorted(updates_by_stage.keys(), key=lambda x: x[0], reverse=True)
+            
+            # Print each stage group
+            stage_counts = {}
+            for stage_key in sorted_stages:
+                stage_updates = updates_by_stage[stage_key]
+                stage_name = stage_key[1]
+                protection_percent = stage_key[2]
+                stage_count = len(stage_updates)
+                
+                stage_counts[stage_name] = stage_count
+                
+                print(f"\n[{stage_name}] {protection_percent}% protection ({stage_count}):")
+                
+                for update in stage_updates:
+                    # Calculate protected pips
+                    protected_pips = update['profit_pips'] * (update['protection_percent'] / 100)
+                    
+                    # Format in single line with lock emoji
+                    profit_sign = "+" if update['profit_pips'] >= 0 else ""
+                    print(f"{update['symbol']} (#{update['ticket']}) - "
+                          f"Profit: {profit_sign}{update['profit_pips']:.1f}p | 🔒{protected_pips:.1f}p")
+            
+            # Print summary with stage distribution
+            print(f"\n📊 Summary: {needs_update} updates | Stages: ", end="")
+            stage_summary_parts = []
+            
+            # Order stages for summary (highest to lowest)
+            summary_stages = sorted(stage_counts.items(), 
+                                  key=lambda x: next((defs['threshold_pips'] for defs in self.engine.STAGE_DEFINITIONS.values() 
+                                                     if defs['name'] == x[0]), 0), 
+                                  reverse=True)
+            
+            for stage_name, count in summary_stages:
+                if count > 0:
+                    # Shorten stage names for summary
+                    short_name = stage_name.split()[0] if ' ' in stage_name else stage_name[:4]
+                    stage_summary_parts.append(f"{short_name}({count})")
+            
+            print(", ".join(stage_summary_parts))
+            
         else:
             print("\n✅ No updates needed - all positions protected")
         
-        print(f"\n📊 SUMMARY:")
+        print(f"\n📊 Overall Summary:")
         print(f"   • Total positions processed: {len(updates)}")
         print(f"   • Positions needing update: {needs_update}")
         print(f"   • Positions unchanged: {len(updates) - needs_update}")
@@ -129,32 +182,80 @@ def apply_updates_to_mt5(mt5_manager, updates):
     applied = 0
     failed = 0
     
-    print(f"\n💾 Applying {len(updates)} updates to MT5...")
-    
+    # Group updates by symbol first
+    updates_by_symbol = {}
     for update in updates:
         if update['needs_update']:
+            symbol = update['symbol']
+            if symbol not in updates_by_symbol:
+                updates_by_symbol[symbol] = []
+            updates_by_symbol[symbol].append(update)
+    
+    # Calculate total updates to apply
+    total_updates = sum(len(updates) for updates in updates_by_symbol.values())
+    
+    if total_updates == 0:
+        print("\n✅ No updates to apply")
+        return {'applied': 0, 'failed': 0, 'total': 0}
+    
+    # Track successful and failed updates per symbol
+    success_by_symbol = {}
+    failed_by_symbol = {}
+    
+    print(f"\n💾 Applying {total_updates} updates to {len(updates_by_symbol)} symbols:")
+    
+    # Process each symbol
+    for symbol, symbol_updates in updates_by_symbol.items():
+        success_tickets = []
+        failed_tickets = []
+        
+        for update in symbol_updates:
             try:
                 # Check what needs to be updated
                 sl_to_update = update['new_sl'] if update['update_sl'] else None
                 tp_to_update = update['new_tp'] if update['update_tp'] else None
                 
-                # Modify position in MT5
+                # Modify position in MT5 with silent=True
                 success = mt5_manager.modify_position(
                     ticket=update['ticket'],
                     sl=sl_to_update,
-                    tp=tp_to_update
+                    tp=tp_to_update,
+                    silent=True  # <-- ADD THIS
                 )
                 
                 if success:
-                    print(f"   ✅ Updated #{update['ticket']} ({update['symbol']})")
+                    success_tickets.append(update['ticket'])
                     applied += 1
                 else:
-                    print(f"   ❌ Failed to update #{update['ticket']}")
+                    failed_tickets.append(update['ticket'])
                     failed += 1
                     
             except Exception as e:
-                print(f"   ❌ Error updating #{update['ticket']}: {str(e)}")
+                failed_tickets.append(update['ticket'])
                 failed += 1
+        
+        # Store results for this symbol
+        if success_tickets:
+            success_by_symbol[symbol] = success_tickets
+        if failed_tickets:
+            failed_by_symbol[symbol] = failed_tickets
+    
+    # Print successful updates grouped by symbol
+    if success_by_symbol:
+        for symbol, tickets in success_by_symbol.items():
+            # Format ticket numbers as comma-separated list
+            tickets_str = ', '.join(f'#{ticket}' for ticket in tickets)
+            print(f"✅ {symbol}: {tickets_str}")
+    
+    # Print failed updates if any
+    if failed_by_symbol:
+        for symbol, tickets in failed_by_symbol.items():
+            tickets_str = ', '.join(f'#{ticket}' for ticket in tickets)
+            print(f"❌ {symbol}: {tickets_str} (failed)")
+    
+    # Print summary
+    unchanged = len(updates) - total_updates
+    print(f"\n📊 Summary: {applied} updates applied, {unchanged} unchanged{f', {failed} failed' if failed > 0 else ''}")
     
     return {
         'applied': applied,

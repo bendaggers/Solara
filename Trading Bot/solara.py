@@ -133,7 +133,6 @@ def main():
         
         # 8. Execute trades (when ready)
         if final_predictions and trade_executor is not None:
-            print("\n💸 Executing trades...")
             # Note: trade_executor is already the connected TradeExecutor instance
             trade_executor.execute_trades(final_predictions)
             print(f"\n✅ {len(final_predictions)} trades completed")

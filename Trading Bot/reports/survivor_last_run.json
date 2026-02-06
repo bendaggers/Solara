@@ -1,21 +1,21 @@
 {
   "metadata": {
-    "cycle_timestamp": "2026-02-04T17:15:19.886802",
+    "cycle_timestamp": "2026-02-06T13:31:07.003243",
     "engine_version": "5.0.2",
-    "positions_processed": 28,
+    "positions_processed": 81,
     "processing_duration_ms": 0
   },
   "summary": {
-    "positions_modified": 5,
-    "sl_tightened": 3,
-    "tp_modified": 5,
-    "total_protection_added_pips": 0.5
+    "positions_modified": 22,
+    "sl_tightened": 22,
+    "tp_modified": 0,
+    "total_protection_added_pips": 702.2
   },
   "detailed_changes": [],
   "system_health": {
-    "active_positions": 28,
-    "positions_in_profit": 0,
-    "positions_at_risk": 28
+    "active_positions": 81,
+    "positions_in_profit": 44,
+    "positions_at_risk": 37
   },
   "file_locations": {
     "reports_dir": "C:\\Users\\Ben Michael Oracion\\AppData\\Roaming\\MetaQuotes\\Terminal\\D0E8209F77C8CF37AD8BF550E51FF075\\MQL5\\Experts\\Advisors\\Solara\\Trading Bot\\reports",

@@ -28,7 +28,7 @@ class DataLoader:
             # Load CSV file - NO PROCESSING
             df = pd.read_csv(self.data_path)
             
-            print(f"✅ Loaded {len(df)} rows from {self.data_path}")
+            # print(f"✅ Loaded {len(df)} rows from {self.data_path}")
             # print(f"📊 Shape: {df.shape}")
             
             return df
@@ -85,13 +85,3 @@ class SimpleDataLoader:
         Just load the CSV, that's it
         """
         return pd.read_csv(filepath)
-
-
-# Usage examples
-if __name__ == "__main__":
-    # Option 1: Use the class
-    loader = DataLoader(data_path="marketdata_H4.csv")
-    df = loader.load()
-    
-    # Option 2: Just use pandas directly (simplest)
-    df = pd.read_csv("marketdata_H4.csv")
