@@ -1,0 +1,175 @@
+# =============================================================================
+# ML TRAINING SYSTEM CONFIGURATION
+# Version: 3.0
+# Purpose: SHORT-only trade filtering model
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DATA PATHS
+# -----------------------------------------------------------------------------
+paths:
+  input_csv: "data/input.csv"  # Update with your actual path
+  artifacts_dir: "artifacts"
+  logs_dir: "logs"
+
+# -----------------------------------------------------------------------------
+# DATA SCHEMA
+# -----------------------------------------------------------------------------
+schema:
+  timestamp_column: "timestamp"
+  timestamp_format: "%Y.%m.%d %H:%M:%S"
+  pair_column: "pair"
+  
+  ohlcv_columns:
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+  
+  # Columns required for signal generation
+  signal_columns:
+    bb_position: "bb_position"
+    rsi_value: "rsi_value"
+  
+  # Columns excluded from features (meta, target, or derived)
+  exclude_from_features:
+    - "timestamp"
+    - "pair"
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+    - "lower_band"
+    - "middle_band"
+    - "upper_band"
+    - "label"
+    - "label_reason"
+    - "signal"
+    - "regime"
+
+# -----------------------------------------------------------------------------
+# INSTRUMENT SETTINGS
+# -----------------------------------------------------------------------------
+instrument:
+  pair: "EURUSD"
+  pip_value: 0.0001
+  
+# -----------------------------------------------------------------------------
+# REGIME DETECTION (Diagnostic Only)
+# -----------------------------------------------------------------------------
+regime:
+  adx_period: 14
+  atr_period: 14
+  atr_percentile_window: 100
+  
+  # Regime thresholds
+  trending_adx_threshold: 25      # ADX > 25 = trending
+  volatile_atr_percentile: 70     # ATR percentile > 70 = volatile
+
+# -----------------------------------------------------------------------------
+# CONFIGURATION SPACE (Trading Scenarios)
+# -----------------------------------------------------------------------------
+config_space:
+  # Bollinger Band position threshold (0-1 scale)
+  bb_threshold:
+    min: 0.84
+    max: 0.92
+    step: 0.01
+  
+  # RSI threshold (0-100 scale)
+  rsi_threshold:
+    min: 65
+    max: 95
+    step: 1
+  
+  # Take Profit in pips
+  tp_pips:
+    min: 40
+    max: 120
+    step: 10
+  
+  # Stop Loss in pips (FIXED)
+  sl_pips: 40
+  
+  # Maximum holding period in bars
+  max_holding_bars:
+    min: 18
+    max: 24
+    step: 6  # 18, 24, 30, 36 (effectively)
+
+# -----------------------------------------------------------------------------
+# WALK-FORWARD VALIDATION
+# -----------------------------------------------------------------------------
+walk_forward:
+  n_folds: 5
+  train_ratio: 0.60
+  calibration_ratio: 0.20
+  threshold_ratio: 0.20
+  min_trades_per_fold: 30
+
+# -----------------------------------------------------------------------------
+# FEATURE SELECTION (RFE)
+# -----------------------------------------------------------------------------
+rfe:
+  min_features: 5
+  max_features: 15
+  cv_folds: 3
+  scoring: "average_precision"  # AUC-PR
+
+# -----------------------------------------------------------------------------
+# HYPERPARAMETER TUNING
+# -----------------------------------------------------------------------------
+hyperparameters:
+  model_type: "GradientBoostingClassifier"
+  
+  param_grid:
+    n_estimators: [100, 200, 300, 500]
+    max_depth: [3, 4, 5, 6, 8]
+    learning_rate: [0.01, 0.05, 0.1]
+    min_samples_leaf: [10, 20, 50]
+    subsample: [0.8, 1.0]
+  
+  cv_folds: 3
+  scoring: "average_precision"
+  random_state: 42
+
+# -----------------------------------------------------------------------------
+# PROBABILITY CALIBRATION
+# -----------------------------------------------------------------------------
+calibration:
+  method: "sigmoid"  # "sigmoid" (Platt) or "isotonic"
+
+# -----------------------------------------------------------------------------
+# THRESHOLD OPTIMIZATION
+# -----------------------------------------------------------------------------
+threshold_optimization:
+  min_threshold: 0.20
+  max_threshold: 0.60
+  step: 0.01
+  min_trades: 30
+  
+# -----------------------------------------------------------------------------
+# MINIMUM ACCEPTANCE CRITERIA
+# -----------------------------------------------------------------------------
+acceptance_criteria:
+  min_precision: 0.28
+  min_trades_per_fold: 30
+  min_expected_value: 0.0
+  max_metric_cv: 0.30  # Coefficient of variation
+
+# -----------------------------------------------------------------------------
+# PARALLEL EXECUTION
+# -----------------------------------------------------------------------------
+parallel:
+  max_workers: 6
+  
+# -----------------------------------------------------------------------------
+# LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  log_to_file: true
+  log_file: "logs/training.log"
+  progress_interval: 100  # Log progress every N configs
