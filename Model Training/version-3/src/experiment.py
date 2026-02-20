@@ -222,15 +222,14 @@ class FoldTask:
 
 class WorkerProgressDisplay:
     """
-    Thread-safe progress display showing each worker's current task.
+    Thread-safe progress display: each worker shows current task + last completed.
     
-    Display format:
+    Display format (compact, not cluttered):
     ════════════════════════════════════════════════════════════════════════════════
     [████████████░░░░░░░░░░░░░░░░░░] 35.2% | 735/2,088 | ETA: 8.5h | Rate: 1.2/min
     ────────────────────────────────────────────────────────────────────────────────
-    Worker 1: ✓ BB=0.84 RSI=78 TP=40 | EV=+19.6 Pr=70.8% T=35 | PASSED
-    Worker 2: ⟳ BB=0.85 RSI=72 TP=50 | Processing...
-    Worker 3: ✗ BB=0.86 RSI=70 TP=40 | EV=-2.1 Pr=38.2% T=89 | precision < 0.45
+    W1  Now: BB=0.91 RSI=70 TP=40 ⟳   |  Last: BB=0.90 RSI=69 TP=50 → EV=-1.2 Pr=12% ✗
+    W2  Now: BB=0.91 RSI=68 TP=80 ⟳   |  Last: —
     ...
     ────────────────────────────────────────────────────────────────────────────────
     PASS: 8 (1.1%) | REJECT: 727 | FAIL: 0 | BEST: BB=0.84 RSI=78 EV=+19.6
@@ -251,17 +250,16 @@ class WorkerProgressDisplay:
         self.last_update = 0
         self.update_interval = update_interval
         
-        # Worker state tracking
-        self.worker_states = {}  # worker_id -> {config, status, start_time, result}
+        # Worker state: current task
+        self.worker_states = {}  # worker_id -> {config, status, start_time, result, ev, precision, trades}
+        # Worker last completed (so we can show "Last: BB=... → EV=... Pr=... ✓/✗")
+        self.worker_last_done = {}  # worker_id -> {cfg, ev, prec, trades, icon}
         self.available_worker_ids = queue.Queue()
         for i in range(1, max_workers + 1):
             self.available_worker_ids.put(i)
         
-        # Track which config is assigned to which worker
-        self.config_to_worker = {}  # config_id -> worker_id
-        
-        # Display state
-        self.display_lines = max_workers + 5  # Workers + header + footer
+        self.config_to_worker = {}
+        self.display_lines = max_workers + 5
         self.initialized = False
     
     def assign_worker(self, config: 'ConfigurationSpec') -> int:
@@ -305,6 +303,15 @@ class WorkerProgressDisplay:
                 else:
                     self.failed += 1
                 
+                # Store as "last done" for this worker (shown until next assignment)
+                icon = "✓" if result.status == "PASSED" else ("✗" if result.status == "REJECTED" else "!")
+                self.worker_last_done[worker_id] = {
+                    'cfg': f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}",
+                    'ev': ev,
+                    'prec': precision,
+                    'trades': trades,
+                    'icon': icon
+                }
                 # Update worker state to show completed result briefly
                 self.worker_states[worker_id] = {
                     'config': config,
@@ -379,52 +386,39 @@ class WorkerProgressDisplay:
         self._clear_line()
         print("-" * 90)
         
-        # Worker lines
+        # Worker lines: Now (current) + Last (recent completed)
         for worker_id in range(1, self.max_workers + 1):
             self._clear_line()
+            
+            # "Last" part (recent work for this worker)
+            last_str = "—"
+            if worker_id in self.worker_last_done:
+                d = self.worker_last_done[worker_id]
+                last_str = f"{d['cfg']} → EV={d['ev']:+.1f} Pr={d['prec']:.0%} T={d['trades']} {d['icon']}"
             
             if worker_id in self.worker_states:
                 state = self.worker_states[worker_id]
                 config = state['config']
                 status = state['status']
+                cfg_short = f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}"
                 
-                # Status icon
                 if status == 'processing':
-                    icon = "⟳"
-                    status_str = "Processing..."
-                    metrics_str = ""
+                    now_str = f"Now: {cfg_short} ⟳"
                 elif status == 'passed':
-                    icon = "✓"
                     ev = state.get('ev', 0)
                     prec = state.get('precision', 0)
                     trades = state.get('trades', 0)
-                    metrics_str = f"EV={ev:+.1f} Pr={prec:.1%} T={trades}"
-                    status_str = "PASSED"
+                    now_str = f"Now: {cfg_short} → EV={ev:+.1f} Pr={prec:.0%} T={trades} ✓"
                 elif status == 'rejected':
-                    icon = "✗"
                     ev = state.get('ev', 0)
                     prec = state.get('precision', 0)
                     trades = state.get('trades', 0)
-                    metrics_str = f"EV={ev:+.1f} Pr={prec:.1%} T={trades}"
-                    # Get rejection reason
-                    if state.get('result') and state['result'].rejection_reasons:
-                        reason = state['result'].rejection_reasons[0].split('(')[0].strip()[:20]
-                        status_str = reason
-                    else:
-                        status_str = "REJECTED"
+                    now_str = f"Now: {cfg_short} → EV={ev:+.1f} Pr={prec:.0%} T={trades} ✗"
                 else:
-                    icon = "!"
-                    metrics_str = ""
-                    status_str = "FAILED"
-                
-                config_str = f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}"
-                
-                if metrics_str:
-                    print(f"Worker {worker_id}: {icon} {config_str} | {metrics_str} | {status_str}")
-                else:
-                    print(f"Worker {worker_id}: {icon} {config_str} | {status_str}")
+                    now_str = f"Now: {cfg_short} !"
+                print(f"W{worker_id}  {now_str}   |  Last: {last_str}")
             else:
-                print(f"Worker {worker_id}: - Idle")
+                print(f"W{worker_id}  Idle   |  Last: {last_str}")
         
         # Separator
         self._clear_line()
