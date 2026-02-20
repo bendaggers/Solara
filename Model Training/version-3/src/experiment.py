@@ -1,6 +1,6 @@
 """
 Experiment orchestration for configuration testing.
-FULLY OPTIMIZED VERSION.
+FULLY OPTIMIZED VERSION with LIVE WORKER DISPLAY.
 
 Optimizations implemented:
 1. Pre-compute ALL labels (unique TP×Holding combinations) - ONCE
@@ -35,6 +35,7 @@ import gc
 import os
 from datetime import datetime
 from collections import defaultdict
+import queue
 
 # Local imports
 from .checkpoint_db import FastCheckpointManager
@@ -216,11 +217,268 @@ class FoldTask:
 
 
 # =============================================================================
-# PROGRESS DISPLAY
+# PROGRESS DISPLAY WITH WORKER TRACKING
 # =============================================================================
 
+class WorkerProgressDisplay:
+    """
+    Thread-safe progress display showing each worker's current task.
+    
+    Display format:
+    ════════════════════════════════════════════════════════════════════════════════
+    [████████████░░░░░░░░░░░░░░░░░░] 35.2% | 735/2,088 | ETA: 8.5h | Rate: 1.2/min
+    ────────────────────────────────────────────────────────────────────────────────
+    Worker 1: ✓ BB=0.84 RSI=78 TP=40 | EV=+19.6 Pr=70.8% T=35 | PASSED
+    Worker 2: ⟳ BB=0.85 RSI=72 TP=50 | Processing...
+    Worker 3: ✗ BB=0.86 RSI=70 TP=40 | EV=-2.1 Pr=38.2% T=89 | precision < 0.45
+    ...
+    ────────────────────────────────────────────────────────────────────────────────
+    PASS: 8 (1.1%) | REJECT: 727 | FAIL: 0 | BEST: BB=0.84 RSI=78 EV=+19.6
+    ════════════════════════════════════════════════════════════════════════════════
+    """
+    
+    def __init__(self, total: int, max_workers: int, update_interval: float = 0.5):
+        self.total = total
+        self.max_workers = max_workers
+        self.completed = 0
+        self.passed = 0
+        self.rejected = 0
+        self.failed = 0
+        self.start_time = time.time()
+        self.lock = threading.Lock()
+        self.best_ev = float('-inf')
+        self.best_config = None
+        self.last_update = 0
+        self.update_interval = update_interval
+        
+        # Worker state tracking
+        self.worker_states = {}  # worker_id -> {config, status, start_time, result}
+        self.available_worker_ids = queue.Queue()
+        for i in range(1, max_workers + 1):
+            self.available_worker_ids.put(i)
+        
+        # Track which config is assigned to which worker
+        self.config_to_worker = {}  # config_id -> worker_id
+        
+        # Display state
+        self.display_lines = max_workers + 5  # Workers + header + footer
+        self.initialized = False
+    
+    def assign_worker(self, config: 'ConfigurationSpec') -> int:
+        """Assign a worker ID to a config when it starts processing."""
+        try:
+            worker_id = self.available_worker_ids.get_nowait()
+        except queue.Empty:
+            # All workers busy, reuse lowest ID (shouldn't happen with proper flow)
+            worker_id = 1
+        
+        with self.lock:
+            self.worker_states[worker_id] = {
+                'config': config,
+                'status': 'processing',
+                'start_time': time.time(),
+                'result': None
+            }
+            self.config_to_worker[config.config_id] = worker_id
+        
+        return worker_id
+    
+    def release_worker(self, config: 'ConfigurationSpec', result: 'ExperimentResult'):
+        """Release a worker when config processing completes."""
+        with self.lock:
+            worker_id = self.config_to_worker.get(config.config_id)
+            if worker_id:
+                # Update stats
+                self.completed += 1
+                
+                ev = result.aggregate_metrics.ev_mean if result.aggregate_metrics else 0.0
+                precision = result.aggregate_metrics.precision_mean if result.aggregate_metrics else 0.0
+                trades = result.aggregate_metrics.total_trades if result.aggregate_metrics else 0
+                
+                if result.status == "PASSED":
+                    self.passed += 1
+                    if ev > self.best_ev:
+                        self.best_ev = ev
+                        self.best_config = config
+                elif result.status == "REJECTED":
+                    self.rejected += 1
+                else:
+                    self.failed += 1
+                
+                # Update worker state to show completed result briefly
+                self.worker_states[worker_id] = {
+                    'config': config,
+                    'status': result.status.lower(),
+                    'start_time': time.time(),
+                    'result': result,
+                    'ev': ev,
+                    'precision': precision,
+                    'trades': trades
+                }
+                
+                # Remove from mapping
+                del self.config_to_worker[config.config_id]
+                
+                # Return worker to pool (will be reassigned)
+                self.available_worker_ids.put(worker_id)
+            
+            # Update display
+            now = time.time()
+            if now - self.last_update >= self.update_interval or self.completed == self.total:
+                self._display()
+                self.last_update = now
+    
+    def _init_display(self):
+        """Initialize display area."""
+        if not self.initialized:
+            # Print empty lines to create space
+            print("\n" * (self.display_lines + 2))
+            self.initialized = True
+    
+    def _move_cursor_up(self, lines: int):
+        """Move cursor up N lines."""
+        sys.stdout.write(f"\033[{lines}A")
+    
+    def _clear_line(self):
+        """Clear current line."""
+        sys.stdout.write("\033[2K\r")
+    
+    def _display(self):
+        """Update the display."""
+        self._init_display()
+        
+        elapsed = time.time() - self.start_time
+        pct = 100 * self.completed / self.total if self.total > 0 else 0
+        rate = self.completed / elapsed if elapsed > 0 else 0
+        remaining = self.total - self.completed
+        eta_seconds = remaining / rate if rate > 0 else 0
+        
+        # Format ETA
+        if eta_seconds > 3600:
+            eta_str = f"{eta_seconds/3600:.1f}h"
+        elif eta_seconds > 60:
+            eta_str = f"{eta_seconds/60:.1f}m"
+        else:
+            eta_str = f"{eta_seconds:.0f}s"
+        
+        # Move cursor to start of our display area
+        self._move_cursor_up(self.display_lines + 1)
+        
+        # Line 1: Top border
+        self._clear_line()
+        print("=" * 90)
+        
+        # Line 2: Progress bar
+        self._clear_line()
+        bar_width = 30
+        filled = int(bar_width * pct / 100)
+        bar = "█" * filled + "░" * (bar_width - filled)
+        print(f"[{bar}] {pct:5.1f}% | {self.completed:,}/{self.total:,} | ETA: {eta_str} | Rate: {rate:.1f}/min")
+        
+        # Line 3: Separator
+        self._clear_line()
+        print("-" * 90)
+        
+        # Worker lines
+        for worker_id in range(1, self.max_workers + 1):
+            self._clear_line()
+            
+            if worker_id in self.worker_states:
+                state = self.worker_states[worker_id]
+                config = state['config']
+                status = state['status']
+                
+                # Status icon
+                if status == 'processing':
+                    icon = "⟳"
+                    status_str = "Processing..."
+                    metrics_str = ""
+                elif status == 'passed':
+                    icon = "✓"
+                    ev = state.get('ev', 0)
+                    prec = state.get('precision', 0)
+                    trades = state.get('trades', 0)
+                    metrics_str = f"EV={ev:+.1f} Pr={prec:.1%} T={trades}"
+                    status_str = "PASSED"
+                elif status == 'rejected':
+                    icon = "✗"
+                    ev = state.get('ev', 0)
+                    prec = state.get('precision', 0)
+                    trades = state.get('trades', 0)
+                    metrics_str = f"EV={ev:+.1f} Pr={prec:.1%} T={trades}"
+                    # Get rejection reason
+                    if state.get('result') and state['result'].rejection_reasons:
+                        reason = state['result'].rejection_reasons[0].split('(')[0].strip()[:20]
+                        status_str = reason
+                    else:
+                        status_str = "REJECTED"
+                else:
+                    icon = "!"
+                    metrics_str = ""
+                    status_str = "FAILED"
+                
+                config_str = f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}"
+                
+                if metrics_str:
+                    print(f"Worker {worker_id}: {icon} {config_str} | {metrics_str} | {status_str}")
+                else:
+                    print(f"Worker {worker_id}: {icon} {config_str} | {status_str}")
+            else:
+                print(f"Worker {worker_id}: - Idle")
+        
+        # Separator
+        self._clear_line()
+        print("-" * 90)
+        
+        # Summary line
+        self._clear_line()
+        pass_rate = 100 * self.passed / self.completed if self.completed > 0 else 0
+        summary = f"PASS: {self.passed} ({pass_rate:.1f}%) | REJECT: {self.rejected} | FAIL: {self.failed}"
+        
+        if self.best_config and self.best_ev > float('-inf'):
+            summary += f" | BEST: BB={self.best_config.bb_threshold:.2f} RSI={self.best_config.rsi_threshold} EV={self.best_ev:+.1f}"
+        
+        print(summary)
+        
+        # Bottom border
+        self._clear_line()
+        print("=" * 90)
+        
+        sys.stdout.flush()
+    
+    def finish(self):
+        """Final display after completion."""
+        # Move past display area
+        print("\n" * 2)
+        
+        elapsed = time.time() - self.start_time
+        elapsed_str = f"{elapsed/3600:.1f}h" if elapsed > 3600 else f"{elapsed/60:.1f}m"
+        rate = self.completed / elapsed if elapsed > 0 else 0
+        
+        print()
+        print("=" * 70)
+        print(" TRAINING COMPLETE")
+        print("=" * 70)
+        print(f"  Time:       {elapsed_str} ({rate:.1f} configs/min)")
+        print(f"  Completed:  {self.completed:,}")
+        print(f"  Passed:     {self.passed:,} ({100*self.passed/max(self.completed,1):.1f}%)")
+        print(f"  Rejected:   {self.rejected:,}")
+        print(f"  Failed:     {self.failed:,}")
+        
+        if self.best_config and self.best_ev > float('-inf'):
+            print()
+            print(f"  {'─'*66}")
+            print(f"  BEST CONFIG:")
+            print(f"    BB={self.best_config.bb_threshold:.2f}, RSI={self.best_config.rsi_threshold}, TP={self.best_config.tp_pips}, SL={self.best_config.sl_pips}")
+            print(f"    EV={self.best_ev:+.2f} pips")
+        
+        print("=" * 70)
+        print()
+
+
+# Legacy ProgressDisplay for backward compatibility
 class ProgressDisplay:
-    """Thread-safe progress display."""
+    """Simple progress display (legacy)."""
     
     def __init__(self, total: int, update_interval: float = 1.0):
         self.total = total
@@ -261,7 +519,6 @@ class ProgressDisplay:
         remaining = self.total - self.completed
         eta_seconds = remaining / rate if rate > 0 else 0
         
-        # Format ETA
         if eta_seconds > 3600:
             eta_str = f"{eta_seconds/3600:.1f}h"
         elif eta_seconds > 60:
@@ -275,7 +532,7 @@ class ProgressDisplay:
         
         line = (
             f"\r[{self.completed:,}/{self.total:,}] {pct:5.1f}% | "
-            f"✓{self.passed} ✗{self.rejected} | "
+            f"PASS:{self.passed} REJECT:{self.rejected} | "
             f"ETA: {eta_str}{best_str}"
         )
         
@@ -286,14 +543,14 @@ class ProgressDisplay:
         elapsed = time.time() - self.start_time
         print()
         print(f"\n{'='*60}")
-        print(f"✅ EXPERIMENTS COMPLETE")
+        print(f"EXPERIMENTS COMPLETE")
         print(f"{'='*60}")
         print(f"Time:       {elapsed/60:.1f} minutes")
         print(f"Completed:  {self.completed:,}")
         print(f"Passed:     {self.passed:,}")
         print(f"Rejected:   {self.rejected:,}")
         if self.best_ev > float('-inf'):
-            print(f"\n🏆 Best EV:  {self.best_ev:+.2f} ({self.best_config})")
+            print(f"\nBest EV:  {self.best_ev:+.2f} ({self.best_config})")
         print(f"{'='*60}\n")
 
 
@@ -375,7 +632,7 @@ def precompute_labels_and_signals(
     """
     if verbose:
         print("\n" + "="*60)
-        print("📊 PRE-COMPUTATION PHASE")
+        print("PRE-COMPUTATION PHASE")
         print("="*60)
     
     # Get unique parameters
@@ -383,8 +640,8 @@ def precompute_labels_and_signals(
     signal_params = get_unique_signal_params(configs)
     
     if verbose:
-        print(f"Unique label configs:  {len(label_params)} (TP × Holding)")
-        print(f"Unique signal configs: {len(signal_params)} (BB × RSI)")
+        print(f"Unique label configs:  {len(label_params)} (TP x Holding)")
+        print(f"Unique signal configs: {len(signal_params)} (BB x RSI)")
         print(f"Total configs:         {len(configs):,}")
         print(f"Reduction factor:      {len(configs) / (len(label_params) + len(signal_params)):.1f}x")
     
@@ -420,12 +677,55 @@ def precompute_labels_and_signals(
     signal_time = time.time() - start_time
     
     if verbose:
-        print(f"\n⏱️  Label pre-computation:  {label_time:.1f}s")
-        print(f"⏱️  Signal pre-computation: {signal_time:.1f}s")
-        print(f"⏱️  Total pre-computation:  {label_time + signal_time:.1f}s")
+        print(f"\n[TIME] Label pre-computation:  {label_time:.1f}s")
+        print(f"[TIME] Signal pre-computation: {signal_time:.1f}s")
+        print(f"[TIME] Total pre-computation:  {label_time + signal_time:.1f}s")
         print("="*60 + "\n")
     
     return label_cache, signal_cache
+
+
+# =============================================================================
+# CHECKPOINT HELPER (STORES ALL DETAILS)
+# =============================================================================
+
+def save_checkpoint_with_details(
+    checkpoint_mgr,
+    config: ConfigurationSpec,
+    result: 'ExperimentResult'
+) -> None:
+    """Save checkpoint with ALL important details."""
+    if not checkpoint_mgr:
+        return
+    
+    # Extract metrics
+    metrics = result.aggregate_metrics
+    
+    checkpoint_mgr.mark_completed(
+        config_id=config.config_id,
+        status=result.status,
+        # Config parameters
+        bb_threshold=config.bb_threshold,
+        rsi_threshold=config.rsi_threshold,
+        tp_pips=config.tp_pips,
+        sl_pips=config.sl_pips,
+        max_holding_bars=config.max_holding_bars,
+        # Metrics
+        ev_mean=metrics.ev_mean if metrics else None,
+        ev_std=metrics.ev_std if metrics else None,
+        precision_mean=metrics.precision_mean if metrics else None,
+        precision_std=metrics.precision_std if metrics else None,
+        recall_mean=metrics.recall_mean if metrics else None,
+        f1_mean=metrics.f1_mean if metrics else None,
+        auc_pr_mean=metrics.auc_pr_mean if metrics else None,
+        total_trades=metrics.total_trades if metrics else None,
+        # Model details
+        selected_features=result.consensus_features if result.consensus_features else None,
+        consensus_threshold=result.consensus_threshold,
+        # Metadata
+        rejection_reasons=result.rejection_reasons if result.rejection_reasons else None,
+        execution_time=result.execution_time_seconds
+    )
 
 
 # =============================================================================
@@ -713,6 +1013,7 @@ def run_parallel_experiments(
     1. Pre-compute labels/signals ONCE
     2. Use ThreadPoolExecutor (GIL released during sklearn/lightgbm)
     3. Process configs in parallel
+    4. Live worker status display
     """
     
     # =========================================================================
@@ -723,10 +1024,10 @@ def run_parallel_experiments(
         checkpoint_mgr = FastCheckpointManager(checkpoint_db)
         if resume:
             configs = checkpoint_mgr.get_pending_configs(configs)
-            print(f"📋 Resuming: {len(configs)} configs remaining")
+            print(f"Resuming: {len(configs)} configs remaining")
     
     if len(configs) == 0:
-        print("✅ All configs already completed!")
+        print("All configs already completed!")
         return []
     
     # =========================================================================
@@ -743,22 +1044,31 @@ def run_parallel_experiments(
     # PHASE 2: RUN EXPERIMENTS IN PARALLEL
     # =========================================================================
     results = []
-    progress_display = ProgressDisplay(len(configs)) if show_progress else None
     
     print(f"\n{'='*60}")
-    print(f"🚀 RUNNING {len(configs):,} CONFIGURATIONS")
+    print(f"RUNNING {len(configs):,} CONFIGURATIONS")
     print(f"{'='*60}")
     print(f"Workers:     {max_workers}")
     print(f"Model type:  {get_best_model_type()}")
     print(f"{'='*60}\n")
+    
+    # Use WorkerProgressDisplay for detailed worker tracking
+    progress_display = WorkerProgressDisplay(len(configs), max_workers) if show_progress else None
     
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore')
         
         # Use ThreadPoolExecutor - sklearn/lightgbm release the GIL
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_config = {
-                executor.submit(
+            # Submit all tasks and track futures
+            future_to_config = {}
+            
+            for config in configs:
+                # Assign worker before submitting
+                if progress_display:
+                    progress_display.assign_worker(config)
+                
+                future = executor.submit(
                     process_single_config,
                     df=df,
                     config=config,
@@ -768,10 +1078,10 @@ def run_parallel_experiments(
                     pip_value=pip_value,
                     label_cache=label_cache,
                     signal_cache=signal_cache
-                ): config
-                for config in configs
-            }
+                )
+                future_to_config[future] = config
             
+            # Process completed futures
             for future in as_completed(future_to_config):
                 config = future_to_config[future]
                 
@@ -796,15 +1106,12 @@ def run_parallel_experiments(
                 
                 results.append(result)
                 
-                # Checkpoint
-                if checkpoint_mgr:
-                    ev = result.aggregate_metrics.ev_mean if result.aggregate_metrics else None
-                    checkpoint_mgr.mark_completed(config.config_id, result.status, ev)
+                # Checkpoint with full details
+                save_checkpoint_with_details(checkpoint_mgr, config, result)
                 
-                # Progress
+                # Update progress display
                 if progress_display:
-                    ev = result.aggregate_metrics.ev_mean if result.aggregate_metrics else 0.0
-                    progress_display.update(config.short_str(), result.status, ev)
+                    progress_display.release_worker(config, result)
     
     if progress_display:
         progress_display.finish()
@@ -859,9 +1166,8 @@ def run_sequential_experiments(
         
         results.append(result)
         
-        if checkpoint_mgr:
-            ev = result.aggregate_metrics.ev_mean if result.aggregate_metrics else None
-            checkpoint_mgr.mark_completed(config.config_id, result.status, ev)
+        # Checkpoint with full details
+        save_checkpoint_with_details(checkpoint_mgr, config, result)
         
         if progress_display:
             ev = result.aggregate_metrics.ev_mean if result.aggregate_metrics else 0.0
@@ -892,7 +1198,7 @@ def sort_results_by_ev(results: List[ExperimentResult]) -> List[ExperimentResult
 
 
 def sort_results_by_ranking(results: List[ExperimentResult]) -> List[ExperimentResult]:
-    """Sort by ranking criteria: EV → F1 → Precision → AUC-PR."""
+    """Sort by ranking criteria: EV ?+' F1 ?+' Precision ?+' AUC-PR."""
     def ranking_key(r: ExperimentResult) -> Tuple:
         if r.aggregate_metrics is None:
             return (float('-inf'),) * 4

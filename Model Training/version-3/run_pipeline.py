@@ -35,6 +35,9 @@ import pandas as pd
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+from src.features import calculate_all_features
+
+
 from src.logging_utils import (
     setup_logger,
     log_header,
@@ -261,6 +264,9 @@ def run_pipeline(
             csv_path=input_csv,
             config=config
         )
+
+        logger.info("\nCalculating comprehensive features...")
+        df = calculate_all_features(df, verbose=True)
         
         log_preprocessing_complete(
             logger=logger,

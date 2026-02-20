@@ -87,11 +87,11 @@ config_space:
   # Take Profit in pips
   tp_pips:
     min: 40
-    max: 120
+    max: 80
     step: 10
   
   # Stop Loss in pips (FIXED)
-  sl_pips: 40
+  sl_pips: 30
   
   # Maximum holding period in bars
   max_holding_bars:
@@ -154,10 +154,10 @@ threshold_optimization:
 # MINIMUM ACCEPTANCE CRITERIA
 # -----------------------------------------------------------------------------
 acceptance_criteria:
-  min_precision: 0.28
-  min_trades_per_fold: 30
-  min_expected_value: 0.0
-  max_metric_cv: 0.30  # Coefficient of variation
+  min_precision: 0.45
+  min_trades_per_fold: 10
+  min_expected_value: 1.0
+  max_metric_cv: 0.40  # Coefficient of variation
 
 # -----------------------------------------------------------------------------
 # PARALLEL EXECUTION

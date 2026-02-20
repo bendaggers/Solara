@@ -1,9 +1,0 @@
-{
-  "config_id": "CFG_01281",
-  "bb_threshold": 0.86,
-  "rsi_threshold": 74,
-  "tp_pips": 50,
-  "sl_pips": 40,
-  "max_holding_bars": 18,
-  "direction": "SHORT"
-}

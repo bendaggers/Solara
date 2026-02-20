@@ -1,0 +1,8 @@
+{
+  "model_type": "GradientBoostingClassifier",
+  "num_leaves": 31,
+  "n_estimators": 200,
+  "min_child_samples": 20,
+  "max_depth": 4,
+  "learning_rate": 0.1
+}

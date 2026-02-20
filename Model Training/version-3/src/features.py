@@ -1,24 +1,55 @@
 """
-Feature engineering and selection.
+Feature engineering and selection - COMPREHENSIVE SHORT STRATEGY.
 
-This module handles:
-1. Feature CALCULATION - computing technical indicators and derived features
-2. Feature SELECTION - Recursive Feature Elimination (RFE)
-3. Feature validation and utilities
+VERSION: 3.0 - SHORT STRATEGY (COMPREHENSIVE)
 
-PART 1: FeatureEngineering class (from your old features.py)
-- Calculates all derived features from raw OHLCV + basic indicators
-- Binary features, candle patterns, lags, slopes, quality indicators
+PIPELINE:
+=========
+1. DataExporterEA_SHORT.mq5 calculates BASE features from raw OHLCV
+2. This module calculates DERIVED + STATISTICAL + MOMENTUM features
 
-PART 2: RFE functions (for model training)
-- Selects optimal feature subset
-- Prevents overfitting
-- Runs on training data only
+BASE FEATURES (from EA CSV - DO NOT RECALCULATE):
+─────────────────────────────────────────────────
+• OHLCV (open, high, low, close, volume)
+• Bollinger Bands (lower_band, middle_band, upper_band)
+• bb_touch_strength (high/upper_band)
+• bb_position, bb_width_pct
+• rsi_value, rsi_divergence (bearish)
+• volume_ratio, candle_rejection (upper wick)
+• candle_body_pct, atr_pct, trend_strength
+• prev_candle_body_pct, prev_volume_ratio
+• gap_from_prev_close, price_momentum (HIGH-based)
+• prev_was_rally, previous_touches (UPPER band)
+• time_since_last_touch (UPPER band)
+• resistance_distance_pct, session
 
-Critical rules:
-- Feature calculation happens BEFORE label generation
-- RFE runs on TRAINING data only (per fold)
-- No leakage from calibration or threshold sets
+DERIVED FEATURES (calculated here):
+───────────────────────────────────
+• Lag features (RSI, BB position, price, volume)
+• Slope features (rate of change)
+• Binary features (overbought flags, bearish patterns)
+• Quality indicators (exhaustion signals)
+
+NEW STATISTICAL FEATURES:
+─────────────────────────
+• Rolling statistics (std, skewness, kurtosis)
+• Z-scores (price, RSI, volume)
+• Percentile ranks
+• Volatility measures
+
+NEW MOMENTUM FEATURES:
+──────────────────────
+• Rate of Change (ROC)
+• Momentum oscillators
+• Acceleration/deceleration
+• Trend exhaustion indicators
+
+NEW PATTERN FEATURES:
+─────────────────────
+• Consecutive candle patterns
+• Reversal pattern detection
+• Volume profile analysis
+• BB squeeze detection
 """
 
 import pandas as pd
@@ -27,30 +58,38 @@ from typing import List, Tuple, Dict, Optional, Any
 from dataclasses import dataclass
 import warnings
 import logging
+from scipy import stats as scipy_stats
 
 from sklearn.feature_selection import RFE, RFECV
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import StratifiedKFold
 from sklearn.exceptions import ConvergenceWarning
 
 
 # =============================================================================
-# PART 1: FEATURE ENGINEERING (CALCULATION)
+# PART 1: FEATURE ENGINEERING (COMPREHENSIVE)
 # =============================================================================
 
 class FeatureEngineering:
     """
-    Feature engineering class for calculating technical indicators.
+    Comprehensive feature engineering for SHORT strategy.
     
-    Calculates derived features from raw data including:
-    - Binary features (touched BB, overbought, etc.)
-    - Candle pattern features (wicks, body)
-    - Price change features
-    - Lag features (RSI, BB position, price, volume)
-    - Slope features (rate of change)
-    - Quality indicator features (exhaustion signals)
-    - Composite exhaustion score
+    VERSION 3.0
+    
+    Calculates DERIVED features from EA CSV output including:
+    - Lag features
+    - Slope features
+    - Statistical features (z-scores, percentiles, rolling stats)
+    - Momentum features (ROC, acceleration)
+    - Pattern features (consecutive candles, reversals)
+    - Quality indicators
+    - Exhaustion score
     """
+    
+    # Rolling window sizes
+    WINDOW_SHORT = 5
+    WINDOW_MEDIUM = 10
+    WINDOW_LONG = 20
     
     def __init__(self, verbose: bool = False):
         self.verbose = verbose
@@ -61,138 +100,189 @@ class FeatureEngineering:
         self, 
         df: pd.DataFrame,
         drop_na: bool = True,
-        min_periods: int = 5
+        min_periods: int = 20  # Increased for rolling statistics
     ) -> pd.DataFrame:
         """
-        Calculate all engineered features from the raw data.
+        Calculate all DERIVED features from EA CSV output.
         
         Args:
-            df: DataFrame with raw data including columns like open, high, low, close, 
-                volume, lower_band, middle_band, upper_band, rsi_value, etc.
+            df: DataFrame from DataExporterEA_SHORT.mq5 CSV output
             drop_na: If True, drop rows with NaN. If False, forward fill.
-            min_periods: Number of initial rows to drop (default 5 for max lag)
+            min_periods: Number of initial rows to drop (default 20 for rolling stats)
                 
         Returns:
-            DataFrame with original data and calculated features
+            DataFrame with original data and all calculated features
         """
-        # Validate input
         self._validate_input(df)
         
         if self.verbose:
             logging.info(f"Input shape: {df.shape}")
+            logging.info("Calculating comprehensive features for SHORT strategy")
         
-        # Create a copy to avoid modifying the original DataFrame
         df_features = df.copy()
+        df_features.columns = df_features.columns.str.lower()
         
-        # Fix BB position formula if needed
+        # Fix BB position if needed
         df_features = self._fix_bb_position_if_needed(df_features)
         
-        # Calculate features in order
+        # === DERIVED FEATURES ===
         df_features = self._add_binary_features(df_features)
-        df_features = self._add_candle_features(df_features)
-        df_features = self._add_price_features(df_features)
+        df_features = self._add_price_change_features(df_features)
         df_features = self._add_lag_features(df_features)
         df_features = self._add_slope_features(df_features)
         
-        # Add quality indicator features
-        df_features = self._add_quality_features(df_features)
+        # === NEW: STATISTICAL FEATURES ===
+        df_features = self._add_zscore_features(df_features)
+        df_features = self._add_rolling_statistics(df_features)
+        df_features = self._add_percentile_features(df_features)
         
-        # Add exhaustion score (composite feature)
+        # === NEW: MOMENTUM FEATURES ===
+        df_features = self._add_roc_features(df_features)
+        df_features = self._add_acceleration_features(df_features)
+        df_features = self._add_momentum_divergence(df_features)
+        
+        # === NEW: PATTERN FEATURES ===
+        df_features = self._add_consecutive_patterns(df_features)
+        df_features = self._add_reversal_patterns(df_features)
+        df_features = self._add_bb_patterns(df_features)
+        df_features = self._add_volume_patterns(df_features)
+        
+        # === QUALITY & EXHAUSTION ===
+        df_features = self._add_quality_features(df_features)
         df_features = self._add_exhaustion_score(df_features)
         
         # Handle NaN values
         if drop_na:
-            df_features = df_features.iloc[min_periods:]
+            initial_rows = len(df_features)
+            df_features = df_features.iloc[min_periods:].reset_index(drop=True)
             if self.verbose:
-                logging.info(f"Dropped first {min_periods} rows with NaN")
+                logging.info(f"Dropped first {min_periods} rows ({initial_rows} -> {len(df_features)})")
         else:
-            df_features = df_features.ffill()
-            if self.verbose:
-                logging.info("Forward-filled NaN values")
+            df_features = df_features.ffill().bfill()
         
         if self.verbose:
             logging.info(f"Final shape: {df_features.shape}")
+            logging.info(f"Total features: {len(df_features.columns)}")
             nan_count = df_features.isnull().sum().sum()
-            logging.info(f"Remaining NaN values: {nan_count}")
-        
+            if nan_count > 0:
+                logging.warning(f"Remaining NaN values: {nan_count}")
+
+        df_features = df_features.copy()
+
         return df_features
     
+    # =========================================================================
+    # INPUT VALIDATION
+    # =========================================================================
+    
     def _validate_input(self, df: pd.DataFrame) -> None:
-        """Validate input DataFrame has required columns and sufficient data."""
-        required_columns = [
+        """Validate EA CSV has required columns."""
+        df_cols_lower = [c.lower() for c in df.columns]
+        
+        required_from_ea = [
             'open', 'high', 'low', 'close', 'volume',
-            'lower_band', 'middle_band', 'upper_band', 
-            'rsi_value', 'bb_position', 'bb_width_pct',
-            'volume_ratio', 'trend_strength'
+            'lower_band', 'middle_band', 'upper_band',
+            'bb_position', 'bb_width_pct',
+            'rsi_value', 'volume_ratio', 'atr_pct', 'trend_strength',
+            'time_since_last_touch'
         ]
         
-        missing_cols = [col for col in required_columns if col not in df.columns]
-        if missing_cols:
-            raise ValueError(f"Missing required columns: {missing_cols}")
+        # Optional columns that shouldn't break the pipeline if missing
+        optional_columns = ['resistance_distance_pct', 'bb_touch_strength', 
+                           'prev_candle_body_pct', 'prev_volume_ratio',
+                           'gap_from_prev_close', 'price_momentum',
+                           'prev_was_rally', 'previous_touches', 'session']
         
-        if len(df) < 25:
-            raise ValueError(f"Insufficient data: need at least 25 rows, got {len(df)}")
+        missing = [col for col in required_from_ea if col not in df_cols_lower]
+        if missing:
+            raise ValueError(
+                f"Missing columns from EA CSV: {missing}\n"
+                f"Ensure you're using DataExporterEA_SHORT.mq5 output."
+            )
+        
+        missing_optional = [col for col in optional_columns if col not in df_cols_lower]
+        if missing_optional and self.verbose:
+            logging.warning(f"Optional columns missing: {missing_optional}")
+        
+        if len(df) < 50:
+            raise ValueError(f"Insufficient data: need at least 50 rows, got {len(df)}")
     
     def _fix_bb_position_if_needed(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Verify and fix BB position formula if incorrect.
-        
-        CORRECT: bb_position = (close - lower) / (upper - lower)
-        Result: 0.0 = at lower band, 1.0 = at upper band
-        """
-        # Check if bb_position looks wrong (values > 1.5 or negative)
+        """Verify BB position is in correct range (0-1)."""
         if df['bb_position'].max() > 1.5 or df['bb_position'].min() < -0.5:
             if self.verbose:
-                logging.warning("BB position formula appears incorrect. Recalculating...")
-            
-            # Recalculate correctly
+                logging.warning("Recalculating bb_position...")
             df['bb_position'] = (
                 (df['close'] - df['lower_band']) / 
                 (df['upper_band'] - df['lower_band'])
-            )
-            
-            # Handle edge cases (divide by zero when bands converge)
-            df['bb_position'] = df['bb_position'].clip(0, 1)
-            
-            if self.verbose:
-                logging.info(f"BB position recalculated. Range: {df['bb_position'].min():.3f} to {df['bb_position'].max():.3f}")
-        
+            ).clip(0, 1)
         return df
+    
+    # =========================================================================
+    # BINARY FEATURES - FIXED WITH fillna(0)
+    # =========================================================================
     
     def _add_binary_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add binary indicator features."""
-        df['touched_upper_bb'] = (df['high'] >= df['upper_band']).astype(int)
-        df['rsi_overbought'] = (df['rsi_value'] > 70).astype(int)
-        df['rsi_extreme_overbought'] = (df['rsi_value'] > 80).astype(int)
-        df['bearish_candle'] = (df['close'] < df['open']).astype(int)
+        """Add binary indicator features for SHORT strategy."""
+        
+        # Touched upper BB (derived from bb_touch_strength if available)
+        if 'bb_touch_strength' in df.columns:
+            df['touched_upper_bb'] = (df['bb_touch_strength'] >= 1.0).fillna(0).astype(int)
+        else:
+            df['touched_upper_bb'] = (df['high'] >= df['upper_band']).fillna(0).astype(int)
+        
+        # RSI overbought conditions
+        df['rsi_overbought'] = (df['rsi_value'] > 70).fillna(0).astype(int)
+        df['rsi_extreme_overbought'] = (df['rsi_value'] > 80).fillna(0).astype(int)
+        df['rsi_very_extreme'] = (df['rsi_value'] > 85).fillna(0).astype(int)
+        
+        # Bearish candle
+        df['bearish_candle'] = (df['close'] < df['open']).fillna(0).astype(int)
+        
+        # Strong bearish (large body)
+        body_pct = (df['close'] - df['open']).abs() / df['close'].replace(0, np.nan)
+        df['strong_bearish'] = ((df['close'] < df['open']) & (body_pct > 0.005)).fillna(0).astype(int)
+        
+        # High BB position
+        df['bb_very_high'] = (df['bb_position'] > 0.95).fillna(0).astype(int)
+        df['bb_above_upper'] = (df['close'] > df['upper_band']).fillna(0).astype(int)
+        
+        # Volume conditions
+        df['high_volume'] = (df['volume_ratio'] > 1.5).fillna(0).astype(int)
+        df['extreme_volume'] = (df['volume_ratio'] > 2.0).fillna(0).astype(int)
+        
+        # Trend conditions (for SHORT, positive trend = exhaustion setup)
+        df['strong_uptrend'] = (df['trend_strength'] > 1.0).fillna(0).astype(int)
+        
         return df
     
-    def _add_candle_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add candle pattern features with zero-protection."""
-        # Upper wick
-        df['upper_wick'] = np.where(
-            df['open'] != 0,
-            (df['high'] - df[['open', 'close']].max(axis=1)) / df['open'],
-            0
-        )
-        
-        # Lower wick
-        df['lower_wick'] = np.where(
-            df['open'] != 0,
-            (df[['open', 'close']].min(axis=1) - df['low']) / df['open'],
-            0
-        )
-        
-        return df
+    # =========================================================================
+    # PRICE CHANGE FEATURES
+    # =========================================================================
     
-    def _add_price_features(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _add_price_change_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add price change features."""
-        df['price_change_1'] = (df['close'] - df['close'].shift(1)) / df['close'].shift(1)
-        df['price_change_5'] = (df['close'] - df['close'].shift(5)) / df['close'].shift(5)
+        df['price_change_1'] = df['close'].pct_change(1)
+        df['price_change_3'] = df['close'].pct_change(3)
+        df['price_change_5'] = df['close'].pct_change(5)
+        df['price_change_10'] = df['close'].pct_change(10)
+        
+        # High-to-high change (relevant for SHORT)
+        df['high_change_1'] = df['high'].pct_change(1)
+        df['high_change_3'] = df['high'].pct_change(3)
+        
+        # Range as percentage
+        df['range_pct'] = (df['high'] - df['low']) / df['close'].replace(0, np.nan)
+        
         return df
+    
+    # =========================================================================
+    # LAG FEATURES
+    # =========================================================================
     
     def _add_lag_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add lag features for RSI, BB position, price change, and volume."""
+        """Add lag features for key indicators."""
+        
         # RSI lags
         for i in range(1, 6):
             df[f'rsi_lag{i}'] = df['rsi_value'].shift(i)
@@ -209,211 +299,689 @@ class FeatureEngineering:
         for i in range(1, 4):
             df[f'volume_ratio_lag{i}'] = df['volume_ratio'].shift(i)
         
+        # BB width lags
+        for i in range(1, 3):
+            df[f'bb_width_lag{i}'] = df['bb_width_pct'].shift(i)
+        
+        # Trend strength lags
+        for i in range(1, 3):
+            df[f'trend_strength_lag{i}'] = df['trend_strength'].shift(i)
+        
         return df
+    
+    # =========================================================================
+    # SLOPE FEATURES
+    # =========================================================================
     
     def _add_slope_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add slope (rate of change) features."""
+        
         # RSI slopes
-        df['rsi_slope_3'] = (df['rsi_value'] - df['rsi_lag3']) / 3
-        df['rsi_slope_5'] = (df['rsi_value'] - df['rsi_lag5']) / 5
+        df['rsi_slope_3'] = (df['rsi_value'] - df['rsi_value'].shift(3)) / 3
+        df['rsi_slope_5'] = (df['rsi_value'] - df['rsi_value'].shift(5)) / 5
+        df['rsi_slope_10'] = (df['rsi_value'] - df['rsi_value'].shift(10)) / 10
         
         # Price slopes
-        df['price_slope_3'] = ((df['close'] - df['close'].shift(3)) / df['close'].shift(3)) / 3
-        df['price_slope_5'] = ((df['close'] - df['close'].shift(5)) / df['close'].shift(5)) / 5
+        df['price_slope_3'] = df['close'].pct_change(3) / 3
+        df['price_slope_5'] = df['close'].pct_change(5) / 5
+        df['price_slope_10'] = df['close'].pct_change(10) / 10
         
         # BB position slope
-        df['bb_position_slope_3'] = (df['bb_position'] - df['bb_position_lag3']) / 3
+        df['bb_position_slope_3'] = (df['bb_position'] - df['bb_position'].shift(3)) / 3
+        df['bb_position_slope_5'] = (df['bb_position'] - df['bb_position'].shift(5)) / 5
         
         # Volume slope
-        df['volume_slope_3'] = ((df['volume'] - df['volume'].shift(3)) / df['volume'].shift(3)) / 3
+        df['volume_slope_3'] = (df['volume_ratio'] - df['volume_ratio'].shift(3)) / 3
         
-        # BB width slope
+        # BB width slope (squeeze/expansion)
         df['bb_width_slope_3'] = (df['bb_width_pct'] - df['bb_width_pct'].shift(3)) / 3
+        df['bb_width_slope_5'] = (df['bb_width_pct'] - df['bb_width_pct'].shift(5)) / 5
         
         # Trend strength slope
-        df['trend_strength_slope_3'] = (df['trend_strength'] - df['trend_strength'].shift(3)) / 3
+        df['trend_slope_3'] = (df['trend_strength'] - df['trend_strength'].shift(3)) / 3
         
         return df
     
-    def _add_quality_features(self, df: pd.DataFrame) -> pd.DataFrame:
+    # =========================================================================
+    # NEW: Z-SCORE FEATURES
+    # =========================================================================
+    
+    def _add_zscore_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Add quality indicator features.
+        Add z-score features for detecting statistical extremes.
         
-        These are NOT used for filtering, but as features for ML to learn from.
-        They indicate high-quality exhaustion setups within the baseline filter.
+        Z-score = (value - rolling_mean) / rolling_std
+        High positive z-score on price/RSI = statistically overbought
         """
+        window = self.WINDOW_LONG
         
-        # === RSI EXHAUSTION INDICATORS ===
+        # Price z-score
+        price_mean = df['close'].rolling(window, min_periods=10).mean()
+        price_std = df['close'].rolling(window, min_periods=10).std()
+        df['price_zscore'] = (df['close'] - price_mean) / price_std.replace(0, np.nan)
         
-        # RSI peaked (declining now)
-        df['rsi_peaked'] = (df['rsi_value'] < df['rsi_lag1']).astype(int)
+        # RSI z-score (unusual RSI readings)
+        rsi_mean = df['rsi_value'].rolling(window, min_periods=10).mean()
+        rsi_std = df['rsi_value'].rolling(window, min_periods=10).std()
+        df['rsi_zscore'] = (df['rsi_value'] - rsi_mean) / rsi_std.replace(0, np.nan)
         
-        # RSI drop size (how much it fell)
-        df['rsi_drop_size'] = df['rsi_lag1'] - df['rsi_value']
-        df['rsi_drop_size'] = df['rsi_drop_size'].clip(lower=0)  # Only positive drops
+        # Volume z-score
+        vol_mean = df['volume'].rolling(window, min_periods=10).mean()
+        vol_std = df['volume'].rolling(window, min_periods=10).std()
+        df['volume_zscore'] = (df['volume'] - vol_mean) / vol_std.replace(0, np.nan)
         
-        # Large RSI drop (>5 points)
-        df['rsi_drop_large'] = (df['rsi_drop_size'] > 5).astype(int)
+        # BB position z-score
+        bb_mean = df['bb_position'].rolling(window, min_periods=10).mean()
+        bb_std = df['bb_position'].rolling(window, min_periods=10).std()
+        df['bb_position_zscore'] = (df['bb_position'] - bb_mean) / bb_std.replace(0, np.nan)
         
-        # RSI was extreme (>70)
-        df['rsi_was_extreme'] = (df['rsi_lag1'] > 70).astype(int)
+        # ATR z-score (unusual volatility)
+        atr_mean = df['atr_pct'].rolling(window, min_periods=10).mean()
+        atr_std = df['atr_pct'].rolling(window, min_periods=10).std()
+        df['atr_zscore'] = (df['atr_pct'] - atr_mean) / atr_std.replace(0, np.nan)
         
-        # Strong negative RSI slope
-        df['rsi_slope_strong_neg'] = (df['rsi_slope_3'] < -5).astype(int)
+        # High z-score (for SHORT - detecting extreme highs)
+        high_mean = df['high'].rolling(window, min_periods=10).mean()
+        high_std = df['high'].rolling(window, min_periods=10).std()
+        df['high_zscore'] = (df['high'] - high_mean) / high_std.replace(0, np.nan)
         
-        # RSI momentum shift (was rising, now falling)
-        rsi_was_rising = (df['rsi_lag1'] > df['rsi_lag2']).astype(int)
-        rsi_now_falling = (df['rsi_value'] < df['rsi_lag1']).astype(int)
-        df['rsi_momentum_shift'] = (rsi_was_rising & rsi_now_falling).astype(int)
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: ROLLING STATISTICS
+    # =========================================================================
+    
+    def _add_rolling_statistics(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add rolling statistical features.
         
-        # === BB POSITION QUALITY ===
+        - Standard deviation (volatility)
+        - Skewness (distribution asymmetry)
+        - Kurtosis (tail heaviness)
+        """
+        window = self.WINDOW_LONG
         
-        # Very high BB position (>0.95)
-        df['bb_very_high'] = (df['bb_position'] > 0.95).astype(int)
+        # Price rolling stats
+        price_std = df['close'].rolling(window, min_periods=10).std()
+        df['price_rolling_std'] = price_std / df['close'].replace(0, np.nan)
         
-        # Previous bar at extreme
-        df['bb_extreme_prev'] = (df['bb_position'].shift(1) > 0.95).astype(int)
+        # RSI rolling stats
+        df['rsi_rolling_std'] = df['rsi_value'].rolling(window, min_periods=10).std()
+        df['rsi_rolling_max'] = df['rsi_value'].rolling(window, min_periods=10).max()
+        df['rsi_rolling_min'] = df['rsi_value'].rolling(window, min_periods=10).min()
+        df['rsi_range'] = df['rsi_rolling_max'] - df['rsi_rolling_min']
         
-        # Touched upper in previous 1-2 bars
-        df['touched_prev_1'] = df['touched_upper_bb'].shift(1).fillna(0).astype(int)
-        df['touched_prev_2'] = df['touched_upper_bb'].shift(2).fillna(0).astype(int)
-        df['touched_recently'] = (
-            (df['touched_prev_1'] == 1) | 
-            (df['touched_prev_2'] == 1)
-        ).astype(int)
+        # BB position rolling stats
+        df['bb_position_rolling_std'] = df['bb_position'].rolling(window, min_periods=10).std()
+        df['bb_position_rolling_max'] = df['bb_position'].rolling(window, min_periods=10).max()
         
-        # === CANDLE CONFIRMATION ===
+        # Volume rolling stats
+        vol_mean = df['volume'].rolling(window, min_periods=10).mean()
+        vol_std = df['volume'].rolling(window, min_periods=10).std()
+        df['volume_rolling_std'] = vol_std / vol_mean.replace(0, np.nan)
         
-        # Strong bearish candle (bearish + large body)
-        if 'candle_body_pct' in df.columns:
-            df['strong_bearish'] = (
-                (df['bearish_candle'] == 1) & 
-                (df['candle_body_pct'] > 0.5)
-            ).astype(int)
-        else:
-            df['strong_bearish'] = df['bearish_candle']
+        # Skewness (positive skew = more extreme highs)
+        df['price_skew_20'] = df['close'].rolling(window, min_periods=8).apply(
+            lambda x: scipy_stats.skew(x) if len(x) >= 8 and x.std() > 0 else 0, raw=True
+        )
         
-        # Rejection candle (long upper wick)
-        df['rejection_candle'] = (df['upper_wick'] > 0.003).astype(int)
+        # Kurtosis (high kurtosis = fat tails, extreme moves)
+        df['price_kurtosis_20'] = df['close'].rolling(window, min_periods=8).apply(
+            lambda x: scipy_stats.kurtosis(x) if len(x) >= 8 and x.std() > 0 else 0, raw=True
+        )
         
-        # === VOLUME CONFIRMATION ===
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: PERCENTILE FEATURES
+    # =========================================================================
+    
+    def _add_percentile_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add percentile rank features.
         
-        # Volume spike
-        df['volume_spike'] = (df['volume_ratio'] > 1.3).astype(int)
+        Shows where current value sits relative to recent history.
+        For SHORT: high percentile on price/RSI = overbought
+        """
+        window = self.WINDOW_LONG
         
-        # High volume on reversal
-        df['high_volume_reversal'] = (
-            (df['bearish_candle'] == 1) & 
-            (df['volume_ratio'] > 1.2)
-        ).astype(int)
+        def calc_percentile(x):
+            if len(x) < 10:
+                return 0.5
+            return scipy_stats.percentileofscore(x, x.iloc[-1]) / 100
         
-        # === CONTEXT FEATURES ===
+        # Price percentile
+        df['price_percentile'] = df['close'].rolling(window, min_periods=10).apply(
+            calc_percentile, raw=False
+        )
         
-        # Not choppy (hasn't touched upper BB recently before this)
-        if 'time_since_last_touch' in df.columns:
-            df['not_choppy'] = (df['time_since_last_touch'] > 3).astype(int)
-        else:
-            df['not_choppy'] = 1  # Default to true if feature missing
+        # RSI percentile
+        df['rsi_percentile'] = df['rsi_value'].rolling(window, min_periods=10).apply(
+            calc_percentile, raw=False
+        )
         
-        # First touch (vs repeated touches)
-        if 'previous_touches' in df.columns:
-            df['first_touch'] = (df['previous_touches'] <= 1).astype(int)
-        else:
-            df['first_touch'] = 1  # Default
+        # Volume percentile
+        df['volume_percentile'] = df['volume'].rolling(window, min_periods=10).apply(
+            calc_percentile, raw=False
+        )
+        
+        # BB position percentile
+        df['bb_position_percentile'] = df['bb_position'].rolling(window, min_periods=10).apply(
+            calc_percentile, raw=False
+        )
+        
+        # High percentile (for SHORT)
+        df['high_percentile'] = df['high'].rolling(window, min_periods=10).apply(
+            calc_percentile, raw=False
+        )
+        
+        return df.fillna(0.5)
+    
+    # =========================================================================
+    # NEW: RATE OF CHANGE (ROC) FEATURES
+    # =========================================================================
+    
+    def _add_roc_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add Rate of Change momentum features.
+        
+        ROC = (current - previous) / previous * 100
+        Measures momentum strength
+        """
+        # Price ROC
+        df['price_roc_3'] = ((df['close'] - df['close'].shift(3)) / df['close'].shift(3).replace(0, np.nan)) * 100
+        df['price_roc_5'] = ((df['close'] - df['close'].shift(5)) / df['close'].shift(5).replace(0, np.nan)) * 100
+        df['price_roc_10'] = ((df['close'] - df['close'].shift(10)) / df['close'].shift(10).replace(0, np.nan)) * 100
+        
+        # RSI ROC (momentum of momentum)
+        df['rsi_roc_3'] = df['rsi_value'] - df['rsi_value'].shift(3)
+        df['rsi_roc_5'] = df['rsi_value'] - df['rsi_value'].shift(5)
+        
+        # Volume ROC
+        df['volume_roc_3'] = ((df['volume'] - df['volume'].shift(3)) / df['volume'].shift(3).replace(0, np.nan)) * 100
+        
+        # BB Width ROC (squeeze detection)
+        df['bb_width_roc_5'] = ((df['bb_width_pct'] - df['bb_width_pct'].shift(5)) / 
+                                df['bb_width_pct'].shift(5).replace(0, np.nan)) * 100
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: ACCELERATION FEATURES
+    # =========================================================================
+    
+    def _add_acceleration_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add acceleration/deceleration features.
+        
+        Acceleration = change in velocity (second derivative)
+        Negative acceleration after positive velocity = exhaustion signal
+        """
+        # Price velocity (first derivative)
+        df['price_velocity'] = df['close'].diff()
+        
+        # Price acceleration (second derivative)
+        df['price_acceleration'] = df['price_velocity'].diff()
+        
+        # Normalized acceleration
+        df['price_accel_norm'] = df['price_acceleration'] / df['close'].replace(0, np.nan)
+        
+        # RSI velocity and acceleration
+        df['rsi_velocity'] = df['rsi_value'].diff()
+        df['rsi_acceleration'] = df['rsi_velocity'].diff()
+        
+        # Momentum deceleration (key for SHORT)
+        # Price still rising but at decreasing rate
+        df['momentum_deceleration'] = (
+            (df['price_velocity'] > 0) & 
+            (df['price_acceleration'] < 0)
+        ).fillna(0).astype(int)
+        
+        # RSI deceleration
+        df['rsi_deceleration'] = (
+            (df['rsi_velocity'] > 0) & 
+            (df['rsi_acceleration'] < 0)
+        ).fillna(0).astype(int)
+        
+        # Smoothed acceleration (less noisy)
+        df['price_accel_smooth'] = df['price_acceleration'].rolling(3, min_periods=2).mean()
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: MOMENTUM DIVERGENCE FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_momentum_divergence(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add momentum divergence features.
+        
+        Divergence = price and momentum indicator moving in opposite directions
+        For SHORT: price higher high + RSI lower high = bearish divergence
+        """
+        # 10-bar divergence
+        price_higher_10 = df['high'] > df['high'].shift(10)
+        rsi_lower_10 = df['rsi_value'] < df['rsi_value'].shift(10)
+        df['bearish_div_10'] = (price_higher_10 & rsi_lower_10).fillna(0).astype(int)
+        
+        # 3-bar quick divergence
+        price_higher_3 = df['high'] > df['high'].shift(3)
+        rsi_lower_3 = df['rsi_value'] < df['rsi_value'].shift(3)
+        df['bearish_div_3'] = (price_higher_3 & rsi_lower_3).fillna(0).astype(int)
+        
+        # Volume divergence (price up, volume down = weak rally)
+        price_up = df['close'] > df['close'].shift(5)
+        volume_down = df['volume'] < df['volume'].shift(5)
+        df['volume_divergence'] = (price_up & volume_down).fillna(0).astype(int)
+        
+        # Momentum divergence strength (continuous)
+        price_change_5 = df['close'].pct_change(5)
+        rsi_change_5 = df['rsi_value'].diff(5)
+        df['divergence_strength'] = np.where(
+            price_change_5 > 0,
+            -rsi_change_5 / (price_change_5 * 100 + 0.001),
+            0
+        )
+        df['divergence_strength'] = df['divergence_strength'].clip(-5, 5)
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: CONSECUTIVE PATTERN FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_consecutive_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add consecutive candle pattern features.
+        
+        For SHORT: consecutive green candles = exhaustion setup
+        """
+        # Consecutive bullish candles
+        bullish = (df['close'] > df['open']).fillna(0).astype(int)
+        
+        # Count consecutive bullish candles
+        df['consecutive_bullish'] = bullish.groupby(
+            (bullish != bullish.shift()).cumsum()
+        ).cumsum() * bullish
+        
+        # Count consecutive bearish candles
+        bearish = (df['close'] < df['open']).fillna(0).astype(int)
+        df['consecutive_bearish'] = bearish.groupby(
+            (bearish != bearish.shift()).cumsum()
+        ).cumsum() * bearish
+        
+        # Consecutive higher highs
+        higher_high = (df['high'] > df['high'].shift(1)).fillna(0).astype(int)
+        df['consecutive_higher_highs'] = higher_high.groupby(
+            (higher_high != higher_high.shift()).cumsum()
+        ).cumsum() * higher_high
+        
+        # Consecutive higher closes
+        higher_close = (df['close'] > df['close'].shift(1)).fillna(0).astype(int)
+        df['consecutive_higher_closes'] = higher_close.groupby(
+            (higher_close != higher_close.shift()).cumsum()
+        ).cumsum() * higher_close
+        
+        # Exhaustion signal: many consecutive bullish followed by bearish
+        df['bullish_exhaustion'] = (
+            (df['consecutive_bullish'].shift(1) >= 3) & 
+            (df['close'] < df['open'])
+        ).fillna(0).astype(int)
         
         return df
+    
+    # =========================================================================
+    # NEW: REVERSAL PATTERN FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_reversal_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add reversal pattern detection features for SHORT.
+        """
+        # Upper wick ratio (rejection from highs)
+        total_range = df['high'] - df['low']
+        upper_wick = df['high'] - df[['open', 'close']].max(axis=1)
+        df['upper_wick_ratio'] = np.where(total_range > 0, upper_wick / total_range, 0)
+        
+        # Shooting star pattern (small body at bottom, long upper wick)
+        body = (df['close'] - df['open']).abs()
+        body_bottom = df[['open', 'close']].min(axis=1)
+        lower_wick = body_bottom - df['low']
+        
+        df['shooting_star'] = (
+            (df['upper_wick_ratio'] > 0.6) &
+            (body / total_range.replace(0, np.nan) < 0.3) &
+            (lower_wick / total_range.replace(0, np.nan) < 0.1)
+        ).fillna(0).astype(int)
+        
+        # Bearish engulfing
+        prev_bullish = df['close'].shift(1) > df['open'].shift(1)
+        curr_bearish = df['close'] < df['open']
+        engulfs_prev = (df['open'] > df['close'].shift(1)) & (df['close'] < df['open'].shift(1))
+        df['bearish_engulfing'] = (prev_bullish & curr_bearish & engulfs_prev).fillna(0).astype(int)
+        
+        # Evening star setup (3-candle pattern)
+        day1_bullish = (df['close'].shift(2) - df['open'].shift(2)) > 0.003 * df['close'].shift(2)
+        day2_small = (df['close'].shift(1) - df['open'].shift(1)).abs() < 0.001 * df['close'].shift(1)
+        day1_mid = (df['open'].shift(2) + df['close'].shift(2)) / 2
+        day3_bearish = (df['close'] < df['open']) & (df['close'] < day1_mid)
+        df['evening_star'] = (day1_bullish & day2_small & day3_bearish).fillna(0).astype(int)
+        
+        # Double top approach (near recent high)
+        rolling_max = df['high'].rolling(20, min_periods=5).max()
+        df['near_double_top'] = (
+            (df['high'] >= rolling_max * 0.998) &
+            (df['high'] <= rolling_max)
+        ).fillna(0).astype(int)
+        
+        return df
+    
+    # =========================================================================
+    # NEW: BOLLINGER BAND PATTERN FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_bb_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add Bollinger Band pattern features.
+        """
+        # BB squeeze (low volatility, potential breakout)
+        bb_width_mean = df['bb_width_pct'].rolling(20, min_periods=5).mean()
+        df['bb_squeeze'] = (df['bb_width_pct'] < bb_width_mean * 0.8).fillna(0).astype(int)
+        
+        # BB expansion (after squeeze)
+        df['bb_expansion'] = (
+            (df['bb_width_pct'] > df['bb_width_pct'].shift(1)) &
+            (df['bb_squeeze'].shift(1) == 1)
+        ).fillna(0).astype(int)
+        
+        # Walking the band (multiple touches = trend strength)
+        df['walking_upper_band'] = (
+            (df['bb_position'] > 0.9) &
+            (df['bb_position'].shift(1) > 0.9) &
+            (df['bb_position'].shift(2) > 0.9)
+        ).fillna(0).astype(int)
+        
+        # BB rejection (touched and reversed)
+        touched_upper = df['high'] >= df['upper_band']
+        closed_below = df['close'] < df['upper_band']
+        df['bb_upper_rejection'] = (touched_upper & closed_below).fillna(0).astype(int)
+        
+        # Distance from bands (normalized)
+        bb_range = df['upper_band'] - df['lower_band']
+        df['distance_from_upper'] = (df['upper_band'] - df['close']) / bb_range.replace(0, np.nan)
+        df['distance_from_lower'] = (df['close'] - df['lower_band']) / bb_range.replace(0, np.nan)
+        
+        # Overextension (price above upper band)
+        df['bb_overextended'] = ((df['close'] - df['upper_band']) / bb_range.replace(0, np.nan)).clip(0, 1)
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW: VOLUME PATTERN FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_volume_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add volume pattern features.
+        """
+        # Volume climax (extreme volume at price extreme)
+        high_volume = df['volume_ratio'] > 2.0
+        at_high = df['bb_position'] > 0.9
+        df['volume_climax_top'] = (high_volume & at_high).fillna(0).astype(int)
+        
+        # Declining volume on rally (weak hands)
+        df['volume_decline_3'] = (
+            (df['volume'] < df['volume'].shift(1)) &
+            (df['volume'].shift(1) < df['volume'].shift(2)) &
+            (df['close'] > df['close'].shift(2))
+        ).fillna(0).astype(int)
+        
+        # Volume spike with rejection
+        volume_spike = df['volume_ratio'] > 1.5
+        upper_rejection = df['upper_wick_ratio'] > 0.5
+        df['volume_spike_rejection'] = (volume_spike & upper_rejection).fillna(0).astype(int)
+        
+        # Relative volume trend
+        vol_ma5 = df['volume'].rolling(5, min_periods=3).mean()
+        vol_ma20 = df['volume'].rolling(20, min_periods=5).mean()
+        df['volume_trend'] = vol_ma5 / vol_ma20.replace(0, np.nan)
+        
+        # On-Balance Volume simplified (accumulation/distribution)
+        price_direction = np.sign(df['close'].diff())
+        df['obv_direction'] = (df['volume'] * price_direction).rolling(10, min_periods=3).sum()
+        df['obv_divergence'] = (
+            (df['close'] > df['close'].shift(10)) &
+            (df['obv_direction'] < df['obv_direction'].shift(10))
+        ).fillna(0).astype(int)
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # QUALITY FEATURES - FIXED
+    # =========================================================================
+    
+    def _add_quality_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add quality indicator features for SHORT setups.
+        """
+        # RSI peaked (declining from high)
+        df['rsi_peaked'] = (
+            (df['rsi_value'] < df['rsi_value'].shift(1)) &
+            (df['rsi_value'].shift(1) > 65)
+        ).fillna(0).astype(int)
+        
+        # RSI drop size
+        df['rsi_drop_size'] = (df['rsi_value'].shift(1) - df['rsi_value']).clip(lower=0)
+        df['rsi_drop_large'] = (df['rsi_drop_size'] > 5).fillna(0).astype(int)
+        
+        # RSI was extreme
+        df['rsi_was_extreme'] = (df['rsi_value'].shift(1) > 70).fillna(0).astype(int)
+        
+        # Strong negative RSI slope
+        df['rsi_slope_strong_neg'] = (df['rsi_slope_3'] < -5).fillna(0).astype(int)
+        
+        # RSI momentum shift (was rising, now falling)
+        rsi_was_rising = df['rsi_value'].shift(1) > df['rsi_value'].shift(2)
+        rsi_now_falling = df['rsi_value'] < df['rsi_value'].shift(1)
+        df['rsi_momentum_shift'] = (rsi_was_rising & rsi_now_falling).fillna(0).astype(int)
+        
+        # BB extreme positions
+        df['bb_extreme_prev'] = (df['bb_position'].shift(1) > 0.95).fillna(0).astype(int)
+        
+        # Recently touched upper
+        df['touched_prev_1'] = df['touched_upper_bb'].shift(1).fillna(0).astype(int)
+        df['touched_prev_2'] = df['touched_upper_bb'].shift(2).fillna(0).astype(int)
+        df['touched_recently'] = ((df['touched_prev_1'] == 1) | (df['touched_prev_2'] == 1)).fillna(0).astype(int)
+        
+        # Rejection candle (long upper wick)
+        df['rejection_candle'] = (df['upper_wick_ratio'] > 0.5).fillna(0).astype(int)
+        
+        # Volume spike
+        df['volume_spike'] = (df['volume_ratio'] > 1.3).fillna(0).astype(int)
+        
+        # High volume reversal
+        df['high_volume_reversal'] = (
+            (df['bearish_candle'] == 1) & (df['volume_ratio'] > 1.2)
+        ).fillna(0).astype(int)
+        
+        # Context: not choppy
+        df['not_choppy'] = (df['time_since_last_touch'] > 3).fillna(0).astype(int)
+        
+        # First touch (vs repeated) - CHECK IF COLUMN EXISTS
+        if 'previous_touches' in df.columns:
+            df['first_touch'] = (df['previous_touches'] <= 1).fillna(0).astype(int)
+        else:
+            df['first_touch'] = 0
+        
+        return df
+    
+    # =========================================================================
+    # EXHAUSTION SCORE (COMPOSITE)
+    # =========================================================================
     
     def _add_exhaustion_score(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Add composite exhaustion score (0-1).
         
-        This is a weighted combination of quality indicators.
-        ML can learn if higher exhaustion scores predict better outcomes.
+        Higher score = better SHORT exhaustion setup.
         """
-        
-        # Normalize components to 0-1 range
-        
-        # BB extremity (already 0-1)
+        # BB extremity score
         bb_score = df['bb_position'].clip(0, 1)
         
-        # RSI exhaustion (combine multiple signals)
+        # RSI exhaustion score
         rsi_score = (
-            0.3 * df['rsi_peaked'] +
-            0.3 * df['rsi_drop_large'] +
-            0.2 * df['rsi_was_extreme'] +
-            0.2 * df['rsi_slope_strong_neg']
-        )
+            0.25 * df['rsi_peaked'] +
+            0.25 * df['rsi_drop_large'] +
+            0.25 * df['rsi_was_extreme'] +
+            0.25 * df['rsi_slope_strong_neg']
+        ).clip(0, 1)
         
-        # Momentum reversal strength
+        # Momentum reversal score
         momentum_score = (
-            0.5 * df['rsi_momentum_shift'] +
-            0.5 * np.clip(-df['rsi_slope_3'] / 10, 0, 1)  # Normalize slope
-        )
+            0.4 * df['rsi_momentum_shift'] +
+            0.3 * df['momentum_deceleration'] +
+            0.3 * np.clip(-df['rsi_slope_3'].fillna(0) / 10, 0, 1)
+        ).clip(0, 1)
         
-        # Confirmation signals
-        confirm_score = (
-            0.4 * df['strong_bearish'] +
-            0.3 * df['volume_spike'] +
-            0.3 * df['rejection_candle']
-        )
+        # Pattern confirmation score
+        pattern_score = (
+            0.3 * df['shooting_star'] +
+            0.3 * df['bearish_engulfing'] +
+            0.2 * df['bb_upper_rejection'] +
+            0.2 * df['rejection_candle']
+        ).clip(0, 1)
         
-        # Composite score (weighted average)
+        # Volume confirmation score
+        volume_score = (
+            0.4 * df['volume_spike'] +
+            0.3 * df['high_volume_reversal'] +
+            0.3 * df['volume_climax_top']
+        ).clip(0, 1)
+        
+        # Statistical extremes score - ALL TERMS HAVE .fillna(0)
+        stat_score = (
+            0.3 * (df['price_zscore'].fillna(0) > 2).astype(int) +
+            0.3 * (df['rsi_zscore'].fillna(0) > 1.5).astype(int) +
+            0.4 * (df['price_percentile'].fillna(0) > 0.9).astype(int)
+        ).clip(0, 1)
+        
+        # Composite exhaustion score
         df['exhaustion_score'] = (
-            0.25 * bb_score +
-            0.30 * rsi_score +
-            0.25 * momentum_score +
-            0.20 * confirm_score
-        )
+            0.20 * bb_score +
+            0.20 * rsi_score +
+            0.15 * momentum_score +
+            0.15 * pattern_score +
+            0.15 * volume_score +
+            0.15 * stat_score
+        ).clip(0, 1)
         
-        # Clip to 0-1 range
-        df['exhaustion_score'] = df['exhaustion_score'].clip(0, 1)
+        # Exhaustion category (for quick filtering)
+        exhaustion_level = pd.cut(
+            df['exhaustion_score'].clip(0, 1).fillna(0),
+            bins=[0, 0.3, 0.5, 0.7, 1.0],
+            labels=[0, 1, 2, 3],
+            include_lowest=True
+        )
+
+        df['exhaustion_level'] = exhaustion_level.astype('float').fillna(0).astype(int)
+
         
         return df
     
-    def get_feature_names(self) -> list:
-        """Return list of all calculated feature names."""
-        base_features = [
-            # Binary
-            'touched_upper_bb', 'rsi_overbought', 'rsi_extreme_overbought', 
-            'bearish_candle',
-            # Candle patterns
-            'upper_wick', 'lower_wick',
-            # Price changes
-            'price_change_1', 'price_change_5',
-            # RSI lags
-            'rsi_lag1', 'rsi_lag2', 'rsi_lag3', 'rsi_lag4', 'rsi_lag5',
-            # BB lags
-            'bb_position_lag1', 'bb_position_lag2', 'bb_position_lag3',
-            # Price lags
-            'price_change_lag1', 'price_change_lag2', 'price_change_lag3',
-            # Volume lags
-            'volume_ratio_lag1', 'volume_ratio_lag2', 'volume_ratio_lag3',
-            # Slopes
-            'rsi_slope_3', 'rsi_slope_5', 'price_slope_3', 'price_slope_5',
-            'bb_position_slope_3', 'volume_slope_3', 'bb_width_slope_3',
-            'trend_strength_slope_3'
-        ]
-        
-        quality_features = [
-            # RSI exhaustion
-            'rsi_peaked', 'rsi_drop_size', 'rsi_drop_large', 'rsi_was_extreme',
-            'rsi_slope_strong_neg', 'rsi_momentum_shift',
-            # BB quality
-            'bb_very_high', 'bb_extreme_prev', 'touched_prev_1', 'touched_prev_2',
-            'touched_recently',
-            # Confirmation
-            'strong_bearish', 'rejection_candle', 'volume_spike', 'high_volume_reversal',
-            # Context
-            'not_choppy', 'first_touch',
-            # Composite
-            'exhaustion_score'
-        ]
-        
-        return base_features + quality_features
+    # =========================================================================
+    # FEATURE LIST
+    # =========================================================================
+    
+    def get_feature_names(self) -> Dict[str, List[str]]:
+        """Return categorized feature names."""
+        return {
+            'binary': [
+                'touched_upper_bb', 'rsi_overbought', 'rsi_extreme_overbought',
+                'rsi_very_extreme', 'bearish_candle', 'strong_bearish',
+                'bb_very_high', 'bb_above_upper', 'high_volume', 'extreme_volume',
+                'strong_uptrend'
+            ],
+            'price_change': [
+                'price_change_1', 'price_change_3', 'price_change_5', 'price_change_10',
+                'high_change_1', 'high_change_3', 'range_pct'
+            ],
+            'lags': [
+                'rsi_lag1', 'rsi_lag2', 'rsi_lag3', 'rsi_lag4', 'rsi_lag5',
+                'bb_position_lag1', 'bb_position_lag2', 'bb_position_lag3',
+                'price_change_lag1', 'price_change_lag2', 'price_change_lag3',
+                'volume_ratio_lag1', 'volume_ratio_lag2', 'volume_ratio_lag3',
+                'bb_width_lag1', 'bb_width_lag2',
+                'trend_strength_lag1', 'trend_strength_lag2'
+            ],
+            'slopes': [
+                'rsi_slope_3', 'rsi_slope_5', 'rsi_slope_10',
+                'price_slope_3', 'price_slope_5', 'price_slope_10',
+                'bb_position_slope_3', 'bb_position_slope_5',
+                'volume_slope_3', 'bb_width_slope_3', 'bb_width_slope_5',
+                'trend_slope_3'
+            ],
+            'zscores': [
+                'price_zscore', 'rsi_zscore', 'volume_zscore',
+                'bb_position_zscore', 'atr_zscore', 'high_zscore'
+            ],
+            'rolling_stats': [
+                'price_rolling_std', 'rsi_rolling_std', 'rsi_rolling_max',
+                'rsi_rolling_min', 'rsi_range', 'bb_position_rolling_std',
+                'bb_position_rolling_max', 'volume_rolling_std',
+                'price_skew_20', 'price_kurtosis_20'
+            ],
+            'percentiles': [
+                'price_percentile', 'rsi_percentile', 'volume_percentile',
+                'bb_position_percentile', 'high_percentile'
+            ],
+            'momentum': [
+                'price_roc_3', 'price_roc_5', 'price_roc_10',
+                'rsi_roc_3', 'rsi_roc_5', 'volume_roc_3', 'bb_width_roc_5',
+                'price_velocity', 'price_acceleration', 'price_accel_norm',
+                'rsi_velocity', 'rsi_acceleration',
+                'momentum_deceleration', 'rsi_deceleration', 'price_accel_smooth'
+            ],
+            'divergence': [
+                'bearish_div_10', 'bearish_div_3', 'volume_divergence',
+                'divergence_strength'
+            ],
+            'patterns': [
+                'consecutive_bullish', 'consecutive_bearish',
+                'consecutive_higher_highs', 'consecutive_higher_closes',
+                'bullish_exhaustion', 'upper_wick_ratio', 'shooting_star',
+                'bearish_engulfing', 'evening_star', 'near_double_top'
+            ],
+            'bb_patterns': [
+                'bb_squeeze', 'bb_expansion', 'walking_upper_band',
+                'bb_upper_rejection', 'distance_from_upper', 'distance_from_lower',
+                'bb_overextended'
+            ],
+            'volume_patterns': [
+                'volume_climax_top', 'volume_decline_3', 'volume_spike_rejection',
+                'volume_trend', 'obv_direction', 'obv_divergence'
+            ],
+            'quality': [
+                'rsi_peaked', 'rsi_drop_size', 'rsi_drop_large', 'rsi_was_extreme',
+                'rsi_slope_strong_neg', 'rsi_momentum_shift', 'bb_extreme_prev',
+                'touched_prev_1', 'touched_prev_2', 'touched_recently',
+                'rejection_candle', 'volume_spike', 'high_volume_reversal',
+                'not_choppy', 'first_touch'
+            ],
+            'composite': [
+                'exhaustion_score', 'exhaustion_level'
+            ]
+        }
+    
+    def get_all_feature_names(self) -> List[str]:
+        """Return flat list of all derived feature names."""
+        all_features = []
+        for category_features in self.get_feature_names().values():
+            all_features.extend(category_features)
+        return all_features
 
 
 # =============================================================================
-# CONVENIENCE FUNCTION FOR FEATURE CALCULATION
+# CONVENIENCE FUNCTION
 # =============================================================================
 
 def calculate_all_features(
@@ -422,13 +990,10 @@ def calculate_all_features(
     drop_na: bool = True
 ) -> pd.DataFrame:
     """
-    Calculate all derived features from raw data.
-    
-    This is a convenience function that creates a FeatureEngineering instance
-    and calculates all features.
+    Calculate all derived features from EA CSV output.
     
     Args:
-        df: DataFrame with OHLCV and basic indicators
+        df: DataFrame from DataExporterEA_SHORT.mq5 CSV
         verbose: Print progress information
         drop_na: Drop rows with NaN values
         
@@ -481,29 +1046,17 @@ class RFEResult:
 
 
 # =============================================================================
-# PART 2: FEATURE COLUMN UTILITIES
+# PART 2: FEATURE UTILITIES
 # =============================================================================
 
 def get_feature_columns(
     df: pd.DataFrame,
     exclude_columns: Optional[List[str]] = None
 ) -> List[str]:
-    """
-    Identify feature columns from DataFrame.
-    
-    Features are numeric columns excluding specified columns.
-    
-    Args:
-        df: DataFrame to analyze
-        exclude_columns: Columns to exclude from features
-        
-    Returns:
-        List of feature column names
-    """
+    """Identify feature columns from DataFrame."""
     if exclude_columns is None:
         exclude_columns = []
     
-    # Default exclusions (meta, target, derived columns)
     default_exclusions = {
         'timestamp', 'pair', 'symbol',
         'open', 'high', 'low', 'close', 'volume',
@@ -527,22 +1080,7 @@ def validate_features(
     df: pd.DataFrame,
     feature_columns: List[str]
 ) -> Tuple[List[str], Dict[str, Any]]:
-    """
-    Validate feature columns and return valid ones.
-    
-    Checks for:
-    - Missing columns
-    - NaN values
-    - Infinite values
-    - Zero variance
-    
-    Args:
-        df: DataFrame containing features
-        feature_columns: List of feature column names to validate
-        
-    Returns:
-        Tuple of (valid feature columns, validation report)
-    """
+    """Validate feature columns and return valid ones."""
     report = {
         'original_count': len(feature_columns),
         'valid_count': 0,
@@ -555,7 +1093,6 @@ def validate_features(
     for col in feature_columns:
         issues = []
         
-        # Check if column exists
         if col not in df.columns:
             issues.append('missing')
             report['issues'][col] = issues
@@ -564,25 +1101,21 @@ def validate_features(
         
         series = df[col]
         
-        # Check for NaN
         nan_count = series.isna().sum()
         if nan_count > 0:
             nan_pct = nan_count / len(series) * 100
-            if nan_pct > 10:  # More than 10% NaN
+            if nan_pct > 10:
                 issues.append(f'high_nan ({nan_pct:.1f}%)')
             else:
                 issues.append(f'some_nan ({nan_count})')
         
-        # Check for infinite values
         if np.isinf(series).any():
             inf_count = np.isinf(series).sum()
             issues.append(f'infinite ({inf_count})')
         
-        # Check for zero variance
         if series.std() == 0:
             issues.append('zero_variance')
         
-        # Decide if valid
         critical_issues = {'missing', 'zero_variance'}
         has_critical = any(
             issue.split()[0] in critical_issues or issue.startswith('high_nan')
@@ -595,7 +1128,7 @@ def validate_features(
         else:
             valid_features.append(col)
             if issues:
-                report['issues'][col] = issues  # Non-critical warnings
+                report['issues'][col] = issues
     
     report['valid_count'] = len(valid_features)
     
@@ -608,23 +1141,10 @@ def prepare_features(
     handle_nan: str = 'drop',
     handle_inf: str = 'clip'
 ) -> Tuple[pd.DataFrame, List[str]]:
-    """
-    Prepare feature DataFrame for model training.
-    
-    Args:
-        df: DataFrame containing features
-        feature_columns: List of feature column names
-        handle_nan: How to handle NaN ('drop', 'fill_mean', 'fill_zero')
-        handle_inf: How to handle infinite values ('clip', 'replace_nan')
-        
-    Returns:
-        Tuple of (prepared feature DataFrame, final feature columns)
-    """
-    # Select only feature columns that exist
+    """Prepare feature DataFrame for model training."""
     available_features = [col for col in feature_columns if col in df.columns]
     X = df[available_features].copy()
     
-    # Handle infinite values
     if handle_inf == 'clip':
         for col in X.columns:
             if X[col].dtype in [np.float64, np.float32]:
@@ -633,11 +1153,7 @@ def prepare_features(
     elif handle_inf == 'replace_nan':
         X = X.replace([np.inf, -np.inf], np.nan)
     
-    # Handle NaN values
-    if handle_nan == 'drop':
-        # This will be handled at row level by caller
-        pass
-    elif handle_nan == 'fill_mean':
+    if handle_nan == 'fill_mean':
         X = X.fillna(X.mean())
     elif handle_nan == 'fill_zero':
         X = X.fillna(0)
@@ -660,29 +1176,11 @@ def rfe_select(
     use_rfecv: bool = True,
     random_state: int = 42
 ) -> RFEResult:
-    """
-    Perform Recursive Feature Elimination to select optimal features.
-    
-    Args:
-        X_train: Training features DataFrame
-        y_train: Training labels Series
-        feature_columns: List of feature column names to consider
-        min_features: Minimum number of features to select
-        max_features: Maximum number of features to select
-        cv_folds: Number of cross-validation folds
-        scoring: Scoring metric for evaluation
-        use_rfecv: If True, use RFECV to find optimal number; else use RFE
-        random_state: Random state for reproducibility
-        
-    Returns:
-        RFEResult with selected features and rankings
-    """
-    # Prepare feature matrix
+    """Perform Recursive Feature Elimination to select optimal features."""
     available_features = [col for col in feature_columns if col in X_train.columns]
     X = X_train[available_features].copy()
     y = y_train.copy()
     
-    # Handle NaN - drop rows with any NaN
     valid_mask = ~(X.isna().any(axis=1) | y.isna())
     X = X[valid_mask]
     y = y[valid_mask]
@@ -690,13 +1188,11 @@ def rfe_select(
     if len(X) < 50:
         warnings.warn(f"Very small training set for RFE: {len(X)} rows")
     
-    # Handle infinite values
     X = X.replace([np.inf, -np.inf], np.nan)
     X = X.fillna(X.mean())
     
     n_original = len(available_features)
     
-    # Create base estimator
     estimator = GradientBoostingClassifier(
         n_estimators=100,
         max_depth=4,
@@ -707,13 +1203,11 @@ def rfe_select(
         n_iter_no_change=10
     )
     
-    # Suppress convergence warnings during RFE
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=ConvergenceWarning)
         warnings.filterwarnings('ignore', category=UserWarning)
         
         if use_rfecv:
-            # Use cross-validation to find optimal number of features
             cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
             
             selector = RFECV(
@@ -734,7 +1228,6 @@ def rfe_select(
                 use_rfecv = False
         
         if not use_rfecv:
-            # Use fixed number of features
             n_features_to_select = min(max_features, n_original)
             n_features_to_select = max(n_features_to_select, min_features)
             
@@ -748,9 +1241,7 @@ def rfe_select(
             optimal_n = n_features_to_select
             cv_scores = None
     
-    # Clamp to max_features
     if optimal_n > max_features:
-        # Re-run RFE with max_features
         selector = RFE(
             estimator=estimator,
             n_features_to_select=max_features,
@@ -759,17 +1250,14 @@ def rfe_select(
         selector.fit(X, y)
         optimal_n = max_features
     
-    # Extract results
     selected_mask = selector.support_
     rankings = selector.ranking_
     
-    # Get feature importances from the fitted estimator
     try:
         importances = selector.estimator_.feature_importances_
     except AttributeError:
         importances = np.zeros(sum(selected_mask))
     
-    # Build feature rankings
     feature_rankings = []
     importance_idx = 0
     
@@ -787,10 +1275,7 @@ def rfe_select(
             importance=float(imp)
         ))
     
-    # Sort by rank
     feature_rankings.sort(key=lambda x: x.rank)
-    
-    # Get selected feature names
     selected_features = [fr.feature_name for fr in feature_rankings if fr.selected]
     
     return RFEResult(
@@ -810,19 +1295,7 @@ def rfe_select_simple(
     n_features: int = 10,
     random_state: int = 42
 ) -> RFEResult:
-    """
-    Simple RFE without cross-validation (faster).
-    
-    Args:
-        X_train: Training features DataFrame
-        y_train: Training labels Series
-        feature_columns: List of feature column names
-        n_features: Number of features to select
-        random_state: Random state for reproducibility
-        
-    Returns:
-        RFEResult with selected features
-    """
+    """Simple RFE without cross-validation (faster)."""
     return rfe_select(
         X_train=X_train,
         y_train=y_train,
@@ -835,185 +1308,39 @@ def rfe_select_simple(
     )
 
 
-# =============================================================================
-# FEATURE IMPORTANCE FROM TRAINED MODEL
-# =============================================================================
-
-def extract_feature_importance(
-    model: Any,
-    feature_names: List[str]
-) -> List[FeatureRanking]:
-    """
-    Extract feature importance from a trained model.
-    
-    Args:
-        model: Trained model with feature_importances_ attribute
-        feature_names: List of feature names in order
-        
-    Returns:
-        List of FeatureRanking sorted by importance
-    """
-    try:
-        importances = model.feature_importances_
-    except AttributeError:
-        # Model doesn't have feature_importances_
-        # Try coef_ for linear models
-        try:
-            importances = np.abs(model.coef_).flatten()
-        except AttributeError:
-            # Return uniform importance
-            importances = np.ones(len(feature_names)) / len(feature_names)
-    
-    # Normalize importances
-    total = importances.sum()
-    if total > 0:
-        importances = importances / total
-    
-    # Create rankings
-    rankings = []
-    sorted_indices = np.argsort(importances)[::-1]  # Descending
-    
-    for rank, idx in enumerate(sorted_indices, 1):
-        rankings.append(FeatureRanking(
-            feature_name=feature_names[idx],
-            rank=rank,
-            selected=True,
-            importance=float(importances[idx])
-        ))
-    
-    return rankings
-
-
-def get_top_features(
-    rankings: List[FeatureRanking],
-    n: int = 10
-) -> List[str]:
-    """
-    Get top N features by importance.
-    
-    Args:
-        rankings: List of FeatureRanking
-        n: Number of top features to return
-        
-    Returns:
-        List of feature names
-    """
-    sorted_rankings = sorted(rankings, key=lambda x: x.importance, reverse=True)
-    return [r.feature_name for r in sorted_rankings[:n]]
-
-
-# =============================================================================
-# CONSENSUS FEATURES ACROSS FOLDS
-# =============================================================================
-
 def get_consensus_features(
     fold_results: List[RFEResult],
     min_fold_frequency: float = 0.8,
     method: str = 'frequency'
 ) -> List[str]:
-    """
-    Get consensus features selected across multiple folds.
-    
-    Args:
-        fold_results: List of RFEResult from each fold
-        min_fold_frequency: Minimum fraction of folds a feature must appear in
-        method: 'frequency' (by selection count) or 'intersection' (must be in all)
-        
-    Returns:
-        List of consensus feature names
-    """
+    """Get consensus features selected across multiple folds."""
     if not fold_results:
         return []
     
     n_folds = len(fold_results)
     
     if method == 'intersection':
-        # Features must be in ALL folds
         feature_sets = [set(r.selected_features) for r in fold_results]
         consensus = feature_sets[0]
         for fs in feature_sets[1:]:
             consensus = consensus.intersection(fs)
         return list(consensus)
     
-    else:  # frequency
-        # Count how often each feature is selected
+    else:
         feature_counts = {}
         for result in fold_results:
             for feat in result.selected_features:
                 feature_counts[feat] = feature_counts.get(feat, 0) + 1
         
-        # Select features that appear in enough folds
         min_count = int(n_folds * min_fold_frequency)
         consensus = [
             feat for feat, count in feature_counts.items()
             if count >= min_count
         ]
         
-        # Sort by frequency (most common first)
         consensus.sort(key=lambda x: feature_counts[x], reverse=True)
         
         return consensus
-
-
-def aggregate_feature_importance(
-    fold_results: List[RFEResult]
-) -> pd.DataFrame:
-    """
-    Aggregate feature importance across folds.
-    
-    Args:
-        fold_results: List of RFEResult from each fold
-        
-    Returns:
-        DataFrame with mean importance per feature
-    """
-    if not fold_results:
-        return pd.DataFrame()
-    
-    # Collect all importances
-    all_importances = {}
-    
-    for result in fold_results:
-        for ranking in result.feature_rankings:
-            if ranking.feature_name not in all_importances:
-                all_importances[ranking.feature_name] = []
-            all_importances[ranking.feature_name].append(ranking.importance)
-    
-    # Calculate statistics
-    rows = []
-    for feat, imps in all_importances.items():
-        rows.append({
-            'feature_name': feat,
-            'mean_importance': np.mean(imps),
-            'std_importance': np.std(imps),
-            'selection_count': len(imps),
-            'selection_rate': len(imps) / len(fold_results)
-        })
-    
-    df = pd.DataFrame(rows)
-    df = df.sort_values('mean_importance', ascending=False).reset_index(drop=True)
-    df['rank'] = range(1, len(df) + 1)
-    
-    return df
-
-
-# =============================================================================
-# FEATURE SELECTION RESULT SERIALIZATION
-# =============================================================================
-
-def result_to_csv(
-    result: RFEResult,
-    filepath: str
-) -> None:
-    """
-    Save RFE result to CSV file.
-    
-    Args:
-        result: RFEResult to save
-        filepath: Path to output CSV file
-    """
-    df = result.to_dataframe()
-    df.to_csv(filepath, index=False)
 
 
 def selected_features_to_csv(
@@ -1021,18 +1348,10 @@ def selected_features_to_csv(
     importances: Optional[List[float]],
     filepath: str
 ) -> None:
-    """
-    Save selected features to CSV file.
-    
-    Args:
-        features: List of feature names
-        importances: Optional list of importance scores
-        filepath: Path to output CSV file
-    """
+    """Save selected features to CSV file."""
     if importances is None:
         importances = [1.0 / len(features)] * len(features)
     
-    # Ensure same length
     if len(importances) != len(features):
         importances = [1.0 / len(features)] * len(features)
     
@@ -1043,82 +1362,3 @@ def selected_features_to_csv(
     })
     
     df.to_csv(filepath, index=False)
-
-
-# =============================================================================
-# FEATURE CORRELATION ANALYSIS
-# =============================================================================
-
-def analyze_feature_correlation(
-    df: pd.DataFrame,
-    feature_columns: List[str],
-    threshold: float = 0.95
-) -> Dict[str, Any]:
-    """
-    Analyze correlation between features.
-    
-    Identifies highly correlated feature pairs that may be redundant.
-    
-    Args:
-        df: DataFrame containing features
-        feature_columns: List of feature column names
-        threshold: Correlation threshold for flagging
-        
-    Returns:
-        Dictionary with correlation analysis
-    """
-    available = [col for col in feature_columns if col in df.columns]
-    X = df[available]
-    
-    # Calculate correlation matrix
-    corr_matrix = X.corr()
-    
-    # Find highly correlated pairs
-    high_corr_pairs = []
-    
-    for i in range(len(available)):
-        for j in range(i + 1, len(available)):
-            corr = abs(corr_matrix.iloc[i, j])
-            if corr >= threshold:
-                high_corr_pairs.append({
-                    'feature_1': available[i],
-                    'feature_2': available[j],
-                    'correlation': corr
-                })
-    
-    # Sort by correlation
-    high_corr_pairs.sort(key=lambda x: x['correlation'], reverse=True)
-    
-    return {
-        'n_features': len(available),
-        'n_high_corr_pairs': len(high_corr_pairs),
-        'high_corr_pairs': high_corr_pairs,
-        'threshold': threshold
-    }
-
-
-def remove_correlated_features(
-    feature_columns: List[str],
-    corr_analysis: Dict[str, Any],
-    keep_first: bool = True
-) -> List[str]:
-    """
-    Remove one feature from each highly correlated pair.
-    
-    Args:
-        feature_columns: List of feature column names
-        corr_analysis: Output from analyze_feature_correlation
-        keep_first: If True, keep the first feature; else keep second
-        
-    Returns:
-        Filtered list of feature names
-    """
-    to_remove = set()
-    
-    for pair in corr_analysis.get('high_corr_pairs', []):
-        if keep_first:
-            to_remove.add(pair['feature_2'])
-        else:
-            to_remove.add(pair['feature_1'])
-    
-    return [f for f in feature_columns if f not in to_remove]
