@@ -251,9 +251,10 @@ class WorkerProgressDisplay:
         self.update_interval = update_interval
         
         # Worker state: current task
-        self.worker_states = {}  # worker_id -> {config, status, start_time, result, ev, precision, trades}
-        # Worker last completed (so we can show "Last: BB=... → EV=... Pr=... ✓/✗")
-        self.worker_last_done = {}  # worker_id -> {cfg, ev, prec, trades, icon}
+        self.worker_states = {}
+        # Previous completed (for "Prev:" only)
+        self.worker_last_done = {}  # worker_id -> {cfg, icon}  (minimal)
+        self._line_width = 88  # fixed width so redraw doesn't leave garbage
         self.available_worker_ids = queue.Queue()
         for i in range(1, max_workers + 1):
             self.available_worker_ids.put(i)
@@ -303,13 +304,9 @@ class WorkerProgressDisplay:
                 else:
                     self.failed += 1
                 
-                # Store as "last done" for this worker (shown until next assignment)
                 icon = "✓" if result.status == "PASSED" else ("✗" if result.status == "REJECTED" else "!")
                 self.worker_last_done[worker_id] = {
                     'cfg': f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}",
-                    'ev': ev,
-                    'prec': precision,
-                    'trades': trades,
                     'icon': icon
                 }
                 # Update worker state to show completed result briefly
@@ -368,76 +365,48 @@ class WorkerProgressDisplay:
         else:
             eta_str = f"{eta_seconds:.0f}s"
         
-        # Move cursor to start of our display area
+        w = self._line_width
         self._move_cursor_up(self.display_lines + 1)
         
-        # Line 1: Top border
         self._clear_line()
-        print("=" * 90)
-        
-        # Line 2: Progress bar
+        print(("=" * w)[:w])
         self._clear_line()
-        bar_width = 30
+        bar_width = 28
         filled = int(bar_width * pct / 100)
         bar = "█" * filled + "░" * (bar_width - filled)
-        print(f"[{bar}] {pct:5.1f}% | {self.completed:,}/{self.total:,} | ETA: {eta_str} | Rate: {rate:.1f}/min")
-        
-        # Line 3: Separator
+        print(f"[{bar}] {pct:5.1f}% | {self.completed:,}/{self.total:,} | ETA: {eta_str}".ljust(w)[:w])
         self._clear_line()
-        print("-" * 90)
+        print(("-" * w)[:w])
         
-        # Worker lines: Now (current) + Last (recent completed)
+        # Worker lines: only Now and Prev; fixed width so redraw doesn't leave garbage
+        w = self._line_width
         for worker_id in range(1, self.max_workers + 1):
             self._clear_line()
-            
-            # "Last" part (recent work for this worker)
-            last_str = "—"
-            if worker_id in self.worker_last_done:
-                d = self.worker_last_done[worker_id]
-                last_str = f"{d['cfg']} → EV={d['ev']:+.1f} Pr={d['prec']:.0%} T={d['trades']} {d['icon']}"
-            
+            last = self.worker_last_done.get(worker_id)
+            prev = f"{last['cfg']} {last['icon']}" if last else "—"
             if worker_id in self.worker_states:
                 state = self.worker_states[worker_id]
-                config = state['config']
-                status = state['status']
-                cfg_short = f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}"
-                
-                if status == 'processing':
-                    now_str = f"Now: {cfg_short} ⟳"
-                elif status == 'passed':
-                    ev = state.get('ev', 0)
-                    prec = state.get('precision', 0)
-                    trades = state.get('trades', 0)
-                    now_str = f"Now: {cfg_short} → EV={ev:+.1f} Pr={prec:.0%} T={trades} ✓"
-                elif status == 'rejected':
-                    ev = state.get('ev', 0)
-                    prec = state.get('precision', 0)
-                    trades = state.get('trades', 0)
-                    now_str = f"Now: {cfg_short} → EV={ev:+.1f} Pr={prec:.0%} T={trades} ✗"
+                c = state['config']
+                cfg = f"BB={c.bb_threshold:.2f} RSI={c.rsi_threshold} TP={c.tp_pips}"
+                if state['status'] == 'processing':
+                    now = f"{cfg} ⟳"
                 else:
-                    now_str = f"Now: {cfg_short} !"
-                print(f"W{worker_id}  {now_str}   |  Last: {last_str}")
+                    now = f"{cfg} " + ("✓" if state['status'] == 'passed' else "✗" if state['status'] == 'rejected' else "!")
             else:
-                print(f"W{worker_id}  Idle   |  Last: {last_str}")
+                now = "idle"
+            line = (f"W{worker_id}  Now: {now}   Prev: {prev}")[:w].ljust(w)
+            print(line)
         
-        # Separator
         self._clear_line()
-        print("-" * 90)
-        
-        # Summary line
+        print(("-" * w)[:w])
         self._clear_line()
         pass_rate = 100 * self.passed / self.completed if self.completed > 0 else 0
         summary = f"PASS: {self.passed} ({pass_rate:.1f}%) | REJECT: {self.rejected} | FAIL: {self.failed}"
-        
         if self.best_config and self.best_ev > float('-inf'):
-            summary += f" | BEST: BB={self.best_config.bb_threshold:.2f} RSI={self.best_config.rsi_threshold} EV={self.best_ev:+.1f}"
-        
-        print(summary)
-        
-        # Bottom border
+            summary += f" | BEST EV={self.best_ev:+.1f}"
+        print(summary.ljust(w)[:w])
         self._clear_line()
-        print("=" * 90)
-        
+        print(("=" * w)[:w])
         sys.stdout.flush()
     
     def finish(self):
