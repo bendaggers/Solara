@@ -76,7 +76,6 @@ __all__ = [
     # Artifacts
     'publish_artifacts',
     'load_all_artifacts',
-    'ArtifactManifest'
-
+    'ArtifactManifest',
     'FastCheckpointManager'
 ]
