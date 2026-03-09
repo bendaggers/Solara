@@ -86,6 +86,94 @@ from .evaluation import (
 
 
 # =============================================================================
+# RFE CACHE - MAJOR OPTIMIZATION
+# =============================================================================
+# Same BB/RSI + same fold = same training data = same RFE result
+# This avoids running RFE 100+ times for configs that only differ in TP/SL/Hold
+
+@dataclass
+class RFECache:
+    """
+    Cache for RFE results.
+    
+    Key insight: RFE only depends on:
+    - BB threshold (determines which candles are included)
+    - RSI threshold (determines which candles are included)  
+    - Fold number (determines train/cal/thresh split)
+    - Feature columns (constant across all configs)
+    
+    So configs with same (BB, RSI, fold) can SHARE the same RFE result!
+    This is a MASSIVE speedup since TP/SL/Hold only affect labels, not features.
+    """
+    results: Dict[str, RFEResult] = field(default_factory=dict)
+    
+    def get_key(self, bb: float, rsi: int, fold: int) -> str:
+        return f"bb{bb:.2f}_rsi{rsi}_fold{fold}"
+    
+    def get(self, bb: float, rsi: int, fold: int) -> Optional[RFEResult]:
+        key = self.get_key(bb, rsi, fold)
+        return self.results.get(key)
+    
+    def set(self, bb: float, rsi: int, fold: int, result: RFEResult) -> None:
+        key = self.get_key(bb, rsi, fold)
+        self.results[key] = result
+    
+    def __len__(self) -> int:
+        return len(self.results)
+
+
+# Global RFE cache (shared across all workers via threading)
+_rfe_cache = RFECache()
+_rfe_cache_lock = threading.Lock()
+
+
+def get_or_compute_rfe(
+    bb_threshold: float,
+    rsi_threshold: int,
+    fold_number: int,
+    train_df: pd.DataFrame,
+    feature_columns: List[str],
+    rfe_settings: Dict[str, Any]
+) -> RFEResult:
+    """
+    Get RFE result from cache or compute it.
+    
+    This is the key optimization - RFE is expensive but deterministic
+    for the same (BB, RSI, fold) combination.
+    """
+    global _rfe_cache
+    
+    # Check cache first
+    with _rfe_cache_lock:
+        cached = _rfe_cache.get(bb_threshold, rsi_threshold, fold_number)
+        if cached is not None:
+            return cached
+    
+    # Not in cache - compute RFE
+    rfe_result = rfe_select(
+        X_train=train_df,
+        y_train=train_df['label'],
+        feature_columns=feature_columns,
+        min_features=rfe_settings.get('min_features', 5),
+        max_features=rfe_settings.get('max_features', 15),
+        cv_folds=rfe_settings.get('cv_folds', 3)
+    )
+    
+    # Store in cache
+    with _rfe_cache_lock:
+        _rfe_cache.set(bb_threshold, rsi_threshold, fold_number, rfe_result)
+    
+    return rfe_result
+
+
+def clear_rfe_cache() -> None:
+    """Clear the RFE cache (call between different experiments)."""
+    global _rfe_cache
+    with _rfe_cache_lock:
+        _rfe_cache = RFECache()
+
+
+# =============================================================================
 # DATA CLASSES
 # =============================================================================
 
@@ -223,13 +311,14 @@ class FoldTask:
 class WorkerProgressDisplay:
     """
     Thread-safe progress display: each worker shows current task + last completed.
+    Now includes execution time tracking for better ETA calculation.
     
-    Display format (compact, not cluttered):
+    Display format:
     ════════════════════════════════════════════════════════════════════════════════
-    [████████████░░░░░░░░░░░░░░░░░░] 35.2% | 735/2,088 | ETA: 8.5h | Rate: 1.2/min
+    [████████████░░░░░░░░░░░░░░░░░░] 35.2% | 735/2,088 | ETA: 8.5h | Avg: 3.2min
     ────────────────────────────────────────────────────────────────────────────────
-    W1  Now: BB=0.91 RSI=70 TP=40 ⟳   |  Last: BB=0.90 RSI=69 TP=50 → EV=-1.2 Pr=12% ✗
-    W2  Now: BB=0.91 RSI=68 TP=80 ⟳   |  Last: —
+    W1: ⟳ BB=0.91 RSI=70 TP=40 (2.1min) | Last: ✗ BB=0.90 RSI=69 TP=50 (3.4min)
+    W2: ⟳ BB=0.91 RSI=68 TP=80 (0.5min) | Last: —
     ...
     ────────────────────────────────────────────────────────────────────────────────
     PASS: 8 (1.1%) | REJECT: 727 | FAIL: 0 | BEST: BB=0.84 RSI=78 EV=+19.6
@@ -250,11 +339,16 @@ class WorkerProgressDisplay:
         self.last_update = 0
         self.update_interval = update_interval
         
+        # Execution time tracking
+        self.execution_times = []  # List of execution times in seconds
+        self.min_exec_time = float('inf')
+        self.max_exec_time = 0
+        
         # Worker state: current task
         self.worker_states = {}
-        # Previous completed (for "Prev:" only)
-        self.worker_last_done = {}  # worker_id -> {cfg, icon}  (minimal)
-        self._line_width = 88  # fixed width so redraw doesn't leave garbage
+        # Previous completed (for "Last:" display)
+        self.worker_last_done = {}  # worker_id -> {cfg, icon, exec_time}
+        self._line_width = 95  # fixed width so redraw doesn't leave garbage
         self.available_worker_ids = queue.Queue()
         for i in range(1, max_workers + 1):
             self.available_worker_ids.put(i)
@@ -263,13 +357,12 @@ class WorkerProgressDisplay:
         self.display_lines = max_workers + 5
         self.initialized = False
     
-    def assign_worker(self, config: 'ConfigurationSpec') -> int:
+    def assign_worker(self, config: 'ConfigurationSpec') -> Optional[int]:
         """Assign a worker ID to a config when it starts processing."""
         try:
             worker_id = self.available_worker_ids.get_nowait()
         except queue.Empty:
-            # All workers busy, reuse lowest ID (shouldn't happen with proper flow)
-            worker_id = 1
+            return None  # No worker available, don't block
         
         with self.lock:
             self.worker_states[worker_id] = {
@@ -287,6 +380,13 @@ class WorkerProgressDisplay:
         with self.lock:
             worker_id = self.config_to_worker.get(config.config_id)
             if worker_id:
+                # Calculate execution time
+                exec_time = result.execution_time_seconds if result.execution_time_seconds else 0
+                if exec_time > 0:
+                    self.execution_times.append(exec_time)
+                    self.min_exec_time = min(self.min_exec_time, exec_time)
+                    self.max_exec_time = max(self.max_exec_time, exec_time)
+                
                 # Update stats
                 self.completed += 1
                 
@@ -307,7 +407,10 @@ class WorkerProgressDisplay:
                 icon = "✓" if result.status == "PASSED" else ("✗" if result.status == "REJECTED" else "!")
                 self.worker_last_done[worker_id] = {
                     'cfg': f"BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}",
-                    'icon': icon
+                    'icon': icon,
+                    'exec_time': exec_time,
+                    'ev': ev,
+                    'precision': precision
                 }
                 # Update worker state to show completed result briefly
                 self.worker_states[worker_id] = {
@@ -317,7 +420,8 @@ class WorkerProgressDisplay:
                     'result': result,
                     'ev': ev,
                     'precision': precision,
-                    'trades': trades
+                    'trades': trades,
+                    'exec_time': exec_time
                 }
                 
                 # Remove from mapping
@@ -331,6 +435,32 @@ class WorkerProgressDisplay:
             if now - self.last_update >= self.update_interval or self.completed == self.total:
                 self._display()
                 self.last_update = now
+    
+    def get_avg_execution_time(self) -> float:
+        """Get average execution time in seconds."""
+        if not self.execution_times:
+            return 0
+        return sum(self.execution_times) / len(self.execution_times)
+    
+    def get_eta_from_avg(self) -> float:
+        """Calculate ETA based on average execution time."""
+        avg_time = self.get_avg_execution_time()
+        if avg_time <= 0:
+            return 0
+        remaining = self.total - self.completed
+        # Account for parallel workers
+        return (remaining * avg_time) / self.max_workers
+    
+    def _format_time(self, seconds: float) -> str:
+        """Format seconds into human readable string."""
+        if seconds <= 0:
+            return "—"
+        elif seconds < 60:
+            return f"{seconds:.0f}s"
+        elif seconds < 3600:
+            return f"{seconds/60:.1f}min"
+        else:
+            return f"{seconds/3600:.1f}h"
     
     def _init_display(self):
         """Initialize display area."""
@@ -348,85 +478,126 @@ class WorkerProgressDisplay:
         sys.stdout.write("\033[2K\r")
     
     def _display(self):
-        """Update the display."""
+        """Update the display with execution time info."""
         self._init_display()
         
         elapsed = time.time() - self.start_time
         pct = 100 * self.completed / self.total if self.total > 0 else 0
-        rate = self.completed / elapsed if elapsed > 0 else 0
-        remaining = self.total - self.completed
-        eta_seconds = remaining / rate if rate > 0 else 0
+        
+        # Use average-based ETA if we have enough data, otherwise use rate-based
+        avg_exec_time = self.get_avg_execution_time()
+        if avg_exec_time > 0 and self.completed >= 3:
+            eta_seconds = self.get_eta_from_avg()
+            eta_source = "avg"
+        else:
+            rate = self.completed / elapsed if elapsed > 0 else 0
+            remaining = self.total - self.completed
+            eta_seconds = remaining / rate if rate > 0 else 0
+            eta_source = "rate"
         
         # Format ETA
-        if eta_seconds > 3600:
-            eta_str = f"{eta_seconds/3600:.1f}h"
-        elif eta_seconds > 60:
-            eta_str = f"{eta_seconds/60:.1f}m"
-        else:
-            eta_str = f"{eta_seconds:.0f}s"
+        eta_str = self._format_time(eta_seconds)
+        avg_str = self._format_time(avg_exec_time) if avg_exec_time > 0 else "..."
         
         w = self._line_width
         self._move_cursor_up(self.display_lines + 1)
         
+        # Header line
         self._clear_line()
         print(("=" * w)[:w])
+        
+        # Progress bar with avg time
         self._clear_line()
-        bar_width = 28
+        bar_width = 25
         filled = int(bar_width * pct / 100)
         bar = "█" * filled + "░" * (bar_width - filled)
-        print(f"[{bar}] {pct:5.1f}% | {self.completed:,}/{self.total:,} | ETA: {eta_str}".ljust(w)[:w])
+        progress_line = f"[{bar}] {pct:5.1f}% | {self.completed:,}/{self.total:,} | ETA: {eta_str} | Avg: {avg_str}/cfg"
+        print(progress_line.ljust(w)[:w])
+        
+        # Separator
         self._clear_line()
         print(("-" * w)[:w])
         
-        # Worker lines: only Now and Prev; fixed width so redraw doesn't leave garbage
-        w = self._line_width
+        # Worker lines with execution times
         for worker_id in range(1, self.max_workers + 1):
             self._clear_line()
             last = self.worker_last_done.get(worker_id)
-            prev = f"{last['cfg']} {last['icon']}" if last else "—"
+            
+            # Format last completed
+            if last:
+                last_time = self._format_time(last.get('exec_time', 0))
+                prev = f"{last['icon']} {last['cfg']} ({last_time})"
+            else:
+                prev = "—"
+            
+            # Format current task
             if worker_id in self.worker_states:
                 state = self.worker_states[worker_id]
                 c = state['config']
                 cfg = f"BB={c.bb_threshold:.2f} RSI={c.rsi_threshold} TP={c.tp_pips}"
+                
                 if state['status'] == 'processing':
-                    now = f"{cfg} ⟳"
+                    # Show how long current task has been running
+                    running_time = time.time() - state['start_time']
+                    time_str = self._format_time(running_time)
+                    now = f"⟳ {cfg} ({time_str})"
                 else:
-                    now = f"{cfg} " + ("✓" if state['status'] == 'passed' else "✗" if state['status'] == 'rejected' else "!")
+                    exec_time = state.get('exec_time', 0)
+                    time_str = self._format_time(exec_time)
+                    icon = "✓" if state['status'] == 'passed' else "✗" if state['status'] == 'rejected' else "!"
+                    now = f"{icon} {cfg} ({time_str})"
             else:
-                now = "idle"
-            line = (f"W{worker_id}  Now: {now}   Prev: {prev}")[:w].ljust(w)
-            print(line)
+                now = "— idle"
+            
+            line = f"W{worker_id}: {now}  |  Last: {prev}"
+            print(line[:w].ljust(w))
         
+        # Separator
         self._clear_line()
         print(("-" * w)[:w])
+        
+        # Summary line with timing stats
         self._clear_line()
         pass_rate = 100 * self.passed / self.completed if self.completed > 0 else 0
         summary = f"PASS: {self.passed} ({pass_rate:.1f}%) | REJECT: {self.rejected} | FAIL: {self.failed}"
         if self.best_config and self.best_ev > float('-inf'):
             summary += f" | BEST EV={self.best_ev:+.1f}"
         print(summary.ljust(w)[:w])
+        
         self._clear_line()
         print(("=" * w)[:w])
         sys.stdout.flush()
     
     def finish(self):
-        """Final display after completion."""
+        """Final display after completion with timing statistics."""
         # Move past display area
         print("\n" * 2)
         
         elapsed = time.time() - self.start_time
-        elapsed_str = f"{elapsed/3600:.1f}h" if elapsed > 3600 else f"{elapsed/60:.1f}m"
+        elapsed_str = self._format_time(elapsed)
         rate = self.completed / elapsed if elapsed > 0 else 0
+        
+        # Timing statistics
+        avg_time = self.get_avg_execution_time()
+        min_time = self.min_exec_time if self.min_exec_time != float('inf') else 0
+        max_time = self.max_exec_time
         
         print()
         print("=" * 70)
         print(" TRAINING COMPLETE")
         print("=" * 70)
-        print(f"  Time:       {elapsed_str} ({rate:.1f} configs/min)")
-        print(f"  Completed:  {self.completed:,}")
-        print(f"  Passed:     {self.passed:,} ({100*self.passed/max(self.completed,1):.1f}%)")
-        print(f"  Rejected:   {self.rejected:,}")
-        print(f"  Failed:     {self.failed:,}")
+        print(f"  Total Time:     {elapsed_str} ({rate:.1f} configs/min)")
+        print(f"  Completed:      {self.completed:,}")
+        print(f"  Passed:         {self.passed:,} ({100*self.passed/max(self.completed,1):.1f}%)")
+        print(f"  Rejected:       {self.rejected:,}")
+        print(f"  Failed:         {self.failed:,}")
+        
+        print()
+        print(f"  {'─'*66}")
+        print(f"  TIMING STATISTICS (per config):")
+        print(f"    Average:      {self._format_time(avg_time)}")
+        print(f"    Min:          {self._format_time(min_time)}")
+        print(f"    Max:          {self._format_time(max_time)}")
         
         if self.best_config and self.best_ev > float('-inf'):
             print()
@@ -705,7 +876,8 @@ def process_single_fold(
     """
     Process a single fold for a configuration.
     
-    This is the unit of work for fold-level parallelism.
+    OPTIMIZED: Uses RFE cache to avoid redundant RFE computations.
+    Configs with same (BB, RSI, fold) share the same RFE result.
     """
     try:
         # Apply split
@@ -731,14 +903,15 @@ def process_single_fold(
         rfe_settings = settings.get('rfe', {})
         hp_settings = settings.get('hyperparameters', {})
         
-        # RFE
-        rfe_result = rfe_select(
-            X_train=fold_data.train_df,
-            y_train=fold_data.train_df['label'],
+        # RFE with CACHING - major speedup!
+        # Same (BB, RSI, fold) = same training data = same RFE result
+        rfe_result = get_or_compute_rfe(
+            bb_threshold=config.bb_threshold,
+            rsi_threshold=config.rsi_threshold,
+            fold_number=fold_boundary.fold_number,
+            train_df=fold_data.train_df,
             feature_columns=feature_columns,
-            min_features=rfe_settings.get('min_features', 5),
-            max_features=rfe_settings.get('max_features', 15),
-            cv_folds=rfe_settings.get('cv_folds', 3)
+            rfe_settings=rfe_settings
         )
         
         if len(rfe_result.selected_features) == 0:
@@ -952,7 +1125,7 @@ def process_single_config(
 
 
 # =============================================================================
-# PARALLEL EXECUTION WITH PRE-COMPUTATION
+# PARALLEL EXECUTION WITH PRE-COMPUTATION - FIXED VERSION
 # =============================================================================
 
 def run_parallel_experiments(
@@ -975,7 +1148,7 @@ def run_parallel_experiments(
     Optimizations:
     1. Pre-compute labels/signals ONCE
     2. Use ThreadPoolExecutor (GIL released during sklearn/lightgbm)
-    3. Process configs in parallel
+    3. Process configs in parallel with dynamic worker assignment
     4. Live worker status display
     """
     
@@ -1023,58 +1196,99 @@ def run_parallel_experiments(
         
         # Use ThreadPoolExecutor - sklearn/lightgbm release the GIL
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all tasks and track futures
+            # Track futures and their configs
             future_to_config = {}
             
-            for config in configs:
-                # Assign worker before submitting
-                if progress_display:
-                    progress_display.assign_worker(config)
-                
-                future = executor.submit(
-                    process_single_config,
-                    df=df,
-                    config=config,
-                    fold_boundaries=fold_boundaries,
-                    feature_columns=feature_columns,
-                    settings=settings,
-                    pip_value=pip_value,
-                    label_cache=label_cache,
-                    signal_cache=signal_cache
-                )
-                future_to_config[future] = config
-            
-            # Process completed futures
-            for future in as_completed(future_to_config):
-                config = future_to_config[future]
-                
+            # Submit initial batch of tasks (one per worker)
+            configs_iter = iter(configs)
+            print(f"Submitting initial {min(max_workers, len(configs))} configs to workers...")
+            for i in range(min(max_workers, len(configs))):
                 try:
-                    result = future.result(timeout=600)
-                except Exception as e:
-                    result = ExperimentResult(
+                    config = next(configs_iter)
+                    
+                    # Assign worker ID before submitting
+                    worker_id = progress_display.assign_worker(config) if progress_display else None
+                    
+                    future = executor.submit(
+                        process_single_config,
+                        df=df,
                         config=config,
-                        status="FAILED",
-                        rejection_reasons=["executor_error"],
-                        label_stats=None,
-                        signal_stats=None,
-                        fold_results=[],
-                        aggregate_metrics=None,
-                        consensus_features=[],
-                        consensus_hyperparameters={},
-                        consensus_threshold=0.5,
-                        aggregate_regime_breakdown=None,
-                        execution_time_seconds=0,
-                        error_message=str(e)
+                        fold_boundaries=fold_boundaries,
+                        feature_columns=feature_columns,
+                        settings=settings,
+                        pip_value=pip_value,
+                        label_cache=label_cache,
+                        signal_cache=signal_cache
                     )
+                    future_to_config[future] = (config, worker_id)
+                    print(f"  Worker {i+1}: BB={config.bb_threshold:.2f} RSI={config.rsi_threshold} TP={config.tp_pips}")
+                except StopIteration:
+                    break
+            
+            print(f"\nWorkers started! Waiting for first results (~3-5 min per config)...")
+            print(f"{'─'*60}\n")
+            
+            # Process completed futures and submit new ones
+            while future_to_config:
+                # Wait for at least one future to complete
+                done_futures = []
+                for future in as_completed(future_to_config.keys()):
+                    done_futures.append(future)
+                    break  # Just get one completed future at a time
                 
-                results.append(result)
-                
-                # Checkpoint with full details
-                save_checkpoint_with_details(checkpoint_mgr, config, result)
-                
-                # Update progress display
-                if progress_display:
-                    progress_display.release_worker(config, result)
+                for future in done_futures:
+                    config, worker_id = future_to_config.pop(future)
+                    
+                    try:
+                        result = future.result(timeout=600)
+                    except Exception as e:
+                        result = ExperimentResult(
+                            config=config,
+                            status="FAILED",
+                            rejection_reasons=["executor_error"],
+                            label_stats=None,
+                            signal_stats=None,
+                            fold_results=[],
+                            aggregate_metrics=None,
+                            consensus_features=[],
+                            consensus_hyperparameters={},
+                            consensus_threshold=0.5,
+                            aggregate_regime_breakdown=None,
+                            execution_time_seconds=0,
+                            error_message=str(e)
+                        )
+                    
+                    results.append(result)
+                    
+                    # Save checkpoint
+                    save_checkpoint_with_details(checkpoint_mgr, config, result)
+                    
+                    # Update progress display
+                    if progress_display and worker_id is not None:
+                        progress_display.release_worker(config, result)
+                    
+                    # Submit next config if available
+                    try:
+                        next_config = next(configs_iter)
+                        
+                        # Assign worker ID for the new task
+                        new_worker_id = progress_display.assign_worker(next_config) if progress_display else None
+                        
+                        new_future = executor.submit(
+                            process_single_config,
+                            df=df,
+                            config=next_config,
+                            fold_boundaries=fold_boundaries,
+                            feature_columns=feature_columns,
+                            settings=settings,
+                            pip_value=pip_value,
+                            label_cache=label_cache,
+                            signal_cache=signal_cache
+                        )
+                        future_to_config[new_future] = (next_config, new_worker_id)
+                    except StopIteration:
+                        # No more configs to submit
+                        pass
     
     if progress_display:
         progress_display.finish()

@@ -31,12 +31,23 @@ class MT5Manager:
             self._connected = True   # allow dev testing without MT5
             return True
 
+        # Try without path first (connects to running instance)
+        # If that fails, try with path (starts new instance)
         initialized = mt5.initialize(
-            path=str(config.MT5_TERMINAL_PATH),
             login=config.MT5_LOGIN,
             password=config.MT5_PASSWORD,
             server=config.MT5_SERVER,
         )
+        
+        if not initialized:
+            # Try with path as fallback
+            initialized = mt5.initialize(
+                path=str(config.MT5_TERMINAL_PATH),
+                login=config.MT5_LOGIN,
+                password=config.MT5_PASSWORD,
+                server=config.MT5_SERVER,
+            )
+        
         if not initialized:
             log.error("mt5_init_failed", error=mt5.last_error())
             return False

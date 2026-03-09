@@ -1,0 +1,223 @@
+PS C:\Users\Ben Michael Oracion\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Experts\Advisors\Solara\Model Training\version-3> python deep_analyzer.py --db checkpoints/fast.db
+
+====================================================================================================
+ DEEP QUANTITATIVE ANALYSIS REPORT v2.0
+====================================================================================================
+ Database: checkpoints/fast.db
+ Generated: 2026-02-23 16:28:44
+
+====================================================================================================
+ 1. EXECUTIVE SUMMARY
+====================================================================================================
+
+  📊 Total Configs:  4,680
+  ✅ Passed:         7 (0.1%)
+  ❌ Rejected:       4,673 (99.9%)
+
+  🏆 BEST CONFIG: BB=0.8, RSI=71, TP=40
+     EV=9.20, Precision=56.0%, Score=80/100
+
+  📋 VERDICT: ✅ PRODUCTION READY
+
+====================================================================================================
+ 2. PASSED CONFIGURATIONS
+====================================================================================================
+
+#   |     BB | RSI |  TP |       EV |   Prec |    CV |    PF | Trades | Score | Reasons
+----------------------------------------------------------------------------------------------------
+1   |   0.80 |  71 |  40 |    +9.20 | 56.0% |  0.23 |  1.70 |    131 |    80 | warning: ev_cv > 0.3 (0.992)
+2   |   0.81 |  72 |  40 |    +8.60 | 55.1% |  0.22 |  1.64 |     89 |    75 | warning: ev_cv > 0.3 (1.005)
+3   |   0.87 |  71 |  40 |    +6.13 | 51.6% |  0.08 |  1.42 |    120 |    75 | warning: ev_cv > 0.3 (0.468)
+4   |   0.87 |  71 |  40 |    +5.18 | 50.3% |  0.05 |  1.35 |    169 |    75 | warning: ev_cv > 0.3 (0.329)
+5   |   0.81 |  72 |  40 |    +8.64 | 55.2% |  0.26 |  1.64 |    115 |    70 | warning: ev_cv > 0.3 (1.181)
+6   |   0.80 |  72 |  40 |    +6.52 | 52.2% |  0.26 |  1.45 |     91 |    55 | warning: ev_cv > 0.3 (1.440)
+7   |   0.80 |  70 |  40 |    +2.72 | 46.7% |  0.15 |  1.17 |    138 |    55 | warning: ev_cv > 0.3 (1.763)
+
+====================================================================================================
+ 3. GOLDEN REJECTS (Better EV than Passed!)
+====================================================================================================
+
+  ⚠️ 10 configs have HIGHER EV than passed!
+
+#   |     BB | RSI |  TP |       EV |   Prec |    CV |    PF | Trades | Score | Reasons
+----------------------------------------------------------------------------------------------------
+1   |   0.84 |  80 |  60 |   +60.00 | 100.0% |  0.00 |  0.00 |      4 |    75 | trades_per_fold < 10 (4.0)
+2   |   0.80 |  80 |  50 |   +50.00 | 100.0% |  0.00 |  0.00 |      4 |    75 | trades_per_fold < 10 (4.0)
+3   |   0.84 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      5 |    75 | trades_per_fold < 10 (5.0)
+4   |   0.84 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      5 |    75 | trades_per_fold < 10 (5.0)
+5   |   0.83 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      5 |    75 | trades_per_fold < 10 (5.0)
+6   |   0.83 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      5 |    75 | trades_per_fold < 10 (5.0)
+7   |   0.82 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      7 |    75 | trades_per_fold < 10 (7.0)
+8   |   0.82 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      7 |    75 | trades_per_fold < 10 (7.0)
+9   |   0.81 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      7 |    75 | trades_per_fold < 10 (7.0)
+10  |   0.81 |  80 |  40 |   +40.00 | 100.0% |  0.00 |  0.00 |      7 |    75 | trades_per_fold < 10 (7.0)
+
+====================================================================================================
+ 4. PARAMETER SENSITIVITY
+====================================================================================================
+
+  BB Threshold:
+  Value    |  Count | Passed | PassRate |    AvgEV |    MaxEV
+  ------------------------------------------------------------
+  0.8      |    360 |      3 |     0.8% |    +1.16 |   +50.00
+  0.81     |    360 |      2 |     0.6% |    +0.81 |   +40.00
+  0.87     |    360 |      2 |     0.6% |    +0.40 |   +14.00
+  0.82     |    360 |      0 |     0.0% |    +0.55 |   +40.00
+  0.83     |    360 |      0 |     0.0% |    +0.30 |   +40.00
+  0.84     |    360 |      0 |     0.0% |    +1.21 |   +60.00
+  0.85     |    360 |      0 |     0.0% |    +0.23 |   +17.53
+  0.86     |    360 |      0 |     0.0% |    +0.49 |   +22.95
+
+  RSI Threshold:
+  Value    |  Count | Passed | PassRate |    AvgEV |    MaxEV
+  ------------------------------------------------------------
+  71       |    130 |      3 |     2.3% |    +1.70 |   +22.95
+  72       |    130 |      3 |     2.3% |    +1.36 |   +14.00
+  70       |    130 |      1 |     0.8% |    +0.69 |   +14.22
+  60       |    130 |      0 |     0.0% |    +0.83 |   +14.00
+  61       |    130 |      0 |     0.0% |    +1.01 |   +12.00
+  62       |    130 |      0 |     0.0% |    +0.67 |   +14.00
+  63       |    130 |      0 |     0.0% |    +0.64 |   +14.00
+  64       |    130 |      0 |     0.0% |    +0.44 |   +10.20
+
+  Take Profit:
+  Value    |  Count | Passed | PassRate |    AvgEV |    MaxEV
+  ------------------------------------------------------------
+  40       |    936 |      7 |     0.7% |    +2.33 |   +40.00
+  50       |    936 |      0 |     0.0% |    +0.98 |   +50.00
+  60       |    936 |      0 |     0.0% |    +0.16 |   +60.00
+  70       |    936 |      0 |     0.0% |    -0.10 |   +28.55
+  80       |    936 |      0 |     0.0% |    -0.17 |   +24.17
+
+====================================================================================================
+ 5. REJECTION REASON ANALYSIS
+====================================================================================================
+
+  Reason                              |  Count |      % |  Avg EV Lost
+  ----------------------------------------------------------------------
+  precision < 0.45                    |   2568 |  55.0% |        +0.62
+  precision_cv > 0.3                  |   1859 |  39.8% |        +1.51
+  EV <= 1.0                           |   1744 |  37.3% |        -1.32
+  insufficient_data_after_filter      |   1740 |  37.2% |        +0.00
+  trades_per_fold < 10                |   1666 |  35.7% |        +1.10
+  warning: ev_cv > 0.3                |   1137 |  24.3% |        +4.11
+  no_valid_folds                      |    290 |   6.2% |        +0.00
+
+====================================================================================================
+ 6. FEATURE IMPORTANCE
+====================================================================================================
+
+  Top features in PASSED configs (7):
+    1. trend_slope_3: 7
+    2. time_since_last_touch: 5
+    3. rsi_rolling_max: 5
+    4. trend_strength_lag2: 4
+    5. volume_zscore: 3
+    6. rsi_slope_3: 2
+    7. rsi_velocity: 1
+    8. trend_strength_lag1: 1
+
+  Top features in HIGH-EV configs (370):
+    1. resistance_distance_pct: 183
+    2. trend_slope_3: 152
+    3. time_since_last_touch: 151
+    4. trend_strength_lag2: 137
+    5. rsi_rolling_max: 83
+    6. bb_width_slope_3: 81
+    7. upper_wick_ratio: 80
+    8. trend_strength: 80
+
+====================================================================================================
+ 7. STATISTICAL SIGNIFICANCE
+====================================================================================================
+
+  Config                    |   t-stat |  p-value |   Conf | Sig?
+  -----------------------------------------------------------------
+  BB=0.87 RSI=71 TP=40  |    39.51 |   0.0002 |    99% | ✅
+  BB=0.87 RSI=71 TP=40  |    23.40 |   0.0002 |    99% | ✅
+  BB=0.80 RSI=71 TP=40  |    11.53 |   0.0002 |    99% | ✅
+  BB=0.81 RSI=72 TP=40  |     9.39 |   0.0002 |    99% | ✅
+  BB=0.81 RSI=72 TP=40  |     9.08 |   0.0002 |    99% | ✅
+  BB=0.80 RSI=70 TP=40  |     6.67 |   0.0025 |    99% | ✅
+  BB=0.80 RSI=72 TP=40  |     6.62 |   0.0027 |    99% | ✅
+
+====================================================================================================
+ 8. RISK ANALYSIS (Best Config)
+====================================================================================================
+
+  Config: BB=0.8, RSI=71, TP=40, SL=30
+
+  Metric                              Value      Assessment
+  ------------------------------------------------------------
+  Precision                          56.0%          ✅ Good
+  Expected Value                     +9.20           ⚠️ OK
+  Profit Factor                       1.70          ✅ Good
+  Precision CV                        0.23     ⚠️ Variable
+  Total Trades                         131          ✅ Good
+  Est. Max Drawdown                   90p            ✅ OK
+  Production Score                     80%         ✅ Ready
+
+  TRADE SIMULATION (per 100 trades):
+    Wins:   55 × 40p = +2200p
+    Losses: 45 × 30p = -1350p
+    Net:    +850p (EV = 8.50p/trade)
+
+====================================================================================================
+ 9. RECOMMENDATIONS
+====================================================================================================
+
+🔴 [HIGH] 🚀 PRODUCTION READY CONFIG FOUND!
+   BB=0.8, RSI=71, TP=40 scores 80/100
+   ➡️  Paper trade 2 weeks → Deploy with conservative sizing
+
+🔴 [HIGH] 💎 69 GOLDEN REJECTS FOUND!
+   Best: BB=0.84, RSI=80, TP=60, EV=60.00
+   Detail: Top rejection: trades_per_fold < 10 (52 configs)
+   ➡️  CONSIDER RELAXING to 8. Or widen BB/RSI range for more signals.
+
+🔴 [HIGH] 📈 7/7 STATISTICALLY SIGNIFICANT
+   These configs have validated edge at 95% confidence
+   ➡️  Prioritize these for deployment
+
+🟡 [MEDIUM] 🎯 OPTIMAL BB = 0.8
+   Pass rate 0.8%, Avg EV 1.16
+   ➡️  Focus exploration around BB=0.8 ± 0.02
+
+🟡 [MEDIUM] 🎯 OPTIMAL RSI = 71
+   Pass rate 2.3%, Avg EV 1.70
+   ➡️  Focus exploration around RSI=71 ± 3
+
+🟡 [MEDIUM] 📊 precision < 0.45
+   2568 configs rejected, max EV lost: 24.17
+   ➡️  KEEP STRICT - This is a safety threshold. Consider: different features, tighter filters.
+
+🟡 [MEDIUM] 📊 precision_cv > 0.3
+   1859 configs rejected, max EV lost: 28.55
+   ➡️  CONSIDER RELAXING to 0.35. Means precision varies across regimes. Add regime filtering.
+
+====================================================================================================
+ 10. NEXT STEPS
+====================================================================================================
+
+  IMMEDIATE:
+  ──────────
+  1. Review Golden Rejects - consider relaxing criteria
+  2. Focus on optimal BB/RSI ranges identified above
+  3. If precision_cv is the blocker, try max_precision_cv: 0.35
+
+  BEFORE PRODUCTION:
+  ──────────────────
+  1. Paper trade best config for 2+ weeks
+  2. Verify across bull/bear/sideways markets
+  3. Set position size based on max drawdown
+
+  IN PRODUCTION:
+  ──────────────
+  1. Monitor rolling precision weekly
+  2. Pause if precision drops below 50%
+  3. Retrain monthly with new data
+
+
+====================================================================================================
+ END OF REPORT
+====================================================================================================

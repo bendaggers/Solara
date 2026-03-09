@@ -71,7 +71,7 @@ class ModelRegistry:
             log.critical("registry_not_found", path=str(path))
             raise SystemExit(1)
 
-        with open(path) as f:
+        with open(path, encoding='utf-8') as f:
             data = yaml.safe_load(f)
 
         raw_entries = data.get("models", [])
@@ -87,8 +87,8 @@ class ModelRegistry:
                 fatal_errors.append(f"Model '{name}': {e}")
                 continue
 
-            # Check model file exists (only if enabled)
-            if entry.enabled and not entry.model_path.exists():
+            # Check model file exists (only if enabled and model_file is not empty)
+            if entry.enabled and entry.model_file and not entry.model_path.exists():
                 fatal_errors.append(
                     f"Model '{entry.name}': model_file not found at {entry.model_path}"
                 )

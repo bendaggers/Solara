@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 """
-Fast checkpoint viewer - shows progress and best configs with ALL metrics.
+Fast checkpoint viewer - shows progress, best configs, and execution time stats.
 """
 
 import argparse
 import sqlite3
 import json
+
+def format_time(seconds):
+    """Format seconds into human readable string."""
+    if seconds is None or seconds <= 0:
+        return "—"
+    elif seconds < 60:
+        return f"{seconds:.0f}s"
+    elif seconds < 3600:
+        return f"{seconds/60:.1f}m"
+    else:
+        return f"{seconds/3600:.1f}h"
 
 def main():
     parser = argparse.ArgumentParser(description="View checkpoint database status")
@@ -13,7 +24,7 @@ def main():
     parser.add_argument('--top', type=int, default=10, help="Number of top configs to show")
     parser.add_argument('--export', type=str, help="Export passed configs to CSV file")
     parser.add_argument('--sort', type=str, default='ev', 
-                        choices=['ev', 'precision', 'f1', 'auc_pr', 'recall', 'trades'],
+                        choices=['ev', 'precision', 'f1', 'auc_pr', 'recall', 'trades', 'time'],
                         help="Sort by metric (default: ev)")
     
     args = parser.parse_args()
@@ -38,6 +49,22 @@ def main():
         ORDER BY ev_mean DESC LIMIT 1
     """).fetchone()
     
+    # Execution time stats
+    has_exec_time = 'execution_time' in columns
+    if has_exec_time:
+        time_stats = cursor.execute("""
+            SELECT 
+                AVG(execution_time),
+                MIN(execution_time),
+                MAX(execution_time),
+                SUM(execution_time)
+            FROM completed 
+            WHERE execution_time IS NOT NULL AND execution_time > 0
+        """).fetchone()
+        avg_time, min_time, max_time, total_time = time_stats if time_stats[0] else (0, 0, 0, 0)
+    else:
+        avg_time, min_time, max_time, total_time = 0, 0, 0, 0
+    
     print("\n" + "=" * 100)
     print("CHECKPOINT STATUS")
     print("=" * 100)
@@ -48,6 +75,16 @@ def main():
     
     if best:
         print(f"\nBest EV: {best[1]:.2f} ({best[0]})")
+    
+    # Execution time statistics
+    if has_exec_time and avg_time:
+        print("\n" + "-" * 100)
+        print("EXECUTION TIME STATISTICS")
+        print("-" * 100)
+        print(f"  Average:    {format_time(avg_time)} per config")
+        print(f"  Min:        {format_time(min_time)}")
+        print(f"  Max:        {format_time(max_time)}")
+        print(f"  Total:      {format_time(total_time)}")
     
     # Show top configs with ALL metrics
     if passed > 0:
@@ -62,18 +99,21 @@ def main():
             'f1': 'f1_mean',
             'auc_pr': 'auc_pr_mean',
             'recall': 'recall_mean',
-            'trades': 'total_trades'
+            'trades': 'total_trades',
+            'time': 'execution_time'
         }
         sort_col = sort_map[args.sort]
         
         has_full_schema = 'f1_mean' in columns
         
         if has_full_schema:
+            exec_time_col = ", execution_time" if has_exec_time else ""
             cursor.execute(f"""
                 SELECT 
                     config_id, bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
                     ev_mean, precision_mean, recall_mean, f1_mean, auc_pr_mean,
                     total_trades, consensus_threshold, n_features, selected_features
+                    {exec_time_col}
                 FROM completed 
                 WHERE status = 'PASSED' AND ev_mean IS NOT NULL
                 ORDER BY {sort_col} DESC 
@@ -81,9 +121,12 @@ def main():
             """, (args.top,))
             
             # Header
-            print(f"{'#':<3} | {'BB':>5} | {'RSI':>3} | {'TP':>3} | {'SL':>3} | {'Hold':>4} | "
-                  f"{'EV':>7} | {'Prec':>5} | {'Rec':>5} | {'F1':>5} | {'AUC':>5} | "
-                  f"{'Trades':>6} | {'Thr':>5} | {'#Feat':>5}")
+            header = (f"{'#':<3} | {'BB':>5} | {'RSI':>3} | {'TP':>3} | {'SL':>3} | {'Hold':>4} | "
+                      f"{'EV':>7} | {'Prec':>5} | {'Rec':>5} | {'F1':>5} | {'AUC':>5} | "
+                      f"{'Trades':>6} | {'Thr':>5} | {'#Feat':>5}")
+            if has_exec_time:
+                header += f" | {'Time':>6}"
+            print(header)
             print("-" * 100)
             
             for i, row in enumerate(cursor.fetchall(), 1):
@@ -101,10 +144,14 @@ def main():
                 trades = row[11] or 0
                 thresh = row[12] or 0
                 n_feat = row[13] or 0
+                exec_time = row[15] if has_exec_time and len(row) > 15 else 0
                 
-                print(f"{i:<3} | {bb:>5.2f} | {rsi:>3} | {tp:>3} | {sl:>3} | {hold:>4} | "
-                      f"{ev:>7.2f} | {prec:>5.3f} | {rec:>5.3f} | {f1:>5.3f} | {auc:>5.3f} | "
-                      f"{trades:>6} | {thresh:>5.2f} | {n_feat:>5}")
+                line = (f"{i:<3} | {bb:>5.2f} | {rsi:>3} | {tp:>3} | {sl:>3} | {hold:>4} | "
+                        f"{ev:>7.2f} | {prec:>5.3f} | {rec:>5.3f} | {f1:>5.3f} | {auc:>5.3f} | "
+                        f"{trades:>6} | {thresh:>5.2f} | {n_feat:>5}")
+                if has_exec_time:
+                    line += f" | {format_time(exec_time):>6}"
+                print(line)
             
             # Show features for best config
             print("\n" + "-" * 100)
@@ -148,11 +195,13 @@ def main():
     # Export if requested
     if args.export and passed > 0:
         import csv
-        cursor.execute("""
+        exec_time_col = ", execution_time" if has_exec_time else ""
+        cursor.execute(f"""
             SELECT 
                 config_id, bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
                 ev_mean, ev_std, precision_mean, precision_std, recall_mean, f1_mean, auc_pr_mean,
                 total_trades, consensus_threshold, n_features, selected_features
+                {exec_time_col}
             FROM completed 
             WHERE status = 'PASSED'
             ORDER BY ev_mean DESC
@@ -160,11 +209,14 @@ def main():
         
         with open(args.export, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([
+            header = [
                 'config_id', 'bb_threshold', 'rsi_threshold', 'tp_pips', 'sl_pips', 'max_holding_bars',
                 'ev_mean', 'ev_std', 'precision_mean', 'precision_std', 'recall_mean', 'f1_mean', 'auc_pr_mean',
                 'total_trades', 'consensus_threshold', 'n_features', 'selected_features'
-            ])
+            ]
+            if has_exec_time:
+                header.append('execution_time')
+            writer.writerow(header)
             for row in cursor.fetchall():
                 writer.writerow(row)
         

@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-02-25T10:55:31.326645",
+  "config_id": "CFG_12321",
+  "model_path": "model\\short_entry_model.pkl",
+  "features_path": "features\\selected_features.csv",
+  "trading_config_path": "config\\trading_config.json",
+  "hyperparameters_path": "config\\hyperparameters.json",
+  "threshold_path": "config\\threshold.json",
+  "fold_metrics_path": "metrics\\fold_metrics.json",
+  "aggregate_metrics_path": "metrics\\aggregate_metrics.json",
+  "regime_breakdown_path": "metrics\\regime_breakdown.json",
+  "checksums": {
+    "model": "93885912ae892093b068df2551b67c78",
+    "features": "9e1c5be8f8684e4e53e9922f3bb6f23f",
+    "trading_config": "23b2b605b6881578ae67665c4c629a8c",
+    "hyperparameters": "592ce16523b295ae56df981e1df50b2f",
+    "threshold": "720e1c28c02be2c2b0904a8118e7d6b5",
+    "fold_metrics": "8c835700e8472e4dbde43bd566b2f863",
+    "aggregate_metrics": "86cc3d0dfce79124b8f6e656aef07cf5",
+    "regime_breakdown": "1d2dd7d4b5b449a24537438340ec9fce"
+  },
+  "summary": {
+    "n_features": 5,
+    "threshold": 0.53,
+    "expected_precision": 0.4916433566433566,
+    "expected_ev": 4.415034965034965,
+    "training_rows": 3274
+  }
+}

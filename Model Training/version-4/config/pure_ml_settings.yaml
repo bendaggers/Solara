@@ -1,0 +1,170 @@
+# =============================================================================
+# PURE ML SHORT-ONLY ENTRY MODEL - CONFIGURATION
+# =============================================================================
+# This model evaluates EVERY candle as a potential SHORT entry.
+# No pre-filtering by BB/RSI - the model learns what conditions predict 
+# profitable shorts directly from the data.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# DATA SCHEMA
+# -----------------------------------------------------------------------------
+schema:
+  timestamp_column: "timestamp"
+  timestamp_format: "%Y.%m.%d %H:%M:%S"
+  ohlcv_columns:
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+  
+  # Pip value for EUR/USD
+  pip_value: 0.0001
+
+# -----------------------------------------------------------------------------
+# FEATURE CONFIGURATION
+# -----------------------------------------------------------------------------
+features:
+  # Columns to EXCLUDE from features (not used for prediction)
+  exclude_columns:
+    - "timestamp"
+    - "open"
+    - "high"
+    - "low"
+    - "close"
+    - "volume"
+    - "pair"
+    - "symbol"
+    - "label"
+    - "label_reason"
+    - "regime"
+  
+  # Feature engineering (set to true to compute additional features from v4)
+  compute_additional: true
+
+# -----------------------------------------------------------------------------
+# LABEL CONFIGURATION  
+# -----------------------------------------------------------------------------
+# These are the trade parameters to test
+config_space:
+  # Take Profit in pips - range to test
+  tp_pips:
+    min: 30
+    max: 120
+    step: 10
+  
+  # Stop Loss in pips - FIXED (to simplify search space)
+  # Using 40 pips as a sensible default for 4H EUR/USD
+  sl_pips:
+    min: 30
+    max: 50
+    step: 10
+  
+  # Maximum holding period in bars
+  max_holding_bars:
+    min: 12
+    max: 48
+    step: 6
+
+# -----------------------------------------------------------------------------
+# WALK-FORWARD VALIDATION
+# -----------------------------------------------------------------------------
+walk_forward:
+  n_folds: 5
+  train_ratio: 0.60
+  calibration_ratio: 0.20
+  threshold_ratio: 0.20
+  expanding_window: true
+
+# -----------------------------------------------------------------------------
+# FEATURE SELECTION (RFE)
+# -----------------------------------------------------------------------------
+rfe:
+  enabled: true
+  min_features: 5
+  max_features: 20
+  step: 1
+  cv_folds: 3
+  scoring: "average_precision"
+
+# -----------------------------------------------------------------------------
+# HYPERPARAMETER TUNING
+# -----------------------------------------------------------------------------
+hyperparameter_tuning:
+  enabled: true
+  method: "randomized"  # "grid" or "randomized"
+  n_iter: 30            # For randomized search
+  cv_folds: 3
+  scoring: "average_precision"
+  
+  # Parameter grid for LightGBM
+  param_grid:
+    n_estimators: [100, 200, 300, 500]
+    max_depth: [3, 4, 5, 6, 8]
+    learning_rate: [0.01, 0.05, 0.1]
+    num_leaves: [15, 31, 63]
+    min_child_samples: [10, 20, 50, 100]
+    subsample: [0.7, 0.8, 0.9, 1.0]
+    colsample_bytree: [0.7, 0.8, 0.9, 1.0]
+
+# -----------------------------------------------------------------------------
+# PROBABILITY CALIBRATION
+# -----------------------------------------------------------------------------
+calibration:
+  enabled: true
+  method: "sigmoid"  # "sigmoid" (Platt scaling) or "isotonic"
+
+# -----------------------------------------------------------------------------
+# THRESHOLD OPTIMIZATION
+# -----------------------------------------------------------------------------
+threshold:
+  min_threshold: 0.40
+  max_threshold: 0.80
+  step: 0.05
+  min_trades: 20
+  optimization_target: "ev"  # "ev", "precision", "f1"
+
+# -----------------------------------------------------------------------------
+# ACCEPTANCE CRITERIA
+# -----------------------------------------------------------------------------
+acceptance_criteria:
+  min_precision: 0.55
+  min_trades_per_fold: 30
+  min_expected_value: 0.0
+  max_precision_cv: 0.30   # Coefficient of variation for precision
+  max_ev_cv: 0.50          # Warning threshold for EV CV
+
+# -----------------------------------------------------------------------------
+# REGIME TAGGING (for diagnostics)
+# -----------------------------------------------------------------------------
+regime:
+  adx_period: 14
+  atr_period: 14
+  atr_percentile_window: 100
+  trending_adx_threshold: 25
+  volatile_atr_percentile: 70
+
+# -----------------------------------------------------------------------------
+# PARALLELIZATION
+# -----------------------------------------------------------------------------
+parallel:
+  max_workers: 10
+  use_threading: false  # Use processes for CPU-bound tasks
+
+# -----------------------------------------------------------------------------
+# LOGGING
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_file: null  # Auto-generated if null
+  progress_interval: 10
+
+# -----------------------------------------------------------------------------
+# OUTPUT PATHS
+# -----------------------------------------------------------------------------
+paths:
+  artifacts_dir: "artifacts"
+  logs_dir: "logs"
+  checkpoints_dir: "checkpoints"

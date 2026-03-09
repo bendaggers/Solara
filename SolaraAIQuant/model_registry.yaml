@@ -41,7 +41,7 @@ models:
   # ── BB Reversal Long H4 ────────────────────────────────────────────────────
   - name: "BB Reversal Long H4 v2"
     class_path: "predictors.bb_reversal_long.BBReversalLongPredictor"
-    model_file: "BB_LONG_v2.pkl"
+    model_file: "BB_LONG_REVERSAL_Model.pkl"
     feature_version: "v3"
     model_type: "LONG"
     timeframe: "H4"
@@ -51,14 +51,14 @@ models:
     timeout: 30
     magic: 201000
     comment: "SAQ_BBLong_H4"
-    enabled: true
+    enabled: false
     max_positions: 3
     symbols: []
 
   # ── BB Reversal Short H4 ───────────────────────────────────────────────────
   - name: "BB Reversal Short H4 v2"
     class_path: "predictors.bb_reversal_short.BBReversalShortPredictor"
-    model_file: "BB_SHORT_v2.pkl"
+    model_file: "BB_SHORT_REVERSAL_Model_v2.pkl"
     feature_version: "v3"
     model_type: "SHORT"
     timeframe: "H4"
@@ -68,8 +68,60 @@ models:
     timeout: 30
     magic: 202000
     comment: "SAQ_BBShort_H4"
-    enabled: true
+    enabled: false
     max_positions: 3
+    symbols: []
+
+  # ── DUMMY MODELS FOR TESTING ──────────────────────────────────────────────
+  # Dummy M5 Long model
+  - name: "Dummy Random Long M5"
+    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
+    model_file: ""  # No .pkl file needed for dummy
+    feature_version: "v3"
+    model_type: "LONG"
+    timeframe: "M5"
+    min_confidence: 0.60
+    weight: 1.0
+    priority: 10
+    timeout: 5
+    magic: 503000  # Custom strategy (50xxxx), M5 timeframe (x3xxxx)
+    comment: "SAQ_DummyLong_M5"
+    enabled: true
+    max_positions: 2
+    symbols: []
+
+  # Dummy M15 Short model
+  - name: "Dummy Random Short M15"
+    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
+    model_file: ""
+    feature_version: "v3"
+    model_type: "SHORT"
+    timeframe: "M15"
+    min_confidence: 0.65
+    weight: 1.0
+    priority: 10
+    timeout: 5
+    magic: 502000  # Custom strategy (50xxxx), M15 timeframe (x2xxxx)
+    comment: "SAQ_DummyShort_M15"
+    enabled: true
+    max_positions: 2
+    symbols: []
+
+  # Dummy H1 Long model
+  - name: "Dummy Random Long H1"
+    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
+    model_file: ""
+    feature_version: "v3"
+    model_type: "LONG"
+    timeframe: "H1"
+    min_confidence: 0.70
+    weight: 1.0
+    priority: 10
+    timeout: 5
+    magic: 501000  # Custom strategy (50xxxx), H1 timeframe (x1xxxx)
+    comment: "SAQ_DummyLong_H1"
+    enabled: true
+    max_positions: 2
     symbols: []
 
   # ── TEMPLATE — copy this block to add a new model ─────────────────────────

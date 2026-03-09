@@ -1,9 +1,9 @@
 """
-Checkpoint system using SQLite - COMPLETE VERSION.
+Checkpoint system using SQLite - FIXED VERSION.
 Stores all important config details for later analysis.
 
-FIXED: Now checks by PARAMETERS (bb, rsi, tp, sl, hold) not config_id
-       This allows widening config space without duplicating work!
+KEY FIX: Uses (bb, rsi, tp, sl, hold) as PRIMARY KEY, not config_id!
+This prevents overwrites when config_id counter resets between runs.
 """
 
 import sqlite3
@@ -18,15 +18,19 @@ class FastCheckpointManager:
     """
     Complete checkpoint manager that stores ALL important details.
     
-    IMPORTANT: Uses PARAMETERS to check completion, not config_id!
-    This allows config space changes without re-running tested configs.
+    PRIMARY KEY: (bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)
+    
+    This ensures:
+    - No duplicate parameter combinations
+    - No overwrites when config_id resets
+    - Proper accumulation across multiple runs
     """
     
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._local = threading.local()
-        self._completed_params_cache = None  # Cache for fast lookup
+        self._completed_params_cache = None
         self._init_db()
     
     def _get_conn(self):
@@ -34,8 +38,8 @@ class FastCheckpointManager:
         if not hasattr(self._local, 'conn'):
             self._local.conn = sqlite3.connect(
                 self.db_path,
-                timeout=5.0,
-                isolation_level=None  # Auto-commit
+                timeout=30.0,
+                isolation_level=None
             )
             self._local.conn.execute("PRAGMA journal_mode=WAL")
             self._local.conn.execute("PRAGMA synchronous=NORMAL")
@@ -43,7 +47,7 @@ class FastCheckpointManager:
         return self._local.conn
     
     def _init_db(self):
-        """Create complete table structure."""
+        """Create table with PARAMETERS as primary key."""
         conn = sqlite3.connect(self.db_path)
         conn.execute("PRAGMA journal_mode=WAL")
         
@@ -51,25 +55,31 @@ class FastCheckpointManager:
         cursor = conn.execute("PRAGMA table_info(completed)")
         columns = [row[1] for row in cursor.fetchall()]
         
-        if columns and 'bb_threshold' not in columns:
-            # Old schema exists - need to migrate
-            print("Migrating checkpoint database to new schema...")
-            self._migrate_schema(conn)
+        if columns and 'bb_threshold' in columns:
+            # Table exists - check if we need to migrate
+            # Try to create unique index - will fail if duplicates exist
+            try:
+                conn.execute("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS idx_params_unique 
+                    ON completed(bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)
+                """)
+                conn.commit()
+            except sqlite3.IntegrityError:
+                # Duplicates exist - need to clean up
+                print("Cleaning up duplicate entries...")
+                self._cleanup_duplicates(conn)
+        
         elif not columns:
-            # New database - create full schema
+            # New database - create with correct schema
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS completed (
-                    config_id TEXT PRIMARY KEY,
+                    bb_threshold REAL NOT NULL,
+                    rsi_threshold INTEGER NOT NULL,
+                    tp_pips INTEGER NOT NULL,
+                    sl_pips INTEGER NOT NULL,
+                    max_holding_bars INTEGER NOT NULL,
+                    config_id TEXT,
                     status TEXT,
-                    
-                    -- Config parameters
-                    bb_threshold REAL,
-                    rsi_threshold INTEGER,
-                    tp_pips INTEGER,
-                    sl_pips INTEGER,
-                    max_holding_bars INTEGER,
-                    
-                    -- Metrics
                     ev_mean REAL,
                     ev_std REAL,
                     precision_mean REAL,
@@ -78,77 +88,58 @@ class FastCheckpointManager:
                     f1_mean REAL,
                     auc_pr_mean REAL,
                     total_trades INTEGER,
-                    
-                    -- Model details
                     selected_features TEXT,
                     consensus_threshold REAL,
                     n_features INTEGER,
-                    
-                    -- Metadata
                     rejection_reasons TEXT,
                     execution_time REAL,
-                    timestamp TEXT
+                    timestamp TEXT,
+                    PRIMARY KEY (bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)
                 )
             """)
             
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_config ON completed(config_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON completed(status)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_ev ON completed(ev_mean)")
-        
-        # Create index on parameters for fast lookup (if not exists)
-        try:
-            conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_params 
-                ON completed(bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)
-            """)
-        except:
-            pass
         
         conn.commit()
         conn.close()
     
-    def _migrate_schema(self, conn):
-        """Migrate old schema to new schema."""
-        conn.execute("ALTER TABLE completed RENAME TO completed_old")
-        
-        conn.execute("""
-            CREATE TABLE completed (
-                config_id TEXT PRIMARY KEY,
-                status TEXT,
-                bb_threshold REAL,
-                rsi_threshold INTEGER,
-                tp_pips INTEGER,
-                sl_pips INTEGER,
-                max_holding_bars INTEGER,
-                ev_mean REAL,
-                ev_std REAL,
-                precision_mean REAL,
-                precision_std REAL,
-                recall_mean REAL,
-                f1_mean REAL,
-                auc_pr_mean REAL,
-                total_trades INTEGER,
-                selected_features TEXT,
-                consensus_threshold REAL,
-                n_features INTEGER,
-                rejection_reasons TEXT,
-                execution_time REAL,
-                timestamp TEXT
-            )
-        """)
-        
-        conn.execute("""
-            INSERT INTO completed (config_id, status, ev_mean, timestamp)
-            SELECT config_id, status, ev_mean, timestamp FROM completed_old
-        """)
-        
-        conn.execute("DROP TABLE completed_old")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_config ON completed(config_id)")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON completed(status)")
-        conn.execute("CREATE INDEX IF NOT EXISTS idx_ev ON completed(ev_mean)")
-        
-        conn.commit()
-        print("Migration complete.")
+    def _cleanup_duplicates(self, conn):
+        """Remove duplicate parameter combinations, keeping the latest."""
+        try:
+            # Create temp table with unique entries (latest timestamp wins)
+            conn.execute("""
+                CREATE TABLE completed_clean AS
+                SELECT * FROM completed
+                WHERE rowid IN (
+                    SELECT MAX(rowid) FROM completed
+                    WHERE bb_threshold IS NOT NULL
+                    GROUP BY bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars
+                )
+            """)
+            
+            # Drop old table
+            conn.execute("DROP TABLE completed")
+            
+            # Rename clean table
+            conn.execute("ALTER TABLE completed_clean RENAME TO completed")
+            
+            # Create indexes
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON completed(status)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_ev ON completed(ev_mean)")
+            conn.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_params_unique 
+                ON completed(bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)
+            """)
+            
+            conn.commit()
+            
+            count = conn.execute("SELECT COUNT(*) FROM completed").fetchone()[0]
+            print(f"Cleanup complete. {count} unique configs preserved.")
+            
+        except Exception as e:
+            print(f"Cleanup error: {e}")
+            conn.rollback()
     
     def _get_completed_params(self) -> Set[Tuple]:
         """Get all completed parameter combinations as a set for fast lookup."""
@@ -159,12 +150,7 @@ class FastCheckpointManager:
             WHERE bb_threshold IS NOT NULL
         """)
         
-        # Return as set of tuples for O(1) lookup
         return {(row[0], row[1], row[2], row[3], row[4]) for row in cursor.fetchall()}
-    
-    def _refresh_cache(self):
-        """Refresh the completed params cache."""
-        self._completed_params_cache = self._get_completed_params()
     
     def is_params_completed(self, bb: float, rsi: int, tp: int, sl: int, hold: int) -> bool:
         """Check if this parameter combination was already tested."""
@@ -179,17 +165,13 @@ class FastCheckpointManager:
     def get_pending_configs(self, all_configs: List) -> List:
         """
         Get configs that need processing.
-        
-        FIXED: Now checks by PARAMETERS, not config_id!
-        This allows widening config space without duplicates.
+        Checks by PARAMETERS (bb, rsi, tp, sl, hold), not config_id!
         """
         if not all_configs:
             return []
         
-        # Get all completed parameter combinations
         completed_params = self._get_completed_params()
         
-        # Filter configs by checking parameters
         pending = []
         for config in all_configs:
             param_tuple = (
@@ -226,30 +208,66 @@ class FastCheckpointManager:
         rejection_reasons: List[str] = None,
         execution_time: float = None
     ) -> None:
-        """Mark a config as completed with ALL details."""
+        """
+        Mark a config as completed.
+        
+        Uses INSERT OR REPLACE keyed on parameters, NOT config_id.
+        This ensures same parameters always update the same row.
+        """
+        if bb_threshold is None or rsi_threshold is None or tp_pips is None:
+            return
+        
         conn = self._get_conn()
         
         features_json = json.dumps(selected_features) if selected_features else None
         reasons_json = json.dumps(rejection_reasons) if rejection_reasons else None
         n_features = len(selected_features) if selected_features else None
         
-        conn.execute("""
-            INSERT OR REPLACE INTO completed (
-                config_id, status,
-                bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
-                ev_mean, ev_std, precision_mean, precision_std, recall_mean, f1_mean, auc_pr_mean, total_trades,
-                selected_features, consensus_threshold, n_features,
-                rejection_reasons, execution_time, timestamp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            config_id, status,
-            bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
-            ev_mean, ev_std, precision_mean, precision_std, recall_mean, f1_mean, auc_pr_mean, total_trades,
-            features_json, consensus_threshold, n_features,
-            reasons_json, execution_time, datetime.now().isoformat()
-        ))
+        # Generate descriptive config_id from parameters
+        param_config_id = f"BB{bb_threshold:.2f}_RSI{rsi_threshold}_TP{tp_pips}_SL{sl_pips}_H{max_holding_bars}"
         
-        # Invalidate cache
+        # Check if exists
+        existing = conn.execute("""
+            SELECT 1 FROM completed 
+            WHERE bb_threshold = ? AND rsi_threshold = ? AND tp_pips = ? AND sl_pips = ? AND max_holding_bars = ?
+        """, (bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars)).fetchone()
+        
+        if existing:
+            # Update existing
+            conn.execute("""
+                UPDATE completed SET
+                    config_id = ?, status = ?,
+                    ev_mean = ?, ev_std = ?, precision_mean = ?, precision_std = ?,
+                    recall_mean = ?, f1_mean = ?, auc_pr_mean = ?, total_trades = ?,
+                    selected_features = ?, consensus_threshold = ?, n_features = ?,
+                    rejection_reasons = ?, execution_time = ?, timestamp = ?
+                WHERE bb_threshold = ? AND rsi_threshold = ? AND tp_pips = ? AND sl_pips = ? AND max_holding_bars = ?
+            """, (
+                param_config_id, status,
+                ev_mean, ev_std, precision_mean, precision_std,
+                recall_mean, f1_mean, auc_pr_mean, total_trades,
+                features_json, consensus_threshold, n_features,
+                reasons_json, execution_time, datetime.now().isoformat(),
+                bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars
+            ))
+        else:
+            # Insert new
+            conn.execute("""
+                INSERT INTO completed (
+                    bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
+                    config_id, status,
+                    ev_mean, ev_std, precision_mean, precision_std, recall_mean, f1_mean, auc_pr_mean, total_trades,
+                    selected_features, consensus_threshold, n_features,
+                    rejection_reasons, execution_time, timestamp
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                bb_threshold, rsi_threshold, tp_pips, sl_pips, max_holding_bars,
+                param_config_id, status,
+                ev_mean, ev_std, precision_mean, precision_std, recall_mean, f1_mean, auc_pr_mean, total_trades,
+                features_json, consensus_threshold, n_features,
+                reasons_json, execution_time, datetime.now().isoformat()
+            ))
+        
         self._completed_params_cache = None
     
     def is_completed(self, config_id: str) -> bool:

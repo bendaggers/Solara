@@ -1,12 +1,12 @@
 """
 Feature engineering and selection - COMPREHENSIVE SHORT STRATEGY.
 
-VERSION: 3.0 - SHORT STRATEGY (COMPREHENSIVE)
+VERSION: 4.0 - ENHANCED WITH SESSION, REGIME, AND ADVANCED FEATURES
 
 PIPELINE:
 =========
 1. DataExporterEA_SHORT.mq5 calculates BASE features from raw OHLCV
-2. This module calculates DERIVED + STATISTICAL + MOMENTUM features
+2. This module calculates DERIVED + STATISTICAL + MOMENTUM + SESSION + REGIME features
 
 BASE FEATURES (from EA CSV - DO NOT RECALCULATE):
 ─────────────────────────────────────────────────
@@ -30,26 +30,51 @@ DERIVED FEATURES (calculated here):
 • Binary features (overbought flags, bearish patterns)
 • Quality indicators (exhaustion signals)
 
-NEW STATISTICAL FEATURES:
-─────────────────────────
+STATISTICAL FEATURES:
+─────────────────────
 • Rolling statistics (std, skewness, kurtosis)
 • Z-scores (price, RSI, volume)
 • Percentile ranks
 • Volatility measures
 
-NEW MOMENTUM FEATURES:
-──────────────────────
+MOMENTUM FEATURES:
+──────────────────
 • Rate of Change (ROC)
 • Momentum oscillators
 • Acceleration/deceleration
 • Trend exhaustion indicators
 
-NEW PATTERN FEATURES:
-─────────────────────
+PATTERN FEATURES:
+─────────────────
 • Consecutive candle patterns
 • Reversal pattern detection
 • Volume profile analysis
 • BB squeeze detection
+
+NEW IN V4.0 - SESSION & TIME:
+─────────────────────────────
+• Session flags (London, NY, Asian, Overlap)
+• Hour of day (sin/cos encoded)
+• Day of week
+• Time-based volatility patterns
+
+NEW IN V4.0 - REGIME AWARENESS:
+───────────────────────────────
+• Market regime classification (trending/ranging/volatile)
+• Regime-specific indicators
+• ADX-based trend detection
+
+NEW IN V4.0 - MEAN REVERSION:
+─────────────────────────────
+• Distance from moving averages
+• Overextension indicators
+• Reversion probability signals
+
+NEW IN V4.0 - ADVANCED VOLATILITY:
+──────────────────────────────────
+• ATR percentile rank
+• Volatility regime classification
+• Squeeze/expansion detection
 """
 
 import pandas as pd
@@ -58,7 +83,13 @@ from typing import List, Tuple, Dict, Optional, Any
 from dataclasses import dataclass
 import warnings
 import logging
+import os
 from scipy import stats as scipy_stats
+
+# Suppress CUDA/GPU compilation warnings
+os.environ['LIGHTGBM_VERBOSITY'] = '-1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+warnings.filterwarnings('ignore')
 
 from sklearn.feature_selection import RFE, RFECV
 from sklearn.ensemble import GradientBoostingClassifier
@@ -74,7 +105,7 @@ class FeatureEngineering:
     """
     Comprehensive feature engineering for SHORT strategy.
     
-    VERSION 3.0
+    VERSION 4.0 - Enhanced with Session, Regime, Mean Reversion
     
     Calculates DERIVED features from EA CSV output including:
     - Lag features
@@ -84,12 +115,19 @@ class FeatureEngineering:
     - Pattern features (consecutive candles, reversals)
     - Quality indicators
     - Exhaustion score
+    - SESSION features (London, NY, Asian, Overlap)
+    - TIME features (hour, day of week)
+    - REGIME features (trending, ranging, volatile)
+    - MEAN REVERSION features
+    - ADVANCED VOLATILITY features
     """
     
     # Rolling window sizes
     WINDOW_SHORT = 5
     WINDOW_MEDIUM = 10
     WINDOW_LONG = 20
+    WINDOW_EXTENDED = 50
+    WINDOW_VOLATILITY = 100
     
     def __init__(self, verbose: bool = False):
         self.verbose = verbose
@@ -100,7 +138,7 @@ class FeatureEngineering:
         self, 
         df: pd.DataFrame,
         drop_na: bool = True,
-        min_periods: int = 20  # Increased for rolling statistics
+        min_periods: int = 30  # Increased for extended rolling stats
     ) -> pd.DataFrame:
         """
         Calculate all DERIVED features from EA CSV output.
@@ -108,7 +146,7 @@ class FeatureEngineering:
         Args:
             df: DataFrame from DataExporterEA_SHORT.mq5 CSV output
             drop_na: If True, drop rows with NaN. If False, forward fill.
-            min_periods: Number of initial rows to drop (default 20 for rolling stats)
+            min_periods: Number of initial rows to drop (default 30 for rolling stats)
                 
         Returns:
             DataFrame with original data and all calculated features
@@ -117,7 +155,7 @@ class FeatureEngineering:
         
         if self.verbose:
             logging.info(f"Input shape: {df.shape}")
-            logging.info("Calculating comprehensive features for SHORT strategy")
+            logging.info("Calculating comprehensive features for SHORT strategy (V4.0)")
         
         df_features = df.copy()
         df_features.columns = df_features.columns.str.lower()
@@ -125,27 +163,43 @@ class FeatureEngineering:
         # Fix BB position if needed
         df_features = self._fix_bb_position_if_needed(df_features)
         
-        # === DERIVED FEATURES ===
+        # === ORIGINAL DERIVED FEATURES ===
         df_features = self._add_binary_features(df_features)
         df_features = self._add_price_change_features(df_features)
         df_features = self._add_lag_features(df_features)
         df_features = self._add_slope_features(df_features)
         
-        # === NEW: STATISTICAL FEATURES ===
+        # === STATISTICAL FEATURES ===
         df_features = self._add_zscore_features(df_features)
         df_features = self._add_rolling_statistics(df_features)
         df_features = self._add_percentile_features(df_features)
         
-        # === NEW: MOMENTUM FEATURES ===
+        # === MOMENTUM FEATURES ===
         df_features = self._add_roc_features(df_features)
         df_features = self._add_acceleration_features(df_features)
         df_features = self._add_momentum_divergence(df_features)
         
-        # === NEW: PATTERN FEATURES ===
+        # === PATTERN FEATURES ===
         df_features = self._add_consecutive_patterns(df_features)
         df_features = self._add_reversal_patterns(df_features)
         df_features = self._add_bb_patterns(df_features)
         df_features = self._add_volume_patterns(df_features)
+        
+        # === NEW V4.0: SESSION & TIME FEATURES ===
+        df_features = self._add_session_features(df_features)
+        df_features = self._add_time_features(df_features)
+        
+        # === NEW V4.0: REGIME AWARENESS ===
+        df_features = self._add_regime_features(df_features)
+        
+        # === NEW V4.0: MEAN REVERSION ===
+        df_features = self._add_mean_reversion_features(df_features)
+        
+        # === NEW V4.0: ADVANCED VOLATILITY ===
+        df_features = self._add_advanced_volatility_features(df_features)
+        
+        # === NEW V4.0: MACD FEATURES ===
+        df_features = self._add_macd_features(df_features)
         
         # === QUALITY & EXHAUSTION ===
         df_features = self._add_quality_features(df_features)
@@ -191,7 +245,8 @@ class FeatureEngineering:
         optional_columns = ['resistance_distance_pct', 'bb_touch_strength', 
                            'prev_candle_body_pct', 'prev_volume_ratio',
                            'gap_from_prev_close', 'price_momentum',
-                           'prev_was_rally', 'previous_touches', 'session']
+                           'prev_was_rally', 'previous_touches', 'session',
+                           'timestamp']
         
         missing = [col for col in required_from_ea if col not in df_cols_lower]
         if missing:
@@ -219,7 +274,7 @@ class FeatureEngineering:
         return df
     
     # =========================================================================
-    # BINARY FEATURES - FIXED WITH fillna(0)
+    # BINARY FEATURES
     # =========================================================================
     
     def _add_binary_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -316,7 +371,7 @@ class FeatureEngineering:
     def _add_slope_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add slope (rate of change) features."""
         
-        # RSI slopes
+        # RSI slopes - CRITICAL FOR MOMENTUM DIRECTION
         df['rsi_slope_3'] = (df['rsi_value'] - df['rsi_value'].shift(3)) / 3
         df['rsi_slope_5'] = (df['rsi_value'] - df['rsi_value'].shift(5)) / 5
         df['rsi_slope_10'] = (df['rsi_value'] - df['rsi_value'].shift(10)) / 10
@@ -343,7 +398,7 @@ class FeatureEngineering:
         return df
     
     # =========================================================================
-    # NEW: Z-SCORE FEATURES
+    # Z-SCORE FEATURES
     # =========================================================================
     
     def _add_zscore_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -388,7 +443,7 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: ROLLING STATISTICS
+    # ROLLING STATISTICS
     # =========================================================================
     
     def _add_rolling_statistics(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -433,7 +488,7 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: PERCENTILE FEATURES
+    # PERCENTILE FEATURES
     # =========================================================================
     
     def _add_percentile_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -478,7 +533,7 @@ class FeatureEngineering:
         return df.fillna(0.5)
     
     # =========================================================================
-    # NEW: RATE OF CHANGE (ROC) FEATURES
+    # RATE OF CHANGE (ROC) FEATURES
     # =========================================================================
     
     def _add_roc_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -507,7 +562,7 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: ACCELERATION FEATURES
+    # ACCELERATION FEATURES
     # =========================================================================
     
     def _add_acceleration_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -549,7 +604,7 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: MOMENTUM DIVERGENCE FEATURES - FIXED
+    # MOMENTUM DIVERGENCE FEATURES
     # =========================================================================
     
     def _add_momentum_divergence(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -587,7 +642,7 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: CONSECUTIVE PATTERN FEATURES - FIXED
+    # CONSECUTIVE PATTERN FEATURES
     # =========================================================================
     
     def _add_consecutive_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -631,7 +686,7 @@ class FeatureEngineering:
         return df
     
     # =========================================================================
-    # NEW: REVERSAL PATTERN FEATURES - FIXED
+    # REVERSAL PATTERN FEATURES
     # =========================================================================
     
     def _add_reversal_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -677,7 +732,7 @@ class FeatureEngineering:
         return df
     
     # =========================================================================
-    # NEW: BOLLINGER BAND PATTERN FEATURES - FIXED
+    # BOLLINGER BAND PATTERN FEATURES
     # =========================================================================
     
     def _add_bb_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -714,10 +769,16 @@ class FeatureEngineering:
         # Overextension (price above upper band)
         df['bb_overextended'] = ((df['close'] - df['upper_band']) / bb_range.replace(0, np.nan)).clip(0, 1)
         
+        # NEW: BB squeeze strength (percentile of width)
+        df['bb_squeeze_pct'] = df['bb_width_pct'].rolling(50, min_periods=20).apply(
+            lambda x: scipy_stats.percentileofscore(x, x.iloc[-1]) / 100 if len(x) >= 20 else 0.5,
+            raw=False
+        ).fillna(0.5)
+        
         return df.fillna(0)
     
     # =========================================================================
-    # NEW: VOLUME PATTERN FEATURES - FIXED
+    # VOLUME PATTERN FEATURES
     # =========================================================================
     
     def _add_volume_patterns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -757,7 +818,326 @@ class FeatureEngineering:
         return df.fillna(0)
     
     # =========================================================================
-    # QUALITY FEATURES - FIXED
+    # NEW V4.0: SESSION FEATURES
+    # =========================================================================
+    
+    def _add_session_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add trading session features.
+        
+        Sessions (UTC times, adjust for your broker):
+        - Asian:   00:00 - 08:00 UTC
+        - London:  08:00 - 16:00 UTC
+        - NY:      13:00 - 21:00 UTC
+        - Overlap: 13:00 - 16:00 UTC (highest volatility)
+        """
+        # Try to extract hour from timestamp
+        if 'timestamp' in df.columns:
+            try:
+                # Try to parse timestamp
+                if df['timestamp'].dtype == 'object':
+                    # Try common formats
+                    for fmt in ['%Y.%m.%d %H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S']:
+                        try:
+                            df['_datetime'] = pd.to_datetime(df['timestamp'], format=fmt)
+                            break
+                        except:
+                            continue
+                    else:
+                        df['_datetime'] = pd.to_datetime(df['timestamp'])
+                else:
+                    df['_datetime'] = pd.to_datetime(df['timestamp'])
+                
+                df['hour'] = df['_datetime'].dt.hour
+                df['day_of_week'] = df['_datetime'].dt.dayofweek
+                df.drop('_datetime', axis=1, inplace=True)
+            except Exception as e:
+                if self.verbose:
+                    logging.warning(f"Could not parse timestamp: {e}. Using index-based features.")
+                df['hour'] = (df.index % 24).astype(int)
+                df['day_of_week'] = ((df.index // 24) % 5).astype(int)
+        else:
+            # Create synthetic hour/day based on index
+            df['hour'] = (df.index % 24).astype(int)
+            df['day_of_week'] = ((df.index // 24) % 5).astype(int)
+        
+        # Session flags (assuming UTC - adjust offsets for your broker)
+        df['is_asian_session'] = ((df['hour'] >= 0) & (df['hour'] < 8)).astype(int)
+        df['is_london_session'] = ((df['hour'] >= 8) & (df['hour'] < 16)).astype(int)
+        df['is_ny_session'] = ((df['hour'] >= 13) & (df['hour'] < 21)).astype(int)
+        df['is_overlap_session'] = ((df['hour'] >= 13) & (df['hour'] < 16)).astype(int)
+        
+        # Session volatility (overlap typically highest)
+        df['session_volatility_weight'] = np.where(
+            df['is_overlap_session'] == 1, 1.0,
+            np.where(df['is_london_session'] == 1, 0.8,
+            np.where(df['is_ny_session'] == 1, 0.7,
+            0.4))  # Asian session lowest
+        )
+        
+        # Early/late session
+        df['is_session_start'] = ((df['hour'] == 8) | (df['hour'] == 13)).astype(int)
+        df['is_session_end'] = ((df['hour'] == 15) | (df['hour'] == 20)).astype(int)
+        
+        # Day of week features
+        df['is_monday'] = (df['day_of_week'] == 0).astype(int)
+        df['is_friday'] = (df['day_of_week'] == 4).astype(int)
+        df['is_midweek'] = ((df['day_of_week'] >= 1) & (df['day_of_week'] <= 3)).astype(int)
+        
+        return df
+    
+    # =========================================================================
+    # NEW V4.0: TIME FEATURES (CYCLICAL ENCODING)
+    # =========================================================================
+    
+    def _add_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add cyclical time features using sin/cos encoding.
+        
+        This preserves the cyclical nature of time (23:00 is close to 00:00).
+        """
+        # Hour sin/cos encoding (24-hour cycle)
+        df['hour_sin'] = np.sin(2 * np.pi * df['hour'] / 24)
+        df['hour_cos'] = np.cos(2 * np.pi * df['hour'] / 24)
+        
+        # Day of week sin/cos encoding (5-day cycle for forex)
+        df['dow_sin'] = np.sin(2 * np.pi * df['day_of_week'] / 5)
+        df['dow_cos'] = np.cos(2 * np.pi * df['day_of_week'] / 5)
+        
+        return df
+    
+    # =========================================================================
+    # NEW V4.0: REGIME FEATURES
+    # =========================================================================
+    
+    def _add_regime_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add market regime classification features.
+        
+        Regimes:
+        - Trending: Strong directional movement (high ADX-like measure)
+        - Ranging: Low volatility, price oscillating
+        - Volatile: High volatility, no clear direction
+        """
+        window = self.WINDOW_LONG
+        
+        # Calculate ADX-like trend strength
+        # True Range
+        high_low = df['high'] - df['low']
+        high_close = (df['high'] - df['close'].shift(1)).abs()
+        low_close = (df['low'] - df['close'].shift(1)).abs()
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        
+        # Directional movement
+        up_move = df['high'] - df['high'].shift(1)
+        down_move = df['low'].shift(1) - df['low']
+        
+        plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0)
+        minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0)
+        
+        # Smooth with EMA
+        atr_14 = pd.Series(tr).ewm(span=14, adjust=False).mean()
+        plus_di = 100 * pd.Series(plus_dm).ewm(span=14, adjust=False).mean() / atr_14.replace(0, np.nan)
+        minus_di = 100 * pd.Series(minus_dm).ewm(span=14, adjust=False).mean() / atr_14.replace(0, np.nan)
+        
+        # ADX calculation
+        dx = 100 * (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan)
+        df['adx'] = dx.ewm(span=14, adjust=False).mean().fillna(0)
+        
+        # Trend direction
+        df['plus_di'] = plus_di.fillna(0)
+        df['minus_di'] = minus_di.fillna(0)
+        df['trend_direction'] = np.sign(df['plus_di'] - df['minus_di'])
+        
+        # Regime classification
+        # Trending: ADX > 25
+        df['is_trending'] = (df['adx'] > 25).astype(int)
+        
+        # Ranging: ADX < 20 and low ATR
+        atr_percentile = df['atr_pct'].rolling(100, min_periods=20).apply(
+            lambda x: scipy_stats.percentileofscore(x, x.iloc[-1]) / 100 if len(x) >= 20 else 0.5,
+            raw=False
+        ).fillna(0.5)
+        df['atr_percentile'] = atr_percentile
+        df['is_ranging'] = ((df['adx'] < 20) & (atr_percentile < 0.5)).astype(int)
+        
+        # Volatile: High ATR percentile
+        df['is_volatile'] = (atr_percentile > 0.7).astype(int)
+        
+        # Regime score (continuous)
+        df['regime_trend_score'] = (df['adx'] / 50).clip(0, 1)  # 0 = ranging, 1 = strong trend
+        df['regime_volatility_score'] = atr_percentile
+        
+        # Trending UP specifically (for SHORT - want to fade uptrends)
+        df['is_trending_up'] = ((df['is_trending'] == 1) & (df['trend_direction'] > 0)).astype(int)
+        df['is_trending_down'] = ((df['is_trending'] == 1) & (df['trend_direction'] < 0)).astype(int)
+        
+        return df
+    
+    # =========================================================================
+    # NEW V4.0: MEAN REVERSION FEATURES
+    # =========================================================================
+    
+    def _add_mean_reversion_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add mean reversion features.
+        
+        These measure how far price has deviated from "normal" levels.
+        High values suggest potential reversion.
+        """
+        # Moving averages
+        df['ma_10'] = df['close'].rolling(10, min_periods=5).mean()
+        df['ma_20'] = df['close'].rolling(20, min_periods=10).mean()
+        df['ma_50'] = df['close'].rolling(50, min_periods=25).mean()
+        
+        # Distance from MAs (normalized)
+        df['dist_from_ma10'] = (df['close'] - df['ma_10']) / df['ma_10'].replace(0, np.nan)
+        df['dist_from_ma20'] = (df['close'] - df['ma_20']) / df['ma_20'].replace(0, np.nan)
+        df['dist_from_ma50'] = (df['close'] - df['ma_50']) / df['ma_50'].replace(0, np.nan)
+        
+        # Overextension score (how far above MA)
+        df['overextension_10'] = df['dist_from_ma10'].clip(0, None)
+        df['overextension_20'] = df['dist_from_ma20'].clip(0, None)
+        
+        # MA slope (trend direction)
+        df['ma20_slope'] = (df['ma_20'] - df['ma_20'].shift(5)) / df['ma_20'].shift(5).replace(0, np.nan)
+        df['ma50_slope'] = (df['ma_50'] - df['ma_50'].shift(10)) / df['ma_50'].shift(10).replace(0, np.nan)
+        
+        # Price above MA flags
+        df['price_above_ma10'] = (df['close'] > df['ma_10']).astype(int)
+        df['price_above_ma20'] = (df['close'] > df['ma_20']).astype(int)
+        df['price_above_ma50'] = (df['close'] > df['ma_50']).astype(int)
+        
+        # All MAs aligned bullish (setup for SHORT)
+        df['all_ma_bullish'] = (
+            (df['price_above_ma10'] == 1) &
+            (df['price_above_ma20'] == 1) &
+            (df['price_above_ma50'] == 1)
+        ).astype(int)
+        
+        # Extreme overextension (potential reversion)
+        df['extreme_overextension'] = (
+            (df['dist_from_ma20'] > df['dist_from_ma20'].rolling(50, min_periods=20).quantile(0.95))
+        ).fillna(0).astype(int)
+        
+        # Mean reversion probability score
+        df['mean_reversion_score'] = (
+            0.3 * df['overextension_20'].clip(0, 0.05) / 0.05 +
+            0.3 * (df['price_zscore'].clip(0, 3) / 3) +
+            0.2 * df['rsi_overbought'] +
+            0.2 * (df['bb_position'].clip(0.8, 1) - 0.8) / 0.2
+        ).clip(0, 1)
+        
+        # Drop intermediate columns
+        df.drop(['ma_10', 'ma_20', 'ma_50'], axis=1, inplace=True)
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW V4.0: ADVANCED VOLATILITY FEATURES
+    # =========================================================================
+    
+    def _add_advanced_volatility_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add advanced volatility features.
+        
+        These help identify volatility regimes and potential breakouts.
+        """
+        # ATR percentile (already calculated in regime features, but add more)
+        window = self.WINDOW_VOLATILITY
+        
+        # Range percentile
+        df['range_percentile'] = df['range_pct'].rolling(window, min_periods=20).apply(
+            lambda x: scipy_stats.percentileofscore(x, x.iloc[-1]) / 100 if len(x) >= 20 else 0.5,
+            raw=False
+        ).fillna(0.5)
+        
+        # Volatility contraction (potential breakout)
+        df['volatility_contraction'] = (
+            (df['atr_percentile'] < 0.3) &
+            (df['bb_squeeze_pct'] < 0.3)
+        ).astype(int)
+        
+        # Volatility expansion
+        df['volatility_expansion'] = (
+            (df['atr_percentile'] > 0.7) &
+            (df['atr_percentile'] > df['atr_percentile'].shift(1))
+        ).astype(int)
+        
+        # Historical volatility (20-period standard deviation)
+        returns = df['close'].pct_change()
+        df['historical_vol'] = returns.rolling(20, min_periods=10).std() * np.sqrt(252)  # Annualized
+        
+        # Volatility ratio (current vs historical)
+        vol_mean = df['historical_vol'].rolling(50, min_periods=20).mean()
+        df['volatility_ratio'] = df['historical_vol'] / vol_mean.replace(0, np.nan)
+        
+        # Intrabar volatility (range / close)
+        df['intrabar_vol'] = df['range_pct']
+        df['intrabar_vol_percentile'] = df['range_percentile']
+        
+        # Volatility clustering (high vol tends to follow high vol)
+        df['vol_cluster'] = df['historical_vol'].rolling(5, min_periods=3).mean() / \
+                           df['historical_vol'].rolling(20, min_periods=10).mean().replace(0, np.nan)
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # NEW V4.0: MACD FEATURES
+    # =========================================================================
+    
+    def _add_macd_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add MACD-based features.
+        
+        MACD = EMA(12) - EMA(26)
+        Signal = EMA(9) of MACD
+        Histogram = MACD - Signal
+        """
+        # Calculate MACD
+        ema_12 = df['close'].ewm(span=12, adjust=False).mean()
+        ema_26 = df['close'].ewm(span=26, adjust=False).mean()
+        
+        df['macd_line'] = ema_12 - ema_26
+        df['macd_signal'] = df['macd_line'].ewm(span=9, adjust=False).mean()
+        df['macd_histogram'] = df['macd_line'] - df['macd_signal']
+        
+        # Normalized MACD (percentage of price)
+        df['macd_normalized'] = df['macd_line'] / df['close'].replace(0, np.nan) * 100
+        df['macd_hist_normalized'] = df['macd_histogram'] / df['close'].replace(0, np.nan) * 100
+        
+        # MACD crossovers
+        df['macd_cross_down'] = (
+            (df['macd_line'] < df['macd_signal']) &
+            (df['macd_line'].shift(1) >= df['macd_signal'].shift(1))
+        ).astype(int)
+        
+        df['macd_cross_up'] = (
+            (df['macd_line'] > df['macd_signal']) &
+            (df['macd_line'].shift(1) <= df['macd_signal'].shift(1))
+        ).astype(int)
+        
+        # MACD above/below zero
+        df['macd_above_zero'] = (df['macd_line'] > 0).astype(int)
+        df['macd_below_zero'] = (df['macd_line'] < 0).astype(int)
+        
+        # Histogram direction
+        df['macd_hist_rising'] = (df['macd_histogram'] > df['macd_histogram'].shift(1)).astype(int)
+        df['macd_hist_falling'] = (df['macd_histogram'] < df['macd_histogram'].shift(1)).astype(int)
+        
+        # MACD divergence with price (bearish for SHORT)
+        price_higher = df['high'] > df['high'].shift(10)
+        macd_lower = df['macd_line'] < df['macd_line'].shift(10)
+        df['macd_bearish_div'] = (price_higher & macd_lower).astype(int)
+        
+        # MACD momentum (slope)
+        df['macd_slope'] = (df['macd_line'] - df['macd_line'].shift(3)) / 3
+        df['macd_hist_slope'] = (df['macd_histogram'] - df['macd_histogram'].shift(3)) / 3
+        
+        return df.fillna(0)
+    
+    # =========================================================================
+    # QUALITY FEATURES
     # =========================================================================
     
     def _add_quality_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -807,7 +1187,7 @@ class FeatureEngineering:
         # Context: not choppy
         df['not_choppy'] = (df['time_since_last_touch'] > 3).fillna(0).astype(int)
         
-        # First touch (vs repeated) - CHECK IF COLUMN EXISTS
+        # First touch (vs repeated)
         if 'previous_touches' in df.columns:
             df['first_touch'] = (df['previous_touches'] <= 1).fillna(0).astype(int)
         else:
@@ -858,21 +1238,28 @@ class FeatureEngineering:
             0.3 * df['volume_climax_top']
         ).clip(0, 1)
         
-        # Statistical extremes score - ALL TERMS HAVE .fillna(0)
+        # Statistical extremes score
         stat_score = (
             0.3 * (df['price_zscore'].fillna(0) > 2).astype(int) +
             0.3 * (df['rsi_zscore'].fillna(0) > 1.5).astype(int) +
             0.4 * (df['price_percentile'].fillna(0) > 0.9).astype(int)
         ).clip(0, 1)
         
+        # NEW: Regime score (trending up = good for SHORT fade)
+        regime_score = (
+            0.5 * df['is_trending_up'] +
+            0.5 * df['mean_reversion_score']
+        ).clip(0, 1)
+        
         # Composite exhaustion score
         df['exhaustion_score'] = (
-            0.20 * bb_score +
-            0.20 * rsi_score +
+            0.15 * bb_score +
+            0.15 * rsi_score +
             0.15 * momentum_score +
             0.15 * pattern_score +
-            0.15 * volume_score +
-            0.15 * stat_score
+            0.10 * volume_score +
+            0.15 * stat_score +
+            0.15 * regime_score
         ).clip(0, 1)
         
         # Exhaustion category (for quick filtering)
@@ -932,7 +1319,8 @@ class FeatureEngineering:
             ],
             'percentiles': [
                 'price_percentile', 'rsi_percentile', 'volume_percentile',
-                'bb_position_percentile', 'high_percentile'
+                'bb_position_percentile', 'high_percentile', 'atr_percentile',
+                'range_percentile'
             ],
             'momentum': [
                 'price_roc_3', 'price_roc_5', 'price_roc_10',
@@ -954,11 +1342,44 @@ class FeatureEngineering:
             'bb_patterns': [
                 'bb_squeeze', 'bb_expansion', 'walking_upper_band',
                 'bb_upper_rejection', 'distance_from_upper', 'distance_from_lower',
-                'bb_overextended'
+                'bb_overextended', 'bb_squeeze_pct'
             ],
             'volume_patterns': [
                 'volume_climax_top', 'volume_decline_3', 'volume_spike_rejection',
                 'volume_trend', 'obv_direction', 'obv_divergence'
+            ],
+            'session': [
+                'hour', 'day_of_week',
+                'is_asian_session', 'is_london_session', 'is_ny_session', 'is_overlap_session',
+                'session_volatility_weight', 'is_session_start', 'is_session_end',
+                'is_monday', 'is_friday', 'is_midweek',
+                'hour_sin', 'hour_cos', 'dow_sin', 'dow_cos'
+            ],
+            'regime': [
+                'adx', 'plus_di', 'minus_di', 'trend_direction',
+                'is_trending', 'is_ranging', 'is_volatile',
+                'regime_trend_score', 'regime_volatility_score',
+                'is_trending_up', 'is_trending_down'
+            ],
+            'mean_reversion': [
+                'dist_from_ma10', 'dist_from_ma20', 'dist_from_ma50',
+                'overextension_10', 'overextension_20',
+                'ma20_slope', 'ma50_slope',
+                'price_above_ma10', 'price_above_ma20', 'price_above_ma50',
+                'all_ma_bullish', 'extreme_overextension', 'mean_reversion_score'
+            ],
+            'volatility': [
+                'volatility_contraction', 'volatility_expansion',
+                'historical_vol', 'volatility_ratio',
+                'intrabar_vol', 'intrabar_vol_percentile', 'vol_cluster'
+            ],
+            'macd': [
+                'macd_line', 'macd_signal', 'macd_histogram',
+                'macd_normalized', 'macd_hist_normalized',
+                'macd_cross_down', 'macd_cross_up',
+                'macd_above_zero', 'macd_below_zero',
+                'macd_hist_rising', 'macd_hist_falling',
+                'macd_bearish_div', 'macd_slope', 'macd_hist_slope'
             ],
             'quality': [
                 'rsi_peaked', 'rsi_drop_size', 'rsi_drop_large', 'rsi_was_extreme',
@@ -1174,9 +1595,14 @@ def rfe_select(
     cv_folds: int = 3,
     scoring: str = 'average_precision',
     use_rfecv: bool = True,
-    random_state: int = 42
+    random_state: int = 42,
+    step: int = 1
 ) -> RFEResult:
-    """Perform Recursive Feature Elimination to select optimal features."""
+    """
+    Perform Recursive Feature Elimination to select optimal features.
+    
+    OPTIMIZED: Uses LightGBM instead of GradientBoosting (5-10x faster).
+    """
     available_features = [col for col in feature_columns if col in X_train.columns]
     X = X_train[available_features].copy()
     y = y_train.copy()
@@ -1193,26 +1619,42 @@ def rfe_select(
     
     n_original = len(available_features)
     
-    estimator = GradientBoostingClassifier(
-        n_estimators=100,
-        max_depth=4,
-        learning_rate=0.1,
-        min_samples_leaf=20,
-        random_state=random_state,
-        validation_fraction=0.1,
-        n_iter_no_change=10
-    )
+    # Use LightGBM for faster RFE
+    try:
+        import lightgbm as lgb
+        estimator = lgb.LGBMClassifier(
+            n_estimators=50,
+            max_depth=4,
+            learning_rate=0.1,
+            min_child_samples=20,
+            random_state=random_state,
+            verbose=-1,
+            n_jobs=1,
+            device='cpu',
+            force_col_wise=True
+        )
+    except ImportError:
+        estimator = GradientBoostingClassifier(
+            n_estimators=50,
+            max_depth=3,
+            learning_rate=0.1,
+            min_samples_leaf=20,
+            random_state=random_state,
+            validation_fraction=0.1,
+            n_iter_no_change=5
+        )
     
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore', category=ConvergenceWarning)
         warnings.filterwarnings('ignore', category=UserWarning)
+        warnings.filterwarnings('ignore')
         
         if use_rfecv:
             cv = StratifiedKFold(n_splits=cv_folds, shuffle=True, random_state=random_state)
             
             selector = RFECV(
                 estimator=estimator,
-                step=1,
+                step=step,
                 cv=cv,
                 scoring=scoring,
                 min_features_to_select=min_features,
@@ -1234,7 +1676,7 @@ def rfe_select(
             selector = RFE(
                 estimator=estimator,
                 n_features_to_select=n_features_to_select,
-                step=1
+                step=step
             )
             
             selector.fit(X, y)
@@ -1245,7 +1687,7 @@ def rfe_select(
         selector = RFE(
             estimator=estimator,
             n_features_to_select=max_features,
-            step=1
+            step=step
         )
         selector.fit(X, y)
         optimal_n = max_features
