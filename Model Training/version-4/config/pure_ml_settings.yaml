@@ -51,20 +51,17 @@ config_space:
   # Take Profit in pips - range to test
   tp_pips:
     min: 30
-    max: 120
+    max: 80
     step: 10
   
   # Stop Loss in pips - FIXED (to simplify search space)
   # Using 40 pips as a sensible default for 4H EUR/USD
-  sl_pips:
-    min: 30
-    max: 50
-    step: 10
+  sl_pips: 40
   
   # Maximum holding period in bars
   max_holding_bars:
     min: 12
-    max: 48
+    max: 30
     step: 6
 
 # -----------------------------------------------------------------------------

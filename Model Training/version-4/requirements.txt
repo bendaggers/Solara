@@ -1,0 +1,22 @@
+# Pure ML Pipeline Requirements
+# ==============================
+
+# Core dependencies
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.1.0
+PyYAML>=6.0
+
+# Model training (optional but recommended for speed)
+lightgbm>=3.3.0
+
+# Acceleration (optional but recommended for speed)
+numba>=0.56.0
+
+# Serialization
+joblib>=1.1.0
+
+# Development (optional)
+# pytest>=7.0.0
+# black>=22.0.0
+# flake8>=5.0.0
