@@ -1,59 +1,119 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# Solara AI Quant — Feature Version Schemas
-# ═══════════════════════════════════════════════════════════════════════════════
-#
-# Each version defines the exact list of feature columns a model expects.
-# A model's feature_version in model_registry.yaml must match a key here.
-#
-# When you add new features to feature_engineer.py:
-#   1. Define a new version key below (e.g. v4)
-#   2. List ALL columns the new model needs (not just the new ones)
-#   3. Update the model's feature_version in model_registry.yaml
-#   4. Old models keep their old version — they are unaffected
-#
-# The Feature Validator checks this at startup and before every cycle.
-# A model missing any required column is skipped — never runs on wrong features.
-# ═══════════════════════════════════════════════════════════════════════════════
+# Solara AI Quant - Feature Versions Registry
+# 
+# Each model is trained on a specific feature version.
+# The engine checks model.feature_version against computed features.
+# If any required feature is missing, the model is skipped.
 
 versions:
-
   v1:
-    columns:
-      - ret
-      - ret_lag1
-      - body_size
-      - candle_body_pct
-      - rsi_value
-
+    description: "Basic features - BB, RSI, ATR, Volume"
+    created: "2025-01-01"
+    deprecated: false
+    features:
+      # OHLCV Base
+      - open
+      - high
+      - low
+      - close
+      - volume
+      
+      # Bollinger Bands
+      - lower_band
+      - middle_band
+      - upper_band
+      - bb_position        # (close - lower) / (upper - lower)
+      - bb_width_pct       # (upper - lower) / middle
+      
+      # RSI
+      - rsi_value          # RSI(14)
+      
+      # Volume
+      - volume_ratio       # Current volume / MA(20) volume
+      
+      # ATR
+      - atr_pct            # ATR / close
+      
+      # Trend
+      - trend_strength     # Price vs EMAs
+      
   v2:
-    columns:
-      - ret
-      - ret_lag1
-      - ret_lag2
-      - body_size
+    description: "Extended features - adds candle patterns, momentum"
+    created: "2025-02-01"
+    deprecated: false
+    extends: v1
+    features:
+      # All v1 features plus:
+      
+      # Candle Patterns
       - candle_body_pct
-      - rsi_value
-      - rsi_slope
-      - rsi_slope_lag1
-      - dist_bb_upper
+      - candle_rejection
+      - prev_candle_body_pct
+      - prev_volume_ratio
+      
+      # Momentum
+      - price_momentum
+      - gap_from_prev_close
+      
+      # BB Touch
+      - bb_touch_strength
+      - previous_touches
+      - time_since_last_touch
+      - resistance_distance_pct
 
   v3:
-    columns:
-      - ret
-      - ret_lag1
-      - ret_lag2
-      - ret_lag3
-      - body_size
-      - candle_body_pct
-      - rsi_value
-      - rsi_slope
-      - rsi_slope_lag1
-      - rsi_slope_lag2
-      - rsi_slope_lag3
-      - RSI_slope_3
-      - dist_bb_upper
-      - dist_bb_lower
-      - dist_bb_upper_lag1
-      - dist_bb_upper_lag2
-      - dist_bb_upper_lag3
-      - price_momentum
+    description: "Stella Alpha features - full feature set for MTF"
+    created: "2025-03-01"
+    deprecated: false
+    extends: v2
+    features:
+      # All v2 features plus:
+      
+      # Session/Time
+      - hour
+      - day_of_week
+      - is_asian_session
+      - is_london_session
+      - is_ny_session
+      - is_overlap_session
+      
+      # RSI Advanced
+      - rsi_slope_3
+      - rsi_slope_5
+      - rsi_percentile
+      - rsi_overbought       # RSI > 70
+      - rsi_extreme          # RSI > 80
+      
+      # BB Advanced
+      - bb_squeeze           # Width < percentile 20
+      - bb_expansion
+      - dist_from_upper
+      - dist_from_lower
+      
+      # Trend Advanced
+      - adx
+      - trend_direction      # +1 bullish, -1 bearish
+      - is_trending          # ADX > 25
+      
+      # Volatility
+      - atr_percentile
+      - volatility_regime    # low/medium/high
+      
+      # D1 Features (from merge)
+      - d1_rsi_value
+      - d1_bb_position
+      - d1_trend_strength
+      - d1_trend_direction
+      - d1_atr_pct
+      - d1_is_trending
+      
+      # Cross-Timeframe
+      - mtf_rsi_aligned      # H4 and D1 RSI both overbought
+      - mtf_bb_aligned       # H4 and D1 both near upper BB
+      - mtf_trend_aligned    # H4 and D1 same direction
+      - mtf_confluence_score # Combined alignment score
+
+# Model-to-version mapping (for reference, actual mapping is in model_registry.yaml)
+model_requirements:
+  stella_alpha_long: v3
+  bb_reversal_short: v2
+  momentum_scalp: v1

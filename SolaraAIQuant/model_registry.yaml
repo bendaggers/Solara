@@ -1,142 +1,102 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# Solara AI Quant — Model Registry
-# ═══════════════════════════════════════════════════════════════════════════════
+# Solara AI Quant - Model Registry
+# 
+# Register all ML models here. Each model must have:
+# - Unique name and magic number
+# - Class path to predictor implementation
+# - Model file (.pkl) in Models/ directory
+# - Feature version it was trained on
 #
-# This is the ONLY file you edit to add, remove, or toggle a model.
-# No Python code changes are required anywhere else.
-#
-# ADDING A NEW MODEL:
-#   1. Train model → save .pkl to Models/ directory
-#   2. Create predictor class → predictors/[your_strategy].py
-#   3. Add entry below with all required fields
-#   4. Set enabled: true
-#   5. Restart SAQ (or hot-reload in Phase 3)
-#
-# MAGIC NUMBER CONVENTION:
-#   Format: [StrategyID][TimeframeCode][Sequence]
-#   StrategyID: 20xxxx=BB Reversal, 30xxxx=RSI, 40xxxx=MACD, 50xxxx=Custom
-#   TimeframeCode (3rd digit): x0xxxx=H4, x1xxxx=H1, x2xxxx=M15, x3xxxx=M5
-#   Example: 201000 = BB Reversal, H4, model #1
-#
-# FIELD REFERENCE:
-#   name           str    Unique human-readable label (shown in logs & dashboard)
-#   class_path     str    Python import path: module.ClassName
-#   model_file     str    .pkl filename inside Models/ directory
-#   feature_version str   Must match a version key in features/feature_versions.yaml
-#   model_type     str    LONG or SHORT
-#   timeframe      str    M5 | M15 | H1 | H4
-#   min_confidence float  Minimum confidence to generate a signal (0.01–1.00)
-#   weight         float  Aggregation weight (0.1–2.0)
-#   priority       int    Queue priority — lower number runs first (1–100)
-#   timeout        int    Per-model execution timeout in seconds (5–300)
-#   magic          int    UNIQUE MT5 magic number — no two models may share one
-#   comment        str    MT5 trade comment prefix (confidence appended at runtime)
-#   enabled        bool   false = model is registered but excluded from all cycles
-#   max_positions  int    Max simultaneous open positions for this model (1–20)
-#   symbols        list   Symbol whitelist — empty list means all symbols in data
-# ═══════════════════════════════════════════════════════════════════════════════
+# To add a new model:
+# 1. Train the model and save to Models/<name>.pkl
+# 2. Create predictor class in predictors/<strategy>.py
+# 3. Add entry here with unique magic number
+# 4. Restart SAQ
 
 models:
-
-  # ── BB Reversal Long H4 ────────────────────────────────────────────────────
-  - name: "BB Reversal Long H4 v2"
-    class_path: "predictors.bb_reversal_long.BBReversalLongPredictor"
-    model_file: "BB_LONG_REVERSAL_Model.pkl"
+  # =========================================================================
+  # STELLA ALPHA - Primary Model (MTF Trend Following LONG)
+  # =========================================================================
+  - name: "Stella Alpha Long"
+    description: "Multi-timeframe trend following LONG strategy using H4+D1 confluence"
+    class_path: "predictors.stella_alpha_long.StellaAlphaLongPredictor"
+    model_file: "stella_alpha_long.pkl"
     feature_version: "v3"
     model_type: "LONG"
     timeframe: "H4"
-    min_confidence: 0.65
-    weight: 1.0
-    priority: 1
-    timeout: 30
-    magic: 201000
-    comment: "SAQ_BBLong_H4"
-    enabled: false
-    max_positions: 3
-    symbols: []
-
-  # ── BB Reversal Short H4 ───────────────────────────────────────────────────
-  - name: "BB Reversal Short H4 v2"
-    class_path: "predictors.bb_reversal_short.BBReversalShortPredictor"
-    model_file: "BB_SHORT_REVERSAL_Model_v2.pkl"
-    feature_version: "v3"
-    model_type: "SHORT"
-    timeframe: "H4"
-    min_confidence: 0.70
-    weight: 1.0
-    priority: 1
-    timeout: 30
-    magic: 202000
-    comment: "SAQ_BBShort_H4"
-    enabled: false
-    max_positions: 3
-    symbols: []
-
-  # ── DUMMY MODELS FOR TESTING ──────────────────────────────────────────────
-  # Dummy M5 Long model
-  - name: "Dummy Random Long M5"
-    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
-    model_file: ""  # No .pkl file needed for dummy
-    feature_version: "v3"
-    model_type: "LONG"
-    timeframe: "M5"
-    min_confidence: 0.60
-    weight: 1.0
-    priority: 10
-    timeout: 5
-    magic: 503000  # Custom strategy (50xxxx), M5 timeframe (x3xxxx)
-    comment: "SAQ_DummyLong_M5"
+    
+    # Prediction settings
+    min_confidence: 0.45          # Minimum probability to generate signal
+    threshold: 0.45               # Decision threshold (from training)
+    
+    # Aggregation
+    weight: 1.0                   # Weight in signal aggregation
+    priority: 1                   # Lower = runs first
+    
+    # Execution
+    timeout: 30                   # Max seconds for prediction
+    magic: 100001                 # Unique MT5 magic number
+    comment: "SAQ_StellaAlpha"    # Trade comment
+    
+    # Position management
+    max_positions: 3              # Max concurrent positions for this model
+    
+    # Trade parameters (from Stella Alpha training)
+    tp_pips: 100                  # Take profit
+    sl_pips: 50                   # Stop loss
+    max_holding_bars: 72          # Max bars before forced close
+    
+    # Filters
+    symbols: []                   # Empty = all symbols; or ["EURUSD", "GBPUSD"]
+    
+    # Status
     enabled: true
-    max_positions: 2
-    symbols: []
 
-  # Dummy M15 Short model
-  - name: "Dummy Random Short M15"
-    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
-    model_file: ""
-    feature_version: "v3"
-    model_type: "SHORT"
-    timeframe: "M15"
-    min_confidence: 0.65
-    weight: 1.0
-    priority: 10
-    timeout: 5
-    magic: 502000  # Custom strategy (50xxxx), M15 timeframe (x2xxxx)
-    comment: "SAQ_DummyShort_M15"
-    enabled: true
-    max_positions: 2
-    symbols: []
-
-  # Dummy H1 Long model
-  - name: "Dummy Random Long H1"
-    class_path: "predictors.dummy_predictor.DummyRandomPredictor"
-    model_file: ""
-    feature_version: "v3"
-    model_type: "LONG"
-    timeframe: "H1"
-    min_confidence: 0.70
-    weight: 1.0
-    priority: 10
-    timeout: 5
-    magic: 501000  # Custom strategy (50xxxx), H1 timeframe (x1xxxx)
-    comment: "SAQ_DummyLong_H1"
-    enabled: true
-    max_positions: 2
-    symbols: []
-
-  # ── TEMPLATE — copy this block to add a new model ─────────────────────────
-  # - name: "Strategy Name TF vN"
-  #   class_path: "predictors.your_module.YourPredictorClass"
-  #   model_file: "YOUR_MODEL_vN.pkl"
-  #   feature_version: "v3"
-  #   model_type: "LONG"          # LONG or SHORT
-  #   timeframe: "M15"            # M5 | M15 | H1 | H4
-  #   min_confidence: 0.70
+  # =========================================================================
+  # EXAMPLE: BB Reversal Short (Template for future models)
+  # =========================================================================
+  # - name: "BB Reversal Short"
+  #   description: "Bollinger Band mean reversion SHORT strategy"
+  #   class_path: "predictors.bb_reversal_short.BBReversalShortPredictor"
+  #   model_file: "bb_reversal_short.pkl"
+  #   feature_version: "v2"
+  #   model_type: "SHORT"
+  #   timeframe: "H4"
+  #   min_confidence: 0.55
+  #   threshold: 0.55
   #   weight: 1.0
   #   priority: 2
   #   timeout: 30
-  #   magic: 301000               # MUST be unique across all entries
-  #   comment: "SAQ_YourStrategy"
-  #   enabled: false              # set true when ready
-  #   max_positions: 3
-  #   symbols: []                 # [] = all symbols, or ["EURUSD", "GBPUSD"]
+  #   magic: 100002
+  #   comment: "SAQ_BBRevShort"
+  #   max_positions: 2
+  #   tp_pips: 30
+  #   sl_pips: 50
+  #   max_holding_bars: 36
+  #   symbols: ["EURUSD"]
+  #   enabled: false
+
+# =========================================================================
+# MAGIC NUMBER CONVENTION
+# =========================================================================
+# 
+# Format: XXYYZZ
+# XX = Strategy ID (10-99)
+# YY = Timeframe (01=M5, 02=M15, 03=H1, 04=H4, 05=D1)
+# ZZ = Variant (01-99)
+#
+# Examples:
+#   100001 = Strategy 10, H4, Variant 01 (Stella Alpha)
+#   100401 = Strategy 10, H4, Variant 01 
+#   200301 = Strategy 20, H1, Variant 01
+#   300201 = Strategy 30, M15, Variant 01
+
+# =========================================================================
+# FEATURE VERSIONS
+# =========================================================================
+#
+# v1: Basic features (BB, RSI, ATR, Volume)
+# v2: Extended features (+candle patterns, momentum)
+# v3: Full MTF features (+D1, cross-timeframe, session)
+#
+# Models must specify which version they were trained on.
+# The engine validates features before running predictions.

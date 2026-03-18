@@ -1,153 +1,150 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# Solara AI Quant — Survivor Engine Stage Definitions
-# ═══════════════════════════════════════════════════════════════════════════════
+# Solara AI Quant - Survivor Engine Stage Definitions
+# 
+# 22-stage progressive trailing stop system
+# Each stage defines:
+#   - trigger_pips: Profit level to activate this stage
+#   - protection_pct: Percentage of profit to protect via SL
+#   - tp_adjustment: Optional TP adjustment
 #
-# 22 stages of progressive position protection.
-# Each stage activates when pips_in_profit >= threshold_pips.
-# protection_pct: fraction of max-reached profit that the SL locks in.
-# tp_active: whether the take-profit order remains active at this stage.
-#
-# Rules:
-#   - Stages only advance forward — never revert.
-#   - SL is only ever moved in the direction of profit protection.
-#   - From Stage 14 onwards, TP is removed (pure trailing).
-# ═══════════════════════════════════════════════════════════════════════════════
+# Example: Stage 5 with trigger_pips=50 and protection_pct=0.50
+#   - Activates when position is 50+ pips in profit
+#   - Moves SL to lock in 50% of the profit (25 pips above entry for LONG)
 
+version: "1.0"
+description: "22-Stage Progressive Trailing Stop System"
+
+# Global settings
+settings:
+  min_profit_to_start: 10        # Minimum pips profit before any trailing
+  check_interval_seconds: 60     # How often to check positions
+  use_server_time: true          # Use MT5 server time for checks
+  pip_buffer: 2                  # Buffer pips to account for spread
+
+# Stage definitions
 stages:
-  STAGE_0:
-    threshold_pips: 0
-    protection_pct: 0.00
-    tp_active: true
-    description: "Entry — SL at initial position, full TP active"
+  # Stage 0: Initial (no protection)
+  - stage: 0
+    trigger_pips: 0
+    protection_pct: 0.0
+    description: "Initial - no trailing yet"
 
-  STAGE_1:
-    threshold_pips: 8
-    protection_pct: 0.10
-    tp_active: true
-    description: "Initial Lock — 10% of max profit protected"
-
-  STAGE_2:
-    threshold_pips: 10
-    protection_pct: 0.15
-    tp_active: true
-    description: "Building — 15% locked"
-
-  STAGE_3:
-    threshold_pips: 15
+  # Stage 1-5: Early protection (conservative)
+  - stage: 1
+    trigger_pips: 10
     protection_pct: 0.20
-    tp_active: true
-    description: "Developing — 20% protected"
+    description: "First trigger - protect 20%"
 
-  STAGE_4:
-    threshold_pips: 20
+  - stage: 2
+    trigger_pips: 15
     protection_pct: 0.25
-    tp_active: true
-    description: "Base Secure — 25% locked"
+    description: "Protect 25%"
 
-  STAGE_5:
-    threshold_pips: 25
+  - stage: 3
+    trigger_pips: 20
     protection_pct: 0.30
-    tp_active: true
-    description: "Quarter Lock — 30% protected"
+    description: "Protect 30%"
 
-  STAGE_6:
-    threshold_pips: 30
+  - stage: 4
+    trigger_pips: 25
     protection_pct: 0.35
-    tp_active: true
-    description: "Growing — 35% locked"
+    description: "Protect 35%"
 
-  STAGE_7:
-    threshold_pips: 35
+  - stage: 5
+    trigger_pips: 30
     protection_pct: 0.40
-    tp_active: true
-    description: "Approaching Half — 40% protected"
+    description: "Protect 40%"
 
-  STAGE_8:
-    threshold_pips: 40
+  # Stage 6-10: Building protection
+  - stage: 6
+    trigger_pips: 35
     protection_pct: 0.45
-    tp_active: true
-    description: "Near Half — 45% locked"
+    description: "Protect 45%"
 
-  STAGE_9:
-    threshold_pips: 45
+  - stage: 7
+    trigger_pips: 40
     protection_pct: 0.50
-    tp_active: true
-    description: "Half Lock — exactly 50% of max profit protected"
+    description: "Protect 50%"
 
-  STAGE_10:
-    threshold_pips: 50
+  - stage: 8
+    trigger_pips: 45
+    protection_pct: 0.52
+    description: "Protect 52%"
+
+  - stage: 9
+    trigger_pips: 50
     protection_pct: 0.55
-    tp_active: true
-    description: "Majority — 55% locked"
+    description: "Protect 55%"
 
-  STAGE_11:
-    threshold_pips: 55
+  - stage: 10
+    trigger_pips: 55
+    protection_pct: 0.58
+    description: "Protect 58%"
+
+  # Stage 11-15: Strong protection
+  - stage: 11
+    trigger_pips: 60
     protection_pct: 0.60
-    tp_active: true
-    description: "Solid — 60% protected"
+    description: "Protect 60%"
 
-  STAGE_12:
-    threshold_pips: 60
+  - stage: 12
+    trigger_pips: 65
+    protection_pct: 0.62
+    description: "Protect 62%"
+
+  - stage: 13
+    trigger_pips: 70
     protection_pct: 0.65
-    tp_active: true
-    description: "Strong — 65% locked"
+    description: "Protect 65%"
 
-  STAGE_13:
-    threshold_pips: 65
+  - stage: 14
+    trigger_pips: 75
+    protection_pct: 0.68
+    description: "Protect 68%"
+
+  - stage: 15
+    trigger_pips: 80
     protection_pct: 0.70
-    tp_active: true
-    description: "Dominant — 70% protected, TP still active"
+    description: "Protect 70%"
 
-  STAGE_14:
-    threshold_pips: 70
+  # Stage 16-19: Aggressive protection
+  - stage: 16
+    trigger_pips: 90
     protection_pct: 0.72
-    tp_active: false
-    description: "Trail Start — TP removed, pure trailing begins, 72% locked"
+    description: "Protect 72%"
 
-  STAGE_15:
-    threshold_pips: 80
+  - stage: 17
+    trigger_pips: 100
     protection_pct: 0.75
-    tp_active: false
-    description: "Trail Active — 75% protected"
+    description: "Protect 75% - Runner territory"
 
-  STAGE_16:
-    threshold_pips: 90
+  - stage: 18
+    trigger_pips: 120
     protection_pct: 0.78
-    tp_active: false
-    description: "Trail Strong — 78% locked"
+    description: "Protect 78%"
 
-  STAGE_17:
-    threshold_pips: 100
+  - stage: 19
+    trigger_pips: 140
     protection_pct: 0.80
-    tp_active: false
-    description: "Full Lock — 80% of max profit protected"
+    description: "Protect 80%"
 
-  STAGE_18:
-    threshold_pips: 120
+  # Stage 20-22: Maximum protection (let it run)
+  - stage: 20
+    trigger_pips: 160
     protection_pct: 0.82
-    tp_active: false
-    description: "Secure — 82% locked"
+    description: "Protect 82%"
 
-  STAGE_19:
-    threshold_pips: 130
-    protection_pct: 0.84
-    tp_active: false
-    description: "Very Secure — 84% protected"
+  - stage: 21
+    trigger_pips: 180
+    protection_pct: 0.85
+    description: "Protect 85%"
 
-  STAGE_20:
-    threshold_pips: 150
-    protection_pct: 0.86
-    tp_active: false
-    description: "Excellent — 86% locked"
-
-  STAGE_21:
-    threshold_pips: 180
+  - stage: 22
+    trigger_pips: 200
     protection_pct: 0.88
-    tp_active: false
-    description: "Superior — 88% protected"
+    description: "Maximum protection - 88%"
 
-  STAGE_22:
-    threshold_pips: 200
-    protection_pct: 0.90
-    tp_active: false
-    description: "Maximum — 90% of max profit locked in, peak protection"
+# Notes:
+# - Stages only move forward (never backward)
+# - SL is calculated: entry_price + (current_profit_pips * protection_pct * pip_value)
+# - For SHORT positions, signs are reversed
+# - TP is not modified by Survivor Engine (set by model)

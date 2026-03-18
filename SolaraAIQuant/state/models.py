@@ -1,136 +1,253 @@
 """
-state/models.py — SQLAlchemy ORM Models
-=========================================
-All 6 SAQ database tables as defined in FS Section 10.
+Solara AI Quant - Database Models
+
+SQLAlchemy ORM models for persistent state tracking.
 """
+
 from datetime import datetime
-from sqlalchemy import Column, Integer, Float, String, Boolean, DateTime, ForeignKey
-from state.database import Base
+from typing import Optional
+from sqlalchemy import (
+    Column, Integer, String, Float, Boolean, DateTime, 
+    Text, ForeignKey, create_engine, Index
+)
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
 
 
 class PositionState(Base):
-    """Current Survivor Engine stage and protection level for each open position."""
-    __tablename__ = "position_state"
-
-    id              = Column(Integer, primary_key=True, autoincrement=True)
-    ticket          = Column(Integer, nullable=False, unique=True)
-    symbol          = Column(String, nullable=False)
-    magic           = Column(Integer, nullable=False)
-    model_name      = Column(String, nullable=False)
-    timeframe       = Column(String, nullable=False)
-    position_type   = Column(String, nullable=False)    # LONG | SHORT
-    entry_price     = Column(Float, nullable=False)
-    volume          = Column(Float, nullable=False)
-    initial_sl      = Column(Float, nullable=False)
-    initial_tp      = Column(Float)
-    current_sl      = Column(Float, nullable=False)
-    current_tp      = Column(Float)
-    current_stage   = Column(String, nullable=False, default="STAGE_0")
-    highest_price   = Column(Float, nullable=False)
-    lowest_price    = Column(Float, nullable=False)
-    opened_at       = Column(DateTime, nullable=False)
-    last_updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    closed          = Column(Boolean, nullable=False, default=False)
-    closed_at       = Column(DateTime)
-    close_reason    = Column(String)                    # SL_HIT | TP_HIT | MANUAL | UNKNOWN
+    """
+    Tracks the current state of open positions for Survivor Engine.
+    """
+    __tablename__ = 'position_state'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ticket = Column(Integer, unique=True, nullable=False, index=True)
+    symbol = Column(String(20), nullable=False)
+    magic = Column(Integer, nullable=False, index=True)
+    
+    # Position details
+    direction = Column(String(10), nullable=False)  # 'LONG' or 'SHORT'
+    entry_price = Column(Float, nullable=False)
+    volume = Column(Float, nullable=False)
+    
+    # Survivor state
+    current_stage = Column(Integer, default=0)
+    current_sl = Column(Float, nullable=True)
+    current_tp = Column(Float, nullable=True)
+    
+    # Profit tracking
+    highest_price = Column(Float, nullable=True)  # For long positions
+    lowest_price = Column(Float, nullable=True)   # For short positions
+    max_profit_pips = Column(Float, default=0)
+    
+    # Timestamps
+    opened_at = Column(DateTime, nullable=False)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship to transitions
+    transitions = relationship("StageTransitionLog", back_populates="position")
+    
+    __table_args__ = (
+        Index('idx_position_magic', 'magic'),
+        Index('idx_position_symbol', 'symbol'),
+    )
 
 
 class StageTransitionLog(Base):
-    """Immutable append-only log of every stage advancement."""
-    __tablename__ = "stage_transition_log"
-
-    id               = Column(Integer, primary_key=True, autoincrement=True)
-    ticket           = Column(Integer, nullable=False)
-    symbol           = Column(String, nullable=False)
-    magic            = Column(Integer, nullable=False)
-    from_stage       = Column(String, nullable=False)
-    to_stage         = Column(String, nullable=False)
-    pips_in_profit   = Column(Float, nullable=False)
-    protection_pct   = Column(Float, nullable=False)
-    old_sl           = Column(Float, nullable=False)
-    new_sl           = Column(Float, nullable=False)
-    old_tp           = Column(Float)
-    new_tp           = Column(Float)
-    transitioned_at  = Column(DateTime, nullable=False, default=datetime.utcnow)
-    mt5_confirmed    = Column(Boolean, nullable=False, default=False)
+    """
+    Append-only log of Survivor stage transitions.
+    """
+    __tablename__ = 'stage_transition_log'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    position_id = Column(Integer, ForeignKey('position_state.id'), nullable=False)
+    ticket = Column(Integer, nullable=False, index=True)
+    
+    # Transition details
+    from_stage = Column(Integer, nullable=False)
+    to_stage = Column(Integer, nullable=False)
+    trigger_pips = Column(Float, nullable=False)  # Pips at transition
+    
+    # New SL/TP set
+    new_sl = Column(Float, nullable=True)
+    new_tp = Column(Float, nullable=True)
+    protection_pct = Column(Float, nullable=True)
+    
+    # Timestamp
+    transitioned_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    position = relationship("PositionState", back_populates="transitions")
 
 
 class ModelRun(Base):
-    """Every model execution attempt — success, failure, or timeout."""
-    __tablename__ = "model_run"
-
-    id                 = Column(Integer, primary_key=True, autoincrement=True)
-    model_name         = Column(String, nullable=False)
-    timeframe          = Column(String, nullable=False)
-    cycle_triggered_at = Column(DateTime)
-    run_started_at     = Column(DateTime, nullable=False)
-    run_completed_at   = Column(DateTime)
-    elapsed_seconds    = Column(Float)
-    status             = Column(String, nullable=False)    # SUCCESS|FAILED|TIMEOUT|EMPTY
-    signals_generated  = Column(Integer, nullable=False, default=0)
-    error_message      = Column(String)
-    batch_number       = Column(Integer, nullable=False)
-    worker_id          = Column(String)
+    """
+    Records each model execution for analytics.
+    """
+    __tablename__ = 'model_run'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Identification
+    model_name = Column(String(100), nullable=False, index=True)
+    timeframe = Column(String(10), nullable=False)
+    batch_id = Column(String(50), nullable=True)  # Links models run together
+    
+    # Execution
+    status = Column(String(20), nullable=False)  # SUCCESS, FAILED, TIMEOUT, EMPTY
+    execution_time_ms = Column(Integer, nullable=True)
+    error_message = Column(Text, nullable=True)
+    
+    # Results
+    signals_generated = Column(Integer, default=0)
+    signals_passed = Column(Integer, default=0)  # After risk check
+    
+    # Timestamp
+    run_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    __table_args__ = (
+        Index('idx_model_run_status', 'status'),
+        Index('idx_model_run_timeframe', 'timeframe'),
+    )
 
 
 class SignalLog(Base):
-    """Every signal produced — whether acted on or not."""
-    __tablename__ = "signal_log"
-
-    id                  = Column(Integer, primary_key=True, autoincrement=True)
-    model_name          = Column(String, nullable=False)
-    magic               = Column(Integer, nullable=False)
-    symbol              = Column(String, nullable=False)
-    direction           = Column(String, nullable=False)   # LONG | SHORT
-    confidence          = Column(Float, nullable=False)
-    timeframe           = Column(String, nullable=False)
-    price_at_signal     = Column(Float, nullable=False)
-    signal_at           = Column(DateTime, nullable=False)
-    aggregation_outcome = Column(String, nullable=False)   # PASSED|SUPPRESSED_CONFLICT|BELOW_THRESHOLD
-    risk_outcome        = Column(String)                   # PASSED|REJECTED_*
-    trade_ticket        = Column(Integer)
-    trade_outcome       = Column(String)                   # PLACED|FAILED|REJECTED
+    """
+    Records every signal generated by models.
+    """
+    __tablename__ = 'signal_log'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Signal identification
+    model_name = Column(String(100), nullable=False)
+    symbol = Column(String(20), nullable=False)
+    direction = Column(String(10), nullable=False)  # LONG or SHORT
+    
+    # Signal strength
+    confidence = Column(Float, nullable=False)
+    weight = Column(Float, default=1.0)
+    
+    # Aggregation result
+    aggregation_status = Column(String(20), nullable=True)  # PASSED, SUPPRESSED, CONFLICTED
+    
+    # Risk check result
+    risk_status = Column(String(20), nullable=True)  # PASSED, REJECTED_DRAWDOWN, etc.
+    rejection_reason = Column(String(100), nullable=True)
+    
+    # Trade result (if executed)
+    trade_ticket = Column(Integer, nullable=True)
+    
+    # Timestamp
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    __table_args__ = (
+        Index('idx_signal_model', 'model_name'),
+        Index('idx_signal_symbol', 'symbol'),
+    )
 
 
 class TradeLog(Base):
-    """Every trade placement attempt."""
-    __tablename__ = "trade_log"
-
-    id               = Column(Integer, primary_key=True, autoincrement=True)
-    signal_log_id    = Column(Integer, ForeignKey("signal_log.id"))
-    model_name       = Column(String, nullable=False)
-    magic            = Column(Integer, nullable=False)
-    symbol           = Column(String, nullable=False)
-    direction        = Column(String, nullable=False)
-    lot_size         = Column(Float, nullable=False)
-    requested_price  = Column(Float, nullable=False)
-    fill_price       = Column(Float)
-    sl               = Column(Float, nullable=False)
-    tp               = Column(Float)
-    ticket           = Column(Integer)
-    mt5_result_code  = Column(Integer)
-    status           = Column(String, nullable=False)      # PLACED|FAILED|REJECTED
-    failure_reason   = Column(String)
-    attempts         = Column(Integer, nullable=False, default=1)
-    attempted_at     = Column(DateTime, nullable=False)
-    confirmed_at     = Column(DateTime)
-    timeframe        = Column(String, nullable=False)
+    """
+    Records every trade attempt.
+    """
+    __tablename__ = 'trade_log'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Trade identification
+    ticket = Column(Integer, nullable=True, index=True)  # NULL if failed
+    symbol = Column(String(20), nullable=False)
+    direction = Column(String(10), nullable=False)
+    magic = Column(Integer, nullable=False)
+    model_name = Column(String(100), nullable=True)
+    
+    # Order details
+    volume = Column(Float, nullable=False)
+    entry_price = Column(Float, nullable=True)
+    sl_price = Column(Float, nullable=True)
+    tp_price = Column(Float, nullable=True)
+    
+    # Result
+    status = Column(String(20), nullable=False)  # FILLED, REJECTED, FAILED
+    mt5_retcode = Column(Integer, nullable=True)
+    mt5_comment = Column(String(200), nullable=True)
+    
+    # Timestamps
+    requested_at = Column(DateTime, default=datetime.utcnow)
+    filled_at = Column(DateTime, nullable=True)
+    
+    __table_args__ = (
+        Index('idx_trade_magic', 'magic'),
+        Index('idx_trade_status', 'status'),
+    )
 
 
 class ModelHealth(Base):
-    """Per-model health record — one row per model, updated each cycle."""
-    __tablename__ = "model_health"
+    """
+    Tracks health and performance of each model.
+    """
+    __tablename__ = 'model_health'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    model_name = Column(String(100), unique=True, nullable=False)
+    
+    # Status
+    is_enabled = Column(Boolean, default=True)
+    auto_disabled = Column(Boolean, default=False)
+    auto_disabled_reason = Column(String(200), nullable=True)
+    
+    # Counters
+    total_runs = Column(Integer, default=0)
+    successful_runs = Column(Integer, default=0)
+    failed_runs = Column(Integer, default=0)
+    timeout_runs = Column(Integer, default=0)
+    empty_runs = Column(Integer, default=0)
+    consecutive_failures = Column(Integer, default=0)
+    
+    # Performance
+    total_signals = Column(Integer, default=0)
+    total_trades = Column(Integer, default=0)
+    avg_execution_time_ms = Column(Float, nullable=True)
+    
+    # Timestamps
+    last_run_at = Column(DateTime, nullable=True)
+    last_run_status = Column(String(20), nullable=True)
+    first_run_at = Column(DateTime, nullable=True)
+    disabled_at = Column(DateTime, nullable=True)
+    
+    __table_args__ = (
+        Index('idx_model_health_enabled', 'is_enabled'),
+    )
 
-    model_name             = Column(String, primary_key=True)
-    timeframe              = Column(String, nullable=False)
-    last_run_at            = Column(DateTime)
-    last_run_status        = Column(String)
-    consecutive_failures   = Column(Integer, nullable=False, default=0)
-    total_runs             = Column(Integer, nullable=False, default=0)
-    total_successes        = Column(Integer, nullable=False, default=0)
-    total_failures         = Column(Integer, nullable=False, default=0)
-    total_timeouts         = Column(Integer, nullable=False, default=0)
-    avg_elapsed_seconds    = Column(Float, nullable=False, default=0.0)
-    auto_disabled          = Column(Boolean, nullable=False, default=False)
-    auto_disabled_at       = Column(DateTime)
-    auto_disabled_reason   = Column(String)
+
+class DailyStats(Base):
+    """
+    Daily trading statistics for monitoring.
+    """
+    __tablename__ = 'daily_stats'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    date = Column(String(10), unique=True, nullable=False, index=True)  # YYYY-MM-DD
+    
+    # Trade counts
+    total_trades = Column(Integer, default=0)
+    winning_trades = Column(Integer, default=0)
+    losing_trades = Column(Integer, default=0)
+    
+    # P&L
+    total_pips = Column(Float, default=0)
+    total_profit = Column(Float, default=0)  # In account currency
+    
+    # Model stats
+    model_runs = Column(Integer, default=0)
+    signals_generated = Column(Integer, default=0)
+    signals_rejected = Column(Integer, default=0)
+    
+    # Risk events
+    drawdown_triggered = Column(Boolean, default=False)
+    max_drawdown_pct = Column(Float, nullable=True)
+    
+    # Updated
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

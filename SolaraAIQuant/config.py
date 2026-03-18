@@ -1,153 +1,348 @@
 """
-config.py — Solara AI Quant Master Configuration
-=================================================
-Single source of truth for all system constants, paths, and parameters.
+Solara AI Quant - Configuration Module
 
-All sensitive values (credentials, paths) are loaded from environment
-variables. Never hardcode credentials here.
-
-Usage:
-    from config import config
-    print(config.MAX_CONCURRENT_MODELS)
+Central configuration management for all SAQ components.
+Loads settings from environment variables and provides defaults.
 """
 
 import os
-import logging
+import sys
 from pathlib import Path
+from typing import Optional
+from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
-# ── Load .env file (dev only — prod uses OS env vars directly) ──────────────
+# Load environment variables
 load_dotenv()
 
+# =============================================================================
+# PATH CONFIGURATION
+# =============================================================================
 
-# ── Base Paths ───────────────────────────────────────────────────────────────
-BASE_DIR: Path = Path(__file__).parent.resolve()
-MODELS_DIR: Path = BASE_DIR / "Models"
-STATE_DIR: Path = BASE_DIR / "state"
-LOGS_DIR: Path = BASE_DIR / "logs"
-REPORTS_DIR: Path = BASE_DIR / "reports"
+# Project root (where this file is located)
+PROJECT_ROOT = Path(__file__).parent.absolute()
 
-# ── MT5 Terminal Path ────────────────────────────────────────────────────────
-# Set MT5_TERMINAL_PATH in your .env or OS environment variables.
-# Example: C:\Users\Ben\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075
-MT5_TERMINAL_PATH: Path = Path(
-    os.environ.get(
-        "MT5_TERMINAL_PATH",
-        r"C:\Users\[name]\AppData\Roaming\MetaQuotes\Terminal\[hash]",
-    )
-)
-MT5_FILES_DIR: Path = MT5_TERMINAL_PATH / "MQL5" / "Files"
+# MT5 Terminal path (from env or default)
+MT5_TERMINAL_PATH = Path(os.getenv(
+    'MT5_TERMINAL_PATH',
+    r'C:\Users\Default\AppData\Roaming\MetaQuotes\Terminal'
+))
 
-# ── MT5 Credentials (loaded from environment — never hardcoded) ──────────────
-MT5_LOGIN: int = int(os.environ.get("MT5_LOGIN", "0"))
-MT5_PASSWORD: str = os.environ.get("MT5_PASSWORD", "")
-MT5_SERVER: str = os.environ.get("MT5_SERVER", "")
+# MQL5 Files directory (where EA writes CSVs)
+MQL5_FILES_DIR = MT5_TERMINAL_PATH / 'MQL5' / 'Files'
 
-# ── Environment ───────────────────────────────────────────────────────────────
-SAQ_ENV: str = os.environ.get("SAQ_ENV", "development")
-IS_PRODUCTION: bool = SAQ_ENV == "production"
+# Internal directories
+MODELS_DIR = PROJECT_ROOT / os.getenv('SAQ_MODELS_DIR', 'Models')
+LOGS_DIR = PROJECT_ROOT / os.getenv('SAQ_LOGS_DIR', 'logs')
+STATE_DIR = PROJECT_ROOT / os.getenv('SAQ_STATE_DIR', 'state')
+CONFIG_DIR = PROJECT_ROOT / 'config'
 
-# ── Logging ──────────────────────────────────────────────────────────────────
-LOG_LEVEL: str = os.environ.get("SAQ_LOG_LEVEL", "DEBUG" if not IS_PRODUCTION else "INFO")
+# Ensure directories exist
+for dir_path in [MODELS_DIR, LOGS_DIR, STATE_DIR, CONFIG_DIR]:
+    dir_path.mkdir(parents=True, exist_ok=True)
 
-# ── Watched CSV Files (one per supported timeframe) ──────────────────────────
-WATCHED_FILES: dict[str, Path] = {
-    "M5":  MT5_FILES_DIR / "marketdata_PERIOD_M5.csv",
-    "M15": MT5_FILES_DIR / "marketdata_PERIOD_M15.csv",
-    "H1":  MT5_FILES_DIR / "marketdata_PERIOD_H1.csv",
-    "H4":  MT5_FILES_DIR / "marketdata_PERIOD_H4.csv",
+
+# =============================================================================
+# MT5 CONNECTION
+# =============================================================================
+
+@dataclass
+class MT5Config:
+    """MT5 connection configuration."""
+    login: int = field(default_factory=lambda: int(os.getenv('MT5_LOGIN', '0')))
+    password: str = field(default_factory=lambda: os.getenv('MT5_PASSWORD', ''))
+    server: str = field(default_factory=lambda: os.getenv('MT5_SERVER', ''))
+    terminal_path: Path = field(default_factory=lambda: MT5_TERMINAL_PATH)
+    timeout: int = 60000  # milliseconds
+    portable: bool = False
+
+
+# =============================================================================
+# TIMEFRAME CONFIGURATION
+# =============================================================================
+
+@dataclass
+class TimeframeConfig:
+    """Configuration for watched timeframes."""
+    name: str
+    csv_filename: str
+    mt5_timeframe: int  # MT5 TIMEFRAME constant value
+    
+    @property
+    def csv_path(self) -> Path:
+        return MQL5_FILES_DIR / self.csv_filename
+
+
+# Standard timeframes
+TIMEFRAMES = {
+    'M5': TimeframeConfig('M5', 'marketdata_PERIOD_M5.csv', 5),
+    'M15': TimeframeConfig('M15', 'marketdata_PERIOD_M15.csv', 15),
+    'H1': TimeframeConfig('H1', 'marketdata_PERIOD_H1.csv', 60),
+    'H4': TimeframeConfig('H4', 'marketdata_PERIOD_H4.csv', 240),
+    'D1': TimeframeConfig('D1', 'marketdata_PERIOD_D1.csv', 1440),
 }
 
-SUPPORTED_TIMEFRAMES: list[str] = list(WATCHED_FILES.keys())
 
-# ── Model Registry ───────────────────────────────────────────────────────────
-MODEL_REGISTRY_PATH: Path = BASE_DIR / "model_registry.yaml"
-FEATURE_VERSIONS_PATH: Path = BASE_DIR / "features" / "feature_versions.yaml"
+# =============================================================================
+# DATA INGESTION
+# =============================================================================
 
-# ── Model Execution Engine ────────────────────────────────────────────────────
-# Maximum models running simultaneously within a single timeframe pipeline.
-# 4 pipelines × 8 workers = up to 32 models system-wide at peak load.
-MAX_CONCURRENT_MODELS: int = int(os.environ.get("SAQ_MAX_CONCURRENT_MODELS", "8"))
-
-# ── Survivor Engine ───────────────────────────────────────────────────────────
-# How often the Survivor Engine checks and updates open positions (seconds).
-SURVIVOR_INTERVAL_SECONDS: int = int(
-    os.environ.get("SAQ_SURVIVOR_INTERVAL_SECONDS", "60")
-)
-STAGE_DEFINITIONS_PATH: Path = BASE_DIR / "survivor" / "stage_definitions.yaml"
-
-# ── Risk Management ───────────────────────────────────────────────────────────
-# Maximum daily equity drawdown allowed before all trading halts.
-MAX_DAILY_DRAWDOWN_PCT: float = 0.05        # 5% of starting equity
-
-# Maximum trades per model (magic number) per calendar day.
-MAX_DAILY_TRADES: int = 20 if IS_PRODUCTION else 999
-
-# Risk per trade as a fraction of current account equity.
-MAX_RISK_PER_TRADE: float = 0.02            # 2%
-
-# Default stop loss / take profit in pips (overridable per model in registry).
-DEFAULT_STOP_LOSS_PIPS: int = 30
-DEFAULT_TAKE_PROFIT_PIPS: int = 40
-
-# Maximum slippage accepted on order fill (in points).
-MAX_SLIPPAGE_POINTS: int = 10
-
-# ── Database ──────────────────────────────────────────────────────────────────
-DATABASE_PATH: Path = STATE_DIR / "solara_aq.db"
-DATABASE_URL: str = f"sqlite:///{DATABASE_PATH}"
-
-# ── Feature Engineering ───────────────────────────────────────────────────────
-# Minimum number of historical bars required per symbol to compute all features.
-MIN_LOOKBACK_BARS: int = 30
-
-# Bollinger Band parameters.
-BB_PERIOD: int = 20
-BB_STD_DEV: float = 2.0
-
-# RSI period (Wilder's smoothing).
-RSI_PERIOD: int = 14
-
-# ── Model Health ─────────────────────────────────────────────────────────────
-# Number of consecutive failures before a model is auto-disabled.
-AUTO_DISABLE_AFTER_FAILURES: int = 3
-
-# ── Ensure runtime directories exist ─────────────────────────────────────────
-def ensure_dirs() -> None:
-    """Create required runtime directories if they don't exist."""
-    for d in [STATE_DIR, LOGS_DIR, REPORTS_DIR, REPORTS_DIR / "archive", REPORTS_DIR / "exports"]:
-        d.mkdir(parents=True, exist_ok=True)
+@dataclass
+class IngestionConfig:
+    """Data ingestion configuration."""
+    # Required columns in CSV
+    required_columns: tuple = (
+        'timestamp', 'symbol', 'open', 'high', 'low', 'close',
+        'tick_volume', 'spread', 'price'
+    )
+    
+    # Minimum bars per symbol for processing
+    min_bars_per_symbol: int = 30
+    
+    # Timestamp format from EA
+    timestamp_format: str = '%Y.%m.%d %H:%M:%S'
+    
+    # Drop rows with these conditions
+    drop_invalid_ohlc: bool = True  # high < low
+    drop_null_symbol: bool = True
 
 
-def validate() -> list[str]:
-    """
-    Validate critical config values at startup.
-    Returns a list of error messages. Empty list = all good.
-    """
+# =============================================================================
+# FEATURE ENGINEERING
+# =============================================================================
+
+@dataclass
+class FeatureConfig:
+    """Feature engineering configuration."""
+    # D1 merge settings
+    d1_lookback_shift: int = 1  # Use previous day's D1 (no lookahead)
+    
+    # Feature computation
+    rsi_period: int = 14
+    bb_period: int = 20
+    bb_std: float = 2.0
+    atr_period: int = 14
+    
+    # Feature version for compatibility checking
+    current_version: str = 'v3'
+
+
+# =============================================================================
+# MODEL EXECUTION
+# =============================================================================
+
+@dataclass
+class ExecutionConfig:
+    """Model execution configuration."""
+    # Worker pool
+    max_concurrent_models: int = 8
+    model_timeout_seconds: int = 30
+    
+    # Auto-disable after consecutive failures
+    max_consecutive_failures: int = 3
+    
+    # Model registry file
+    registry_file: Path = field(default_factory=lambda: PROJECT_ROOT / 'model_registry.yaml')
+
+
+# =============================================================================
+# RISK MANAGEMENT
+# =============================================================================
+
+@dataclass
+class RiskConfig:
+    """Risk management configuration."""
+    # Daily limits
+    max_daily_drawdown_pct: float = field(
+        default_factory=lambda: float(os.getenv('MAX_DAILY_DRAWDOWN_PCT', '0.05'))
+    )
+    max_daily_trades: int = field(
+        default_factory=lambda: int(os.getenv('MAX_DAILY_TRADES', '20'))
+    )
+    
+    # Per-trade risk
+    max_risk_per_trade: float = field(
+        default_factory=lambda: float(os.getenv('MAX_RISK_PER_TRADE', '0.02'))
+    )
+    
+    # Lot size limits
+    min_lot: float = 0.01
+    max_lot: float = 10.0
+    
+    # Slippage
+    max_slippage_points: int = field(
+        default_factory=lambda: int(os.getenv('MAX_SLIPPAGE_POINTS', '30'))
+    )
+
+
+# =============================================================================
+# TRADE EXECUTION
+# =============================================================================
+
+@dataclass
+class TradeConfig:
+    """Trade execution configuration."""
+    # Order retry
+    retry_attempts: int = field(
+        default_factory=lambda: int(os.getenv('ORDER_RETRY_ATTEMPTS', '3'))
+    )
+    retry_delay_ms: int = field(
+        default_factory=lambda: int(os.getenv('ORDER_RETRY_DELAY_MS', '500'))
+    )
+    
+    # Magic number base (models add their own offset)
+    magic_base: int = 0
+    
+    # Comment prefix
+    comment_prefix: str = 'SAQ_'
+
+
+# =============================================================================
+# SURVIVOR ENGINE
+# =============================================================================
+
+@dataclass
+class SurvivorConfig:
+    """Survivor engine configuration."""
+    # Check interval
+    check_interval_seconds: int = field(
+        default_factory=lambda: int(os.getenv('SURVIVOR_CHECK_INTERVAL_SECONDS', '60'))
+    )
+    
+    # Stage definitions file
+    stage_definitions_file: Path = field(
+        default_factory=lambda: PROJECT_ROOT / 'survivor' / 'stage_definitions.yaml'
+    )
+    
+    # Position state tracking
+    max_stages: int = 22
+
+
+# =============================================================================
+# WATCHDOG
+# =============================================================================
+
+@dataclass
+class WatchdogConfig:
+    """File watchdog configuration."""
+    # Debounce delay to avoid duplicate triggers
+    debounce_seconds: float = field(
+        default_factory=lambda: float(os.getenv('WATCHDOG_DEBOUNCE_SECONDS', '2'))
+    )
+    
+    # Watched files (built from TIMEFRAMES)
+    @property
+    def watched_files(self) -> list:
+        return [tf.csv_path for tf in TIMEFRAMES.values()]
+
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+
+@dataclass
+class DatabaseConfig:
+    """Database configuration."""
+    # SQLite database file
+    db_path: Path = field(default_factory=lambda: STATE_DIR / 'solara_aq.db')
+    
+    # Connection settings
+    timeout: int = 30
+    check_same_thread: bool = False  # Allow multi-threading with proper locks
+
+
+# =============================================================================
+# LOGGING
+# =============================================================================
+
+@dataclass
+class LoggingConfig:
+    """Logging configuration."""
+    # Log file
+    log_file: Path = field(default_factory=lambda: LOGS_DIR / 'saq.log')
+    
+    # Log levels
+    console_level: str = 'INFO'
+    file_level: str = 'DEBUG'
+    
+    # Format
+    format: str = '%(asctime)s | %(levelname)-8s | %(name)s | %(message)s'
+    date_format: str = '%Y-%m-%d %H:%M:%S'
+    
+    # Rotation
+    max_bytes: int = 10 * 1024 * 1024  # 10MB
+    backup_count: int = 5
+
+
+# =============================================================================
+# ENVIRONMENT
+# =============================================================================
+
+SAQ_ENV = os.getenv('SAQ_ENV', 'development')
+IS_PRODUCTION = SAQ_ENV == 'production'
+IS_DEVELOPMENT = SAQ_ENV == 'development'
+
+# Windows compatibility
+IS_WINDOWS = sys.platform.startswith('win')
+
+
+# =============================================================================
+# GLOBAL CONFIG INSTANCES
+# =============================================================================
+
+mt5_config = MT5Config()
+ingestion_config = IngestionConfig()
+feature_config = FeatureConfig()
+execution_config = ExecutionConfig()
+risk_config = RiskConfig()
+trade_config = TradeConfig()
+survivor_config = SurvivorConfig()
+watchdog_config = WatchdogConfig()
+database_config = DatabaseConfig()
+logging_config = LoggingConfig()
+
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+
+def validate_config() -> bool:
+    """Validate configuration on startup."""
     errors = []
+    
+    # Check MT5 credentials in production
+    if IS_PRODUCTION:
+        if not mt5_config.login:
+            errors.append("MT5_LOGIN not set")
+        if not mt5_config.password:
+            errors.append("MT5_PASSWORD not set")
+        if not mt5_config.server:
+            errors.append("MT5_SERVER not set")
+    
+    # Check model registry exists
+    if not execution_config.registry_file.exists():
+        errors.append(f"Model registry not found: {execution_config.registry_file}")
+    
+    if errors:
+        for error in errors:
+            print(f"CONFIG ERROR: {error}")
+        return False
+    
+    return True
 
-    if MT5_LOGIN == 0:
-        errors.append("MT5_LOGIN not set — add it to your .env file or OS environment")
 
-    if not MT5_PASSWORD:
-        errors.append("MT5_PASSWORD not set — add it to your .env file or OS environment")
-
-    if not MT5_SERVER:
-        errors.append("MT5_SERVER not set — add it to your .env file or OS environment")
-
-    if "[name]" in str(MT5_TERMINAL_PATH) or "[hash]" in str(MT5_TERMINAL_PATH):
-        errors.append(
-            "MT5_TERMINAL_PATH still has placeholder values — "
-            "set MT5_TERMINAL_PATH in your .env file"
-        )
-
-    if not MODEL_REGISTRY_PATH.exists():
-        errors.append(f"model_registry.yaml not found at: {MODEL_REGISTRY_PATH}")
-
-    if not MODELS_DIR.exists():
-        errors.append(f"Models directory not found at: {MODELS_DIR}")
-
-    if MAX_CONCURRENT_MODELS < 1 or MAX_CONCURRENT_MODELS > 64:
-        errors.append(f"MAX_CONCURRENT_MODELS must be between 1 and 64, got: {MAX_CONCURRENT_MODELS}")
-
-    return errors
+def print_config():
+    """Print current configuration (for debugging)."""
+    print("\n" + "=" * 60)
+    print("  SOLARA AI QUANT - CONFIGURATION")
+    print("=" * 60)
+    print(f"  Environment:      {SAQ_ENV}")
+    print(f"  Project Root:     {PROJECT_ROOT}")
+    print(f"  MT5 Terminal:     {MT5_TERMINAL_PATH}")
+    print(f"  MQL5 Files:       {MQL5_FILES_DIR}")
+    print(f"  Models Dir:       {MODELS_DIR}")
+    print(f"  Database:         {database_config.db_path}")
+    print(f"  Max Workers:      {execution_config.max_concurrent_models}")
+    print(f"  Max Daily DD:     {risk_config.max_daily_drawdown_pct * 100}%")
+    print(f"  Risk per Trade:   {risk_config.max_risk_per_trade * 100}%")
+    print("=" * 60 + "\n")
