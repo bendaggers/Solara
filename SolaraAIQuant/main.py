@@ -190,8 +190,7 @@ class SolaraAIQuant:
             logger.info("Initializing execution engine...")
             from engine.execution_engine import ExecutionEngine
             self.execution_engine = ExecutionEngine(
-                model_registry=self.model_registry,
-                db_manager=self.db_manager
+                registry=self.model_registry
             )
             logger.info("  Execution engine ready")
             
@@ -203,19 +202,13 @@ class SolaraAIQuant:
             
             # 7. Initialize pipeline runner
             logger.info("Initializing pipeline runner...")
-            from watchdog.pipeline_runner import PipelineRunner
-            self.pipeline_runner = PipelineRunner(
-                execution_engine=self.execution_engine,
-                signal_aggregator=self.signal_aggregator,
-                mt5_manager=self.mt5_manager,
-                db_manager=self.db_manager,
-                dry_run=self.dry_run
-            )
+            from file_watcher.pipeline_runner import PipelineRunner
+            self.pipeline_runner = PipelineRunner()
             logger.info("  Pipeline runner ready")
             
             # 8. Initialize file observer
             logger.info("Initializing file observer...")
-            from watchdog.file_observer import FileObserver
+            from file_watcher.file_observer import FileObserver
             self.file_observer = FileObserver(
                 watch_directory=str(MQL5_FILES_DIR),
                 on_file_changed=self._on_file_changed
@@ -343,7 +336,7 @@ class SolaraAIQuant:
         except KeyboardInterrupt:
             logger.info("\nKeyboard interrupt received")
     
-    def _on_file_changed(self, file_path: str):
+    def _on_file_changed(self, file_path, timeframe=None):
         """
         Callback when CSV file changes.
         
@@ -360,14 +353,12 @@ class SolaraAIQuant:
         logger.info(f"File changed: {Path(file_path).name}")
         
         try:
-            # Run the pipeline
-            result = self.pipeline_runner.run(file_path)
+            result = self.pipeline_runner.run(file_path, timeframe)
             
-            # Update statistics
             self.cycles_completed += 1
             if result:
-                self.signals_generated += result.get('signals_count', 0)
-                self.trades_executed += result.get('trades_count', 0)
+                self.signals_generated += result.signals_generated
+                self.trades_executed += result.trades_executed
             
         except Exception as e:
             logger.error(f"Pipeline error: {e}")

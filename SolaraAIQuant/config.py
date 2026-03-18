@@ -92,12 +92,11 @@ class IngestionConfig:
     """Data ingestion configuration."""
     # Required columns in CSV
     required_columns: tuple = (
-        'timestamp', 'symbol', 'open', 'high', 'low', 'close',
-        'tick_volume', 'spread', 'price'
+        'timestamp', 'symbol', 'open', 'high', 'low', 'close', 'volume'
     )
     
     # Minimum bars per symbol for processing
-    min_bars_per_symbol: int = 30
+    min_bars_per_symbol: int = 2
     
     # Timestamp format from EA
     timestamp_format: str = '%Y.%m.%d %H:%M:%S'

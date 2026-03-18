@@ -1,16 +1,20 @@
 # Solara AI Quant - Model Registry
 # 
-# Register all ML models here. Each model must have:
-# - Unique name and magic number
-# - Class path to predictor implementation
-# - Model file (.pkl) in Models/ directory
-# - Feature version it was trained on
+# FIELD REFERENCE:
+#   timeframe          - The timeframe the model was TRAINED on
+#   trigger_timeframes - Which CSV file changes FIRE this model
+#   merge_timeframes   - Additional timeframes to merge INTO the trigger data
+#                        before feature engineering and prediction.
+#                        The trigger TF is always the BASE — only list the
+#                        ADDITIONAL timeframes to bring in here.
+#                        Columns are prefixed with the TF name (d1_, h4_, etc.)
+#                        Leave empty [] if no merging needed.
 #
-# To add a new model:
-# 1. Train the model and save to Models/<name>.pkl
-# 2. Create predictor class in predictors/<strategy>.py
-# 3. Add entry here with unique magic number
-# 4. Restart SAQ
+# Examples:
+#   Model A: trigger=H4, merge=[D1]     → base is H4, gets d1_ columns
+#   Model B: trigger=M5, merge=[D1]     → base is M5, gets d1_ columns
+#   Model C: trigger=M5, merge=[H4]     → base is M5, gets h4_ columns
+#   Model D: trigger=M5, merge=[H4,D1]  → base is M5, gets h4_ and d1_ columns
 
 models:
   # =========================================================================
@@ -23,44 +27,59 @@ models:
     feature_version: "v3"
     model_type: "LONG"
     timeframe: "H4"
-    
-    # Prediction settings
-    min_confidence: 0.45          # Minimum probability to generate signal
-    threshold: 0.45               # Decision threshold (from training)
-    
-    # Aggregation
-    weight: 1.0                   # Weight in signal aggregation
-    priority: 1                   # Lower = runs first
-    
-    # Execution
-    timeout: 30                   # Max seconds for prediction
-    magic: 100001                 # Unique MT5 magic number
-    comment: "SAQ_StellaAlpha"    # Trade comment
-    
-    # Position management
-    max_positions: 3              # Max concurrent positions for this model
-    
-    # Trade parameters (from Stella Alpha training)
-    tp_pips: 100                  # Take profit
-    sl_pips: 50                   # Stop loss
-    max_holding_bars: 72          # Max bars before forced close
-    
-    # Filters
-    symbols: []                   # Empty = all symbols; or ["EURUSD", "GBPUSD"]
-    
-    # Status
+    trigger_timeframes: ["M5", "H4"]
+    merge_timeframes: ["D1"]               # Merge D1 → adds d1_ columns
+
+    min_confidence: 0.45
+    threshold: 0.45
+    weight: 1.0
+    priority: 1
+    timeout: 30
+    magic: 100001
+    comment: "SAQ_StellaAlpha"
+    max_positions: 3
+    tp_pips: 100
+    sl_pips: 50
+    max_holding_bars: 72
+    symbols: []
     enabled: true
 
   # =========================================================================
-  # EXAMPLE: BB Reversal Short (Template for future models)
+  # EXAMPLE: Scalp model — M5 base, merges H4 context
+  # =========================================================================
+  # - name: "Scalp M5"
+  #   class_path: "predictors.scalp.ScalpPredictor"
+  #   model_file: "scalp_m5.pkl"
+  #   feature_version: "v2"
+  #   model_type: "LONG"
+  #   timeframe: "M5"
+  #   trigger_timeframes: ["M5"]
+  #   merge_timeframes: ["H4"]             # Merges H4 → adds h4_ columns
+  #   min_confidence: 0.55
+  #   threshold: 0.55
+  #   weight: 1.0
+  #   priority: 2
+  #   timeout: 15
+  #   magic: 100003
+  #   comment: "SAQ_Scalp"
+  #   max_positions: 2
+  #   tp_pips: 20
+  #   sl_pips: 15
+  #   max_holding_bars: 12
+  #   symbols: []
+  #   enabled: false
+
+  # =========================================================================
+  # EXAMPLE: BB Reversal — H4 only, no extra TF merging
   # =========================================================================
   # - name: "BB Reversal Short"
-  #   description: "Bollinger Band mean reversion SHORT strategy"
   #   class_path: "predictors.bb_reversal_short.BBReversalShortPredictor"
   #   model_file: "bb_reversal_short.pkl"
   #   feature_version: "v2"
   #   model_type: "SHORT"
   #   timeframe: "H4"
+  #   trigger_timeframes: ["H4"]
+  #   merge_timeframes: []                 # No extra TF merging
   #   min_confidence: 0.55
   #   threshold: 0.55
   #   weight: 1.0
@@ -78,25 +97,12 @@ models:
 # =========================================================================
 # MAGIC NUMBER CONVENTION
 # =========================================================================
-# 
 # Format: XXYYZZ
-# XX = Strategy ID (10-99)
-# YY = Timeframe (01=M5, 02=M15, 03=H1, 04=H4, 05=D1)
-# ZZ = Variant (01-99)
-#
-# Examples:
-#   100001 = Strategy 10, H4, Variant 01 (Stella Alpha)
-#   100401 = Strategy 10, H4, Variant 01 
-#   200301 = Strategy 20, H1, Variant 01
-#   300201 = Strategy 30, M15, Variant 01
+# XX = Strategy ID, YY = Timeframe (01=M5,02=M15,03=H1,04=H4,05=D1), ZZ = Variant
 
 # =========================================================================
 # FEATURE VERSIONS
 # =========================================================================
-#
-# v1: Basic features (BB, RSI, ATR, Volume)
-# v2: Extended features (+candle patterns, momentum)
-# v3: Full MTF features (+D1, cross-timeframe, session)
-#
-# Models must specify which version they were trained on.
-# The engine validates features before running predictions.
+# v1: Basic (BB, RSI, ATR, Volume)
+# v2: Extended (+candle patterns, momentum)
+# v3: Full MTF (+D1 or other TF merge, cross-timeframe, session)

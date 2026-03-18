@@ -72,6 +72,9 @@ class DataValidator:
         
         df = df.copy()
         
+        if 'pair' in df.columns and 'symbol' not in df.columns:
+            df = df.rename(columns={'pair': 'symbol'})
+        
         # 1. Check required columns
         missing_cols = self._check_required_columns(df)
         if missing_cols:
