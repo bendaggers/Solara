@@ -11,7 +11,8 @@ The orchestrator that ties together all components:
 - Survivor Engine (position management)
 
 Usage:
-    python main.py                    # Production mode
+    python main.py                    # Development mode
+    python main.py --production       # Production mode (real MT5)
     python main.py --dry-run          # Dry run (no real trades)
     python main.py --test             # Run tests
     python main.py --status           # Show system status
@@ -49,6 +50,9 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
     # Root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(getattr(logging, log_level.upper()))
+    
+    # Clear existing handlers
+    root_logger.handlers = []
     
     # Console handler
     console_handler = logging.StreamHandler()
@@ -140,11 +144,11 @@ class SolaraAIQuant:
             # 1. Load configuration
             logger.info("Loading configuration...")
             from config import (
-                PROJECT_ROOT, MODELS_DIR, LOGS_DIR, STATE_DIR,
+                PROJECT_ROOT as PROJ_ROOT, MODELS_DIR, LOGS_DIR, STATE_DIR,
                 MQL5_FILES_DIR, mt5_config, risk_config, execution_config
             )
             self.config = {
-                'project_root': PROJECT_ROOT,
+                'project_root': PROJ_ROOT,
                 'models_dir': MODELS_DIR,
                 'logs_dir': LOGS_DIR,
                 'state_dir': STATE_DIR,
@@ -153,18 +157,18 @@ class SolaraAIQuant:
                 'risk': risk_config,
                 'execution': execution_config
             }
-            logger.info(f"  Project root: {PROJECT_ROOT}")
+            logger.info(f"  Project root: {PROJ_ROOT}")
             logger.info(f"  Models dir: {MODELS_DIR}")
             
             # 2. Initialize database
             logger.info("Initializing database...")
-            from database import db_manager
+            from state.database import db_manager
             self.db_manager = db_manager
             logger.info("  Database ready")
             
             # 3. Load model registry
             logger.info("Loading model registry...")
-            from registry import model_registry
+            from engine.registry import model_registry
             self.model_registry = model_registry
             enabled_count = len([m for m in model_registry.get_all_models() if m.enabled])
             logger.info(f"  {enabled_count} models enabled")
@@ -172,7 +176,7 @@ class SolaraAIQuant:
             # 4. Initialize MT5 connection (production only)
             if self.production:
                 logger.info("Connecting to MT5...")
-                from mt5_manager import mt5_manager
+                from mt5.mt5_manager import mt5_manager
                 if not mt5_manager.connect():
                     logger.error("Failed to connect to MT5")
                     return False
@@ -184,7 +188,7 @@ class SolaraAIQuant:
             
             # 5. Initialize execution engine
             logger.info("Initializing execution engine...")
-            from execution_engine import ExecutionEngine
+            from engine.execution_engine import ExecutionEngine
             self.execution_engine = ExecutionEngine(
                 model_registry=self.model_registry,
                 db_manager=self.db_manager
@@ -193,13 +197,13 @@ class SolaraAIQuant:
             
             # 6. Initialize signal aggregator
             logger.info("Initializing signal aggregator...")
-            from aggregator import SignalAggregator
+            from signals.aggregator import SignalAggregator
             self.signal_aggregator = SignalAggregator()
             logger.info("  Signal aggregator ready")
             
             # 7. Initialize pipeline runner
             logger.info("Initializing pipeline runner...")
-            from pipeline_runner import PipelineRunner
+            from watchdog.pipeline_runner import PipelineRunner
             self.pipeline_runner = PipelineRunner(
                 execution_engine=self.execution_engine,
                 signal_aggregator=self.signal_aggregator,
@@ -211,110 +215,116 @@ class SolaraAIQuant:
             
             # 8. Initialize file observer
             logger.info("Initializing file observer...")
-            from file_observer import FileObserver
+            from watchdog.file_observer import FileObserver
             self.file_observer = FileObserver(
                 watch_directory=str(MQL5_FILES_DIR),
                 on_file_changed=self._on_file_changed
             )
             logger.info(f"  Watching: {MQL5_FILES_DIR}")
             
-            # 9. Initialize Survivor Engine
-            logger.info("Initializing Survivor Engine...")
-            from survivor_engine import SurvivorEngine
-            stage_path = PROJECT_ROOT / 'survivor' / 'stage_definitions.yaml'
-            self.survivor_engine = SurvivorEngine(
-                stage_definitions_path=stage_path if stage_path.exists() else None,
-                mt5_manager=self.mt5_manager,
-                db_manager=self.db_manager
-            )
-            logger.info(f"  Survivor Engine ready ({len(self.survivor_engine.stages)} stages)")
-            
-            # 10. Initialize Survivor Runner
-            logger.info("Initializing Survivor Runner...")
-            from survivor_runner import SurvivorRunner
-            self.survivor_runner = SurvivorRunner(
-                survivor_engine=self.survivor_engine,
-                mt5_manager=self.mt5_manager,
-                db_manager=self.db_manager,
-                check_interval=60
-            )
-            logger.info("  Survivor Runner ready (60s interval)")
+            # 9. Initialize Survivor Engine (production only)
+            if self.production:
+                logger.info("Initializing Survivor Engine...")
+                from survivor.survivor_engine import SurvivorEngine
+                from survivor.survivor_runner import SurvivorRunner
+                
+                stage_defs_path = PROJECT_ROOT / "survivor" / "stage_definitions.yaml"
+                self.survivor_engine = SurvivorEngine(
+                    mt5_manager=self.mt5_manager,
+                    db_manager=self.db_manager,
+                    stage_definitions_path=str(stage_defs_path)
+                )
+                
+                self.survivor_runner = SurvivorRunner(
+                    survivor_engine=self.survivor_engine,
+                    mt5_manager=self.mt5_manager,
+                    check_interval_seconds=60
+                )
+                logger.info("  Survivor Engine ready (22-stage trailing stop)")
+            else:
+                logger.info("Skipping Survivor Engine (not production)")
+                self.survivor_engine = None
+                self.survivor_runner = None
             
             self._is_initialized = True
+            
             logger.info("=" * 60)
             logger.info("  INITIALIZATION COMPLETE")
             logger.info("=" * 60)
+            logger.info(f"  Mode: {'PRODUCTION' if self.production else 'DEVELOPMENT'}")
+            logger.info(f"  Dry run: {self.dry_run}")
+            logger.info(f"  Models: {enabled_count} enabled")
             
             return True
             
         except Exception as e:
-            logger.error(f"Initialization failed: {e}", exc_info=True)
+            logger.error(f"Initialization failed: {e}")
+            import traceback
+            traceback.print_exc()
             return False
     
-    def start(self):
-        """Start all components."""
+    def start(self) -> bool:
+        """
+        Start all services.
+        
+        Returns:
+            True if started successfully
+        """
         if not self._is_initialized:
             logger.error("Cannot start - not initialized")
             return False
         
         logger.info("=" * 60)
-        logger.info("  STARTING SOLARA AI QUANT")
+        logger.info("  STARTING SERVICES")
         logger.info("=" * 60)
-        
-        mode = []
-        if self.production:
-            mode.append("PRODUCTION")
-        else:
-            mode.append("DEVELOPMENT")
-        if self.dry_run:
-            mode.append("DRY-RUN")
-        
-        logger.info(f"  Mode: {' | '.join(mode)}")
-        logger.info(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
         self.started_at = datetime.now()
         
         # Start file observer
+        logger.info("Starting file observer...")
         self.file_observer.start()
-        logger.info("  File observer started")
         
-        # Start survivor runner
-        if self.production:
+        # Start survivor runner (production only)
+        if self.survivor_runner:
+            logger.info("Starting Survivor Engine runner...")
             self.survivor_runner.start()
-            logger.info("  Survivor runner started")
         
         logger.info("=" * 60)
-        logger.info("  SAQ IS RUNNING - WAITING FOR CSV UPDATES")
+        logger.info("  SOLARA AI QUANT IS RUNNING")
         logger.info("=" * 60)
+        logger.info("Press Ctrl+C to stop")
         
         return True
     
     def stop(self):
-        """Stop all components gracefully."""
+        """Stop all services gracefully."""
         logger.info("=" * 60)
-        logger.info("  STOPPING SOLARA AI QUANT")
+        logger.info("  SHUTTING DOWN")
         logger.info("=" * 60)
         
         # Signal shutdown
         self._shutdown_event.set()
         
-        # Stop components
-        if self.file_observer:
-            self.file_observer.stop()
-            logger.info("  File observer stopped")
-        
+        # Stop survivor runner
         if self.survivor_runner:
+            logger.info("Stopping Survivor Engine...")
             self.survivor_runner.stop()
-            logger.info("  Survivor runner stopped")
+        
+        # Stop file observer
+        if self.file_observer:
+            logger.info("Stopping file observer...")
+            self.file_observer.stop()
         
         # Disconnect MT5
         if self.mt5_manager:
+            logger.info("Disconnecting from MT5...")
             self.mt5_manager.disconnect()
-            logger.info("  MT5 disconnected")
         
         # Print summary
         if self.started_at:
             runtime = datetime.now() - self.started_at
+            logger.info("-" * 60)
+            logger.info("  SESSION SUMMARY")
             logger.info("-" * 60)
             logger.info(f"  Runtime: {runtime}")
             logger.info(f"  Cycles completed: {self.cycles_completed}")
@@ -323,104 +333,146 @@ class SolaraAIQuant:
             logger.info(f"  Errors: {self.errors_count}")
         
         logger.info("=" * 60)
-        logger.info("  SAQ STOPPED")
+        logger.info("  SHUTDOWN COMPLETE")
         logger.info("=" * 60)
     
     def run_forever(self):
-        """Block until shutdown signal."""
+        """Block until shutdown signal received."""
         try:
-            while not self._shutdown_event.is_set():
-                self._shutdown_event.wait(timeout=1.0)
+            self._shutdown_event.wait()
         except KeyboardInterrupt:
-            pass
+            logger.info("\nKeyboard interrupt received")
     
-    def _on_file_changed(self, file_path: str, timeframe: str):
+    def _on_file_changed(self, file_path: str):
         """
-        Callback when a CSV file changes.
+        Callback when CSV file changes.
         
-        This triggers the 8-stage pipeline.
+        This triggers the 8-stage pipeline:
+        1. Load CSV data
+        2. Validate data
+        3. Engineer features
+        4. Run models
+        5. Aggregate signals
+        6. Check conflicts
+        7. Risk management
+        8. Execute trades
         """
-        logger.info(f"File changed: {file_path} (timeframe: {timeframe})")
+        logger.info(f"File changed: {Path(file_path).name}")
         
         try:
             # Run the pipeline
-            result = self.pipeline_runner.run(file_path, timeframe)
+            result = self.pipeline_runner.run(file_path)
             
             # Update statistics
             self.cycles_completed += 1
-            self.signals_generated += result.get('signals_generated', 0)
-            self.trades_executed += result.get('trades_executed', 0)
-            
-            logger.info(
-                f"Cycle complete: {result.get('signals_generated', 0)} signals, "
-                f"{result.get('trades_executed', 0)} trades"
-            )
+            if result:
+                self.signals_generated += result.get('signals_count', 0)
+                self.trades_executed += result.get('trades_count', 0)
             
         except Exception as e:
-            logger.error(f"Pipeline error: {e}", exc_info=True)
+            logger.error(f"Pipeline error: {e}")
             self.errors_count += 1
+
+
+def show_status():
+    """Show system status and configuration."""
+    print("=" * 60)
+    print("  SOLARA AI QUANT - STATUS")
+    print("=" * 60)
     
-    def get_status(self) -> dict:
-        """Get current system status."""
-        return {
-            'is_initialized': self._is_initialized,
-            'is_running': not self._shutdown_event.is_set(),
-            'production': self.production,
-            'dry_run': self.dry_run,
-            'started_at': str(self.started_at) if self.started_at else None,
-            'uptime_seconds': (
-                (datetime.now() - self.started_at).total_seconds()
-                if self.started_at else 0
-            ),
-            'cycles_completed': self.cycles_completed,
-            'signals_generated': self.signals_generated,
-            'trades_executed': self.trades_executed,
-            'errors_count': self.errors_count,
-            'survivor_stats': (
-                self.survivor_runner.get_stats()
-                if self.survivor_runner else None
+    try:
+        from config import (
+            PROJECT_ROOT, MODELS_DIR, STATE_DIR, MQL5_FILES_DIR,
+            mt5_config, risk_config
+        )
+        
+        print(f"\nPaths:")
+        print(f"  Project: {PROJECT_ROOT}")
+        print(f"  Models:  {MODELS_DIR}")
+        print(f"  State:   {STATE_DIR}")
+        print(f"  Watch:   {MQL5_FILES_DIR}")
+        
+        print(f"\nMT5 Configuration:")
+        print(f"  Server:  {mt5_config.get('server', 'Not set')}")
+        print(f"  Login:   {mt5_config.get('login', 'Not set')}")
+        
+        print(f"\nRisk Configuration:")
+        print(f"  Max positions: {risk_config.get('max_positions', 'Not set')}")
+        print(f"  Max risk/trade: {risk_config.get('max_risk_per_trade', 'Not set')}%")
+        
+        # Check models
+        print(f"\nModels:")
+        from engine.registry import model_registry
+        for model in model_registry.get_all_models():
+            status = "✓ enabled" if model.enabled else "✗ disabled"
+            print(f"  {model.name}: {status}")
+        
+        # Check database
+        print(f"\nDatabase:")
+        from state.database import db_manager
+        pos_count = len(db_manager.get_all_position_states())
+        print(f"  Active positions: {pos_count}")
+        
+        print("\n" + "=" * 60)
+        
+    except Exception as e:
+        print(f"\nError loading status: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def run_tests():
+    """Run test suite."""
+    import subprocess
+    
+    print("Running tests...")
+    print("=" * 60)
+    
+    test_files = [
+        "tests/test_phases_1_3.py",
+        "tests/test_phases_4_6.py",
+        "tests/test_phases_7_8.py",
+    ]
+    
+    for test_file in test_files:
+        test_path = PROJECT_ROOT / test_file
+        if test_path.exists():
+            print(f"\n--- {test_file} ---")
+            result = subprocess.run(
+                [sys.executable, "-m", "pytest", str(test_path), "-v"],
+                cwd=str(PROJECT_ROOT)
             )
-        }
+            if result.returncode != 0:
+                print(f"FAILED: {test_file}")
+        else:
+            print(f"Skipping {test_file} (not found)")
 
 
-# Global instance for signal handlers
-app_instance: Optional[SolaraAIQuant] = None
-
-
-def signal_handler(signum, frame):
-    """Handle shutdown signals."""
-    global app_instance
-    logger.info(f"Received signal {signum}")
-    if app_instance:
-        app_instance.stop()
-    sys.exit(0)
-
-
-def parse_args():
-    """Parse command line arguments."""
+def main():
+    """Main entry point."""
     parser = argparse.ArgumentParser(
-        description='Solara AI Quant - Automated Trading System',
+        description="Solara AI Quant - Automated Trading System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python main.py                    # Development mode
-  python main.py --production       # Production mode (real MT5)
-  python main.py --dry-run          # No real trades
-  python main.py --test             # Run tests
-  python main.py --status           # Show system status
+  python main.py                    Development mode
+  python main.py --production       Production mode (real MT5)
+  python main.py -p --dry-run       Production with no real trades
+  python main.py --test             Run test suite
+  python main.py --status           Show configuration
         """
     )
     
     parser.add_argument(
         '--production', '-p',
         action='store_true',
-        help='Run in production mode (connect to real MT5)'
+        help='Production mode - connect to real MT5'
     )
     
     parser.add_argument(
         '--dry-run', '-d',
         action='store_true',
-        help='Dry run mode (no real trades)'
+        help='Dry run - no real trades'
     )
     
     parser.add_argument(
@@ -432,160 +484,72 @@ Examples:
     parser.add_argument(
         '--status', '-s',
         action='store_true',
-        help='Show system status and exit'
+        help='Show system status'
     )
     
     parser.add_argument(
         '--log-level', '-l',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'],
         default='INFO',
-        help='Log level (default: INFO)'
+        help='Logging level'
     )
     
     parser.add_argument(
         '--version', '-v',
-        action='version',
-        version='Solara AI Quant v1.0.0'
+        action='store_true',
+        help='Show version'
     )
     
-    return parser.parse_args()
-
-
-def show_status():
-    """Show system status and configuration."""
-    print("\n" + "=" * 60)
-    print("  SOLARA AI QUANT - SYSTEM STATUS")
-    print("=" * 60)
+    args = parser.parse_args()
     
-    try:
-        from config import (
-            PROJECT_ROOT, MODELS_DIR, LOGS_DIR, STATE_DIR,
-            MQL5_FILES_DIR, mt5_config, risk_config
-        )
-        
-        print(f"\n  PATHS:")
-        print(f"  ────────────────────────────────────")
-        print(f"  Project Root:    {PROJECT_ROOT}")
-        print(f"  Models Dir:      {MODELS_DIR}")
-        print(f"  Logs Dir:        {LOGS_DIR}")
-        print(f"  State Dir:       {STATE_DIR}")
-        print(f"  MQL5 Files:      {MQL5_FILES_DIR}")
-        
-        print(f"\n  DATABASE:")
-        print(f"  ────────────────────────────────────")
-        from database import db_manager
-        print(f"  Status: Connected")
-        
-        print(f"\n  MT5 CONFIG:")
-        print(f"  ────────────────────────────────────")
-        print(f"  Login:           {mt5_config.login}")
-        print(f"  Server:          {mt5_config.server}")
-        print(f"  Magic:           {mt5_config.magic}")
-        
-        print(f"\n  RISK CONFIG:")
-        print(f"  ────────────────────────────────────")
-        print(f"  Max Drawdown:    {risk_config.max_drawdown_pct}%")
-        print(f"  Max Daily Trades:{risk_config.max_daily_trades}")
-        print(f"  Max Positions:   {risk_config.max_positions}")
-        
-        print(f"\n  MODELS:")
-        print(f"  ────────────────────────────────────")
-        from registry import model_registry
-        for model in model_registry.get_all_models():
-            status = "✓" if model.enabled else "✗"
-            print(f"  {status} {model.name} ({model.timeframe})")
-        
-    except Exception as e:
-        print(f"\n  Error: {e}")
-    
-    print("\n" + "=" * 60 + "\n")
-
-
-def run_tests():
-    """Run the test suite."""
-    print("\n" + "=" * 60)
-    print("  RUNNING TEST SUITE")
-    print("=" * 60 + "\n")
-    
-    try:
-        # Run Phase 1-3 tests
-        from test_phases_1_3 import run_all_tests as run_tests_1_3
-        print("Running Phase 1-3 tests...")
-        run_tests_1_3()
-        
-        # Run Phase 4-6 tests
-        from test_phases_4_6 import run_all_tests as run_tests_4_6
-        print("\nRunning Phase 4-6 tests...")
-        run_tests_4_6()
-        
-        # Run Phase 7-8 tests
-        try:
-            from test_phases_7_8 import run_all_tests as run_tests_7_8
-            print("\nRunning Phase 7-8 tests...")
-            run_tests_7_8()
-        except ImportError:
-            print("\nPhase 7-8 tests not found")
-        
-        print("\n" + "=" * 60)
-        print("  ALL TESTS PASSED")
-        print("=" * 60 + "\n")
-        
-    except Exception as e:
-        print(f"\nTest failed: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
-
-
-def main():
-    """Main entry point."""
-    global app_instance
-    
-    # Parse arguments
-    args = parse_args()
-    
-    # Handle special modes
-    if args.status:
-        show_status()
+    # Handle simple commands
+    if args.version:
+        print("Solara AI Quant v1.0.0")
         return
     
     if args.test:
         run_tests()
         return
     
+    if args.status:
+        show_status()
+        return
+    
     # Setup logging
-    from config import LOGS_DIR
-    log_file = LOGS_DIR / 'saq.log'
-    setup_logging(log_level=args.log_level, log_file=str(log_file))
+    log_file = str(PROJECT_ROOT / "logs" / "saq.log")
+    setup_logging(args.log_level, log_file)
     
-    # Setup signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
-    
-    # Create application
-    app_instance = SolaraAIQuant(
+    # Create and run application
+    app = SolaraAIQuant(
         production=args.production,
         dry_run=args.dry_run
     )
     
+    # Handle shutdown signals
+    def signal_handler(signum, frame):
+        logger.info(f"Received signal {signum}")
+        app.stop()
+        sys.exit(0)
+    
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
     # Initialize
-    if not app_instance.initialize():
+    if not app.initialize():
         logger.error("Failed to initialize - exiting")
         sys.exit(1)
     
     # Start
-    if not app_instance.start():
+    if not app.start():
         logger.error("Failed to start - exiting")
         sys.exit(1)
     
     # Run until shutdown
-    try:
-        app_instance.run_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        app_instance.stop()
+    app.run_forever()
+    
+    # Cleanup
+    app.stop()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
