@@ -402,7 +402,8 @@ def main() -> None:
 
     valid_proba = pipe.predict_proba(X_valid)[:, 1]
     best = threshold_search(y_valid, valid_proba, pnl_valid)
-    selected_threshold = best["threshold"]
+    # selected_threshold = best["threshold"]
+    selected_threshold = 0.65
 
     test_proba = pipe.predict_proba(X_test)[:, 1]
 
