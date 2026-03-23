@@ -123,12 +123,10 @@ class MT5Manager:
             logger.info("Connecting to MT5...")
             
             init_params = {
-                'path': str(mt5_config.terminal_path) if mt5_config.terminal_path else None,
                 'login': mt5_config.login,
                 'password': mt5_config.password,
                 'server': mt5_config.server,
                 'timeout': mt5_config.timeout,
-                'portable': mt5_config.portable
             }
             
             # Remove None values
