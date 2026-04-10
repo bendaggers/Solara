@@ -4,7 +4,12 @@
       "Bash(python -c ':*)",
       "Bash(Get-Content \"C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Experts\\\\Advisors\\\\Solara\\\\SolaraAIQuant\\\\logs\\\\saq.log\")",
       "Bash(Select-Object -Last 100)",
-      "Bash(del \"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\forex_trend_model\\\\models\\\\__pycache__\\\\ensemble.cpython-311.pyc\")"
+      "Bash(del \"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\forex_trend_model\\\\models\\\\__pycache__\\\\ensemble.cpython-311.pyc\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\" -Recurse -Filter \"__pycache__\" -Directory)",
+      "Bash(Remove-Item -Recurse -Force)",
+      "Bash(Write-Host \"All __pycache__ cleared\")",
+      "Bash(cmd.exe /c \"for /d /r \\\\\"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\\" %d in \\(__pycache__\\) do @rd /s /q \\\\\"%d\\\\\" 2>nul\")",
+      "Bash(python3 -c ':*)"
     ]
   }
 }
