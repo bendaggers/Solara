@@ -17,6 +17,10 @@ Thumbs.db
 *.log
 logs/
 
+state/solara_aq.db
+state/solara_aq.db-shm
+state/solara_aq.db-wal
+
 # Project specific
 credentials.py
 *.env
