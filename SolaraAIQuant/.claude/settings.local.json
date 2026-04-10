@@ -9,7 +9,8 @@
       "Bash(Remove-Item -Recurse -Force)",
       "Bash(Write-Host \"All __pycache__ cleared\")",
       "Bash(cmd.exe /c \"for /d /r \\\\\"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\\" %d in \\(__pycache__\\) do @rd /s /q \\\\\"%d\\\\\" 2>nul\")",
-      "Bash(python3 -c ':*)"
+      "Bash(python3 -c ':*)",
+      "Bash(python -c \"import catboost; print\\(catboost.__version__\\); import sklearn; print\\(sklearn.__version__\\); import inspect; from catboost import CatBoostClassifier; print\\(inspect.getsource\\(CatBoostClassifier.get_params\\)\\)\")"
     ]
   }
 }

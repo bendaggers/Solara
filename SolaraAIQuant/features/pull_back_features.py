@@ -626,7 +626,7 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
             return pd.DataFrame(results, index=df.index)
 
         except Exception as exc:
-            logger.error(f"[PullBackFE] Trend model {tf} failed for {sym}: {exc}")
+            logger.error(f"[PullBackFE] Trend model {tf} failed for {sym}: {exc}", exc_info=True)
             return None
 
     # ─────────────────────────────────────────────────────────────────────────
