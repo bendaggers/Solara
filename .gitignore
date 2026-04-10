@@ -21,3 +21,6 @@ logs/
 credentials.py
 *.env
 .env*
+
+# Large Files (Training Datas)
+Model Training/

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ':*)",
+      "Bash(Get-Content \"C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Experts\\\\Advisors\\\\Solara\\\\SolaraAIQuant\\\\logs\\\\saq.log\")",
+      "Bash(Select-Object -Last 100)"
+    ]
+  }
+}

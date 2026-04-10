@@ -213,18 +213,21 @@ class BasePredictor(ABC):
         direction: str,
         confidence: float,
         entry_price: float,
-        features: Dict[str, float] = None
+        features: Dict[str, float] = None,
+        triggered_tf: str = "",
     ) -> PredictionSignal:
         """
         Create a prediction signal with model config values.
-        
+
         Args:
             symbol: Trading symbol
             direction: "LONG" or "SHORT"
             confidence: Model probability
             entry_price: Current price
             features: Optional key features for logging
-            
+            triggered_tf: Timeframe that triggered this pipeline run.
+                          Used to apply timeframe_overrides for TP/SL.
+
         Returns:
             PredictionSignal object
         """
@@ -233,12 +236,12 @@ class BasePredictor(ABC):
             direction=direction,
             confidence=confidence,
             entry_price=entry_price,
-            tp_pips=self.config.tp_pips,
-            sl_pips=self.config.sl_pips,
+            tp_pips=self.config.get_tp_pips(triggered_tf),
+            sl_pips=self.config.get_sl_pips(triggered_tf),
             model_name=self.config.name,
             magic=self.config.magic,
             comment=self.config.comment,
-            features=features
+            features=features,
         )
     
     def get_metadata(self) -> Dict:

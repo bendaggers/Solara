@@ -4,7 +4,9 @@ Solara AI Quant - Predictors Module
 ML model predictors that generate trading signals.
 
 Available Predictors:
-- StellaAlphaLongPredictor: MTF trend following LONG strategy
+- StellaAlphaLongPredictor:    MTF trend following LONG strategy (disabled)
+- TrendIdentifierV2Predictor:  V2 universal 28-pair H4 trend classifier
+                                92.6% balanced accuracy, Platt-calibrated ensemble
 
 To add a new predictor:
 1. Create new file in predictors/
@@ -19,9 +21,11 @@ from .base_predictor import (
 )
 
 from .stella_alpha_long import StellaAlphaLongPredictor
+from .trend_identifier_v2 import TrendIdentifierV2Predictor
 
 __all__ = [
     'BasePredictor',
     'PredictionSignal',
     'StellaAlphaLongPredictor',
+    'TrendIdentifierV2Predictor',
 ]

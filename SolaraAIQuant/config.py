@@ -80,6 +80,7 @@ TIMEFRAMES = {
     'H1': TimeframeConfig('H1', 'marketdata_PERIOD_H1.csv', 60),
     'H4': TimeframeConfig('H4', 'marketdata_PERIOD_H4.csv', 240),
     'D1': TimeframeConfig('D1', 'marketdata_PERIOD_D1.csv', 1440),
+    'W1': TimeframeConfig('W1', 'marketdata_PERIOD_W1.csv', 10080),
 }
 
 
@@ -228,7 +229,12 @@ class WatchdogConfig:
     debounce_seconds: float = field(
         default_factory=lambda: float(os.getenv('WATCHDOG_DEBOUNCE_SECONDS', '2'))
     )
-    
+
+    # ADD THIS LINE:
+    processing_delay_seconds: float = field(
+        default_factory=lambda: float(os.getenv('WATCHDOG_PROCESSING_DELAY_SECONDS', '10'))
+    )
+
     # Watched files (built from TIMEFRAMES)
     @property
     def watched_files(self) -> list:
