@@ -1,0 +1,150 @@
+# Solara AI Quant - Survivor Engine Stage Definitions
+# 
+# 22-stage progressive trailing stop system
+# Each stage defines:
+#   - trigger_pips: Profit level to activate this stage
+#   - protection_pct: Percentage of profit to protect via SL
+#   - tp_adjustment: Optional TP adjustment
+#
+# Example: Stage 5 with trigger_pips=50 and protection_pct=0.50
+#   - Activates when position is 50+ pips in profit
+#   - Moves SL to lock in 50% of the profit (25 pips above entry for LONG)
+
+version: "1.0"
+description: "22-Stage Progressive Trailing Stop System"
+
+# Global settings
+settings:
+  min_profit_to_start: 10        # Minimum pips profit before any trailing
+  check_interval_seconds: 60     # How often to check positions
+  use_server_time: true          # Use MT5 server time for checks
+  pip_buffer: 2                  # Buffer pips to account for spread
+
+# Stage definitions
+stages:
+  # Stage 0: Initial (no protection)
+  - stage: 0
+    trigger_pips: 0
+    protection_pct: 0.0
+    description: "Initial - no trailing yet"
+
+  # Stage 1-5: Early protection (conservative)
+  - stage: 1
+    trigger_pips: 10
+    protection_pct: 0.20
+    description: "First trigger - protect 20%"
+
+  - stage: 2
+    trigger_pips: 15
+    protection_pct: 0.25
+    description: "Protect 25%"
+
+  - stage: 3
+    trigger_pips: 20
+    protection_pct: 0.30
+    description: "Protect 30%"
+
+  - stage: 4
+    trigger_pips: 25
+    protection_pct: 0.35
+    description: "Protect 35%"
+
+  - stage: 5
+    trigger_pips: 30
+    protection_pct: 0.40
+    description: "Protect 40%"
+
+  # Stage 6-10: Building protection
+  - stage: 6
+    trigger_pips: 35
+    protection_pct: 0.45
+    description: "Protect 45%"
+
+  - stage: 7
+    trigger_pips: 40
+    protection_pct: 0.50
+    description: "Protect 50%"
+
+  - stage: 8
+    trigger_pips: 45
+    protection_pct: 0.52
+    description: "Protect 52%"
+
+  - stage: 9
+    trigger_pips: 50
+    protection_pct: 0.55
+    description: "Protect 55%"
+
+  - stage: 10
+    trigger_pips: 55
+    protection_pct: 0.58
+    description: "Protect 58%"
+
+  # Stage 11-15: Strong protection
+  - stage: 11
+    trigger_pips: 60
+    protection_pct: 0.60
+    description: "Protect 60%"
+
+  - stage: 12
+    trigger_pips: 65
+    protection_pct: 0.62
+    description: "Protect 62%"
+
+  - stage: 13
+    trigger_pips: 70
+    protection_pct: 0.65
+    description: "Protect 65%"
+
+  - stage: 14
+    trigger_pips: 75
+    protection_pct: 0.68
+    description: "Protect 68%"
+
+  - stage: 15
+    trigger_pips: 80
+    protection_pct: 0.70
+    description: "Protect 70%"
+
+  # Stage 16-19: Aggressive protection
+  - stage: 16
+    trigger_pips: 90
+    protection_pct: 0.72
+    description: "Protect 72%"
+
+  - stage: 17
+    trigger_pips: 100
+    protection_pct: 0.75
+    description: "Protect 75% - Runner territory"
+
+  - stage: 18
+    trigger_pips: 120
+    protection_pct: 0.78
+    description: "Protect 78%"
+
+  - stage: 19
+    trigger_pips: 140
+    protection_pct: 0.80
+    description: "Protect 80%"
+
+  # Stage 20-22: Maximum protection (let it run)
+  - stage: 20
+    trigger_pips: 160
+    protection_pct: 0.82
+    description: "Protect 82%"
+
+  - stage: 21
+    trigger_pips: 180
+    protection_pct: 0.85
+    description: "Protect 85%"
+
+  - stage: 22
+    trigger_pips: 200
+    protection_pct: 0.88
+    description: "Maximum protection - 88%"
+
+# Notes:
+# - Stages only move forward (never backward)
+# - SL is calculated: entry_price + (current_profit_pips * protection_pct * pip_value)
+# - For SHORT positions, signs are reversed
+# - TP is not modified by Survivor Engine (set by model)

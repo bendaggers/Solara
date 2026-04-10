@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAQ · Trade Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #1a1d23;
+    --bg2:     #1f2330;
+    --bg3:     #252a38;
+    --bghov:   #272c3a;
+    --bgrow:   #1c1f28;
+    --border:  #2e3547;
+    --border2: #3a4255;
+    --text:    #d4dce8;
+    --muted:   #6b7a96;
+    --accent:  #00d4ff;
+    --accent2: #0099bb;
+    --green:   #2ecc71;
+    --red:     #e55353;
+    --yellow:  #f0c040;
+    --mono:    'JetBrains Mono', monospace;
+    --sans:    'Syne', sans-serif;
+    --rh:      40px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;}
+
+  /* ── header ── */
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:200;}
+  .logo{display:flex;align-items:baseline;gap:10px;}
+  .logo-name{font-family:var(--sans);font-size:19px;font-weight:800;letter-spacing:-0.5px;color:#fff;}
+  .logo-sub{font-size:11px;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;}
+  .hdr-r{display:flex;align-items:center;gap:20px;}
+  .stat{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+  .stat .v{font-size:15px;font-weight:600;color:#fff;}
+  .stat .l{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+  .sep{width:1px;height:28px;background:var(--border);}
+  .pw{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0;}
+  .pulse.stale{background:var(--yellow);box-shadow:0 0 6px var(--yellow);animation:none;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+  /* ── filter panel ── */
+  .fpanel{background:var(--bg2);border-bottom:1px solid var(--border);}
+  .fpanel-head{display:flex;align-items:center;justify-content:space-between;padding:11px 28px;cursor:pointer;user-select:none;transition:background .12s;}
+  .fpanel-head:hover{background:var(--bg3);}
+  .fpanel-title{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+  .fpanel-title .arrow{font-size:9px;color:var(--muted);display:inline-block;}
+  .fpanel-body{display:none;padding:16px 28px 20px;}
+  .fpanel-body.open{display:block;}
+  .fpanel-actions{display:flex;gap:8px;}
+  .fbtn{padding:5px 14px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .12s;letter-spacing:.04em;}
+  .fbtn:hover{border-color:var(--accent2);color:var(--accent);}
+  .fbtn.apply{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08);}
+  .fbtn.apply:hover{background:rgba(0,212,255,.15);}
+  .fbtn.clear{color:var(--muted);}
+  .fbtn.clear:hover{border-color:var(--red);color:var(--red);}
+
+  .fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 20px;}
+  .fgroup{display:flex;flex-direction:column;gap:5px;}
+  .fgroup label{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+  .date-row{display:flex;align-items:center;gap:6px;}
+  .date-row span{font-size:11px;color:var(--muted);}
+  .fi{width:100%;padding:6px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:border-color .12s;}
+  .fi:focus{border-color:var(--accent);}
+  .fi::placeholder{color:var(--muted);}
+  .num-row{display:flex;gap:6px;}
+  .fsel{padding:6px 8px;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:12px;outline:none;cursor:pointer;flex-shrink:0;}
+  .fsel:focus{border-color:var(--accent);}
+  .fsel option{background:var(--bg3);}
+  .range-row{display:flex;align-items:center;gap:6px;margin-top:5px;}
+  .range-row span{font-size:11px;color:var(--muted);flex-shrink:0;}
+  .range-row .fi{flex:1;}
+  .hidden{display:none;}
+  .dir-row{display:flex;gap:6px;}
+  .dtog{flex:1;padding:6px 0;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .12s;text-align:center;}
+  .dtog:hover{border-color:var(--accent2);color:var(--text);}
+  .dtog.on-short{border-color:var(--red);color:var(--red);background:rgba(229,83,83,.1);}
+  .dtog.on-long {border-color:var(--green);color:var(--green);background:rgba(46,204,113,.1);}
+  .dtog.on-active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08);}
+
+  /* active filter pills */
+  .active-filters{display:flex;flex-wrap:wrap;gap:6px;padding:10px 28px;border-bottom:1px solid var(--border);background:var(--bg);min-height:0;}
+  .active-filters:empty{display:none;}
+  .apill{display:flex;align-items:center;gap:5px;padding:3px 10px;border-radius:12px;border:1px solid var(--accent2);background:rgba(0,212,255,.06);font-size:11px;color:var(--accent);}
+  .apill button{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:13px;line-height:1;padding:0;margin-left:2px;}
+  .apill button:hover{color:var(--red);}
+
+  /* ── table ── */
+  .twrap{padding:16px 28px 48px;overflow-x:auto;}
+  .cbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .cbar .cnt{font-size:11px;color:var(--muted);}
+  .cbar .cnt strong{color:var(--text);}
+  .lupd{font-size:11px;color:var(--muted);}
+
+  table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  /* column widths — adjust to taste */
+  col.c-time    {width:152px;}
+  col.c-sym     {width:84px;}
+  col.c-dir     {width:76px;}
+  col.c-ticket  {width:104px;}
+  col.c-score   {width:72px;}
+  col.c-lot     {width:52px;}
+  col.c-entry   {width:96px;}
+  col.c-exit    {width:96px;}   /* exit price, right of entry */
+  col.c-sl      {width:96px;}
+  col.c-tp      {width:96px;}
+  col.c-profit  {width:90px;}
+  col.c-status  {width:90px;}
+  col.c-reason  {width:90px;}
+  col.c-exittime{width:152px;}
+  col.c-comment {width:auto;}   /* fills remaining space */
+
+  thead th{
+    height:var(--rh);padding:0 10px;text-align:left;
+    font-size:10px;font-weight:500;color:var(--muted);
+    letter-spacing:.1em;text-transform:uppercase;
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    cursor:pointer;user-select:none;transition:color .12s;vertical-align:middle;
+  }
+  thead th:hover{color:var(--text);}
+  thead th .si{margin-left:3px;font-style:normal;font-size:9px;opacity:.3;}
+  thead th.sa .si::after{content:'▲';opacity:1;color:var(--accent);}
+  thead th.sd .si::after{content:'▼';opacity:1;color:var(--accent);}
+  thead th:not(.sa):not(.sd) .si::after{content:'⇅';}
+
+  tbody tr{height:var(--rh);border-bottom:1px solid var(--border);transition:background .08s;}
+  tbody tr:hover{background:var(--bghov);}
+  tbody tr:nth-child(even){background:var(--bgrow);}
+  tbody tr:nth-child(even):hover{background:var(--bghov);}
+  tbody tr.nr{animation:rf 1.4s ease forwards;}
+  @keyframes rf{0%{background:rgba(0,212,255,.2)}100%{background:transparent}}
+
+  td{height:var(--rh);padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;vertical-align:middle;line-height:var(--rh);}
+
+  .tv {color:var(--muted);font-size:11px;}
+  .sv {color:#e8eef6;font-weight:600;letter-spacing:.04em;}
+  .kv {color:var(--muted);font-size:11px;}
+  .lv {color:var(--accent);}
+  .pv {color:var(--text);font-variant-numeric:tabular-nums;}
+  .ds {color:var(--red);font-weight:500;}
+  .dl {color:var(--green);font-weight:500;}
+  .sca{color:var(--green);font-weight:600;}
+  .scb{color:var(--red);font-weight:500;}
+  .sce{color:var(--muted);}
+  .mv {color:var(--muted);font-size:11px;}
+
+  /* status badge */
+  .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:.06em;line-height:1.6;}
+  .badge-open  {background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.3);}
+  .badge-closed{background:rgba(107,122,150,.1);color:var(--muted);border:1px solid var(--border2);}
+
+  /* close reason badges */
+  .reason-tp{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:1.6;background:rgba(46,204,113,.12);color:var(--green);border:1px solid rgba(46,204,113,.3);}
+  .reason-sl{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:.04em;line-height:1.6;background:rgba(229,83,83,.12);color:var(--red);border:1px solid rgba(229,83,83,.3);}
+
+  /* profit colouring */
+  .profit-pos {color:var(--green);font-weight:600;font-variant-numeric:tabular-nums;}
+  .profit-neg {color:var(--red);font-weight:500;font-variant-numeric:tabular-nums;}
+  .profit-zero{color:var(--muted);font-variant-numeric:tabular-nums;}
+
+  /* header stat for open count */
+  #s-open.has-open{color:var(--green);}
+
+  .export-btn{padding:5px 14px;border-radius:3px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .12s;letter-spacing:.04em;}
+  .export-btn:hover{border-color:var(--green);color:var(--green);background:rgba(46,204,113,.08);}
+  .empty{padding:72px 0;text-align:center;color:var(--muted);}
+  .empty .ei{font-size:30px;margin-bottom:12px;opacity:.2;}
+  .empty .et{font-size:12px;}
+
+  footer{padding:14px 28px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;}
+
+  ::-webkit-scrollbar{width:5px;height:5px;}
+  ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<header>
+  <div class="logo">
+    <span class="logo-name">SAQ</span>
+    <span class="logo-sub">Trade Monitor</span>
+  </div>
+  <div class="hdr-r">
+    <div class="stat"><span class="v" id="s-total">—</span><span class="l">Total</span></div>
+    <div class="sep"></div>
+    <div class="stat"><span class="v" id="s-open">—</span><span class="l">Open</span></div>
+    <div class="sep"></div>
+    <div class="stat"><span class="v" id="s-today">—</span><span class="l">Today</span></div>
+    <div class="sep"></div>
+    <div class="stat"><span class="v" id="s-vis">—</span><span class="l">Shown</span></div>
+    <div class="sep"></div>
+    <div class="stat"><span class="v" id="s-avg">—</span><span class="l">Avg Score</span></div>
+    <div class="sep"></div>
+    <div class="pw">
+      <div class="pulse" id="pdot"></div>
+      <span id="plbl">live</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════ FILTERS ══════════════════════════════ -->
+<div class="fpanel">
+  <div class="fpanel-head" onclick="toggleFilters()">
+    <span class="fpanel-title">
+      <i class="arrow" id="farrow">▶</i>
+      Filters
+    </span>
+    <div class="fpanel-actions" onclick="event.stopPropagation()">
+      <button class="fbtn clear" onclick="clearAll()">Clear all</button>
+      <button class="fbtn apply" onclick="applyFilters()">Apply</button>
+    </div>
+  </div>
+
+  <div class="fpanel-body" id="fbody">
+  <div class="fgrid">
+
+    <!-- TIME -->
+    <div class="fgroup">
+      <label>Time (date range)</label>
+      <div class="date-row">
+        <input class="fi" type="date" id="f-date-from" placeholder="From">
+        <span>→</span>
+        <input class="fi" type="date" id="f-date-to"   placeholder="To">
+      </div>
+    </div>
+
+    <!-- SYMBOL -->
+    <div class="fgroup">
+      <label>Symbol — comma separated</label>
+      <input class="fi" id="f-symbol" placeholder="e.g. GBPUSD, EURUSD, GBPAUD">
+    </div>
+
+    <!-- DIRECTION -->
+    <div class="fgroup">
+      <label>Direction</label>
+      <div class="dir-row">
+        <button class="dtog" id="dtog-any"   onclick="setDir('any')"  >Any</button>
+        <button class="dtog" id="dtog-short" onclick="setDir('short')">▼ SHORT</button>
+        <button class="dtog" id="dtog-long"  onclick="setDir('long')" >▲ LONG</button>
+      </div>
+    </div>
+
+    <!-- TICKET -->
+    <div class="fgroup">
+      <label>Ticket — comma separated</label>
+      <input class="fi" id="f-ticket" placeholder="e.g. 268697686, 268697685">
+    </div>
+
+    <!-- SCORE -->
+    <div class="fgroup">
+      <label>Score</label>
+      <div class="num-row">
+        <select class="fsel" id="f-score-op" onchange="toggleRange('score')">
+          <option value="">— any —</option>
+          <option value="eq">=</option>
+          <option value="gt">&gt;</option>
+          <option value="gte">&gt;=</option>
+          <option value="lt">&lt;</option>
+          <option value="lte">&lt;=</option>
+          <option value="range">range</option>
+        </select>
+        <input class="fi" id="f-score-val" placeholder="value">
+      </div>
+      <div class="range-row hidden" id="f-score-range">
+        <input class="fi" id="f-score-min" placeholder="min">
+        <span>to</span>
+        <input class="fi" id="f-score-max" placeholder="max">
+      </div>
+    </div>
+
+    <!-- LOT -->
+    <div class="fgroup">
+      <label>Lot</label>
+      <div class="num-row">
+        <select class="fsel" id="f-lot-op" onchange="toggleRange('lot')">
+          <option value="">— any —</option>
+          <option value="eq">=</option>
+          <option value="gt">&gt;</option>
+          <option value="gte">&gt;=</option>
+          <option value="lt">&lt;</option>
+          <option value="lte">&lt;=</option>
+          <option value="range">range</option>
+        </select>
+        <input class="fi" id="f-lot-val" placeholder="value">
+      </div>
+      <div class="range-row hidden" id="f-lot-range">
+        <input class="fi" id="f-lot-min" placeholder="min">
+        <span>to</span>
+        <input class="fi" id="f-lot-max" placeholder="max">
+      </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="fgroup">
+      <label>Position Status</label>
+      <div class="dir-row">
+        <button class="dtog on-active" id="stog-any"    onclick="setStatus('any')"   >Any</button>
+        <button class="dtog"           id="stog-open"   onclick="setStatus('open')"  >Open</button>
+        <button class="dtog"           id="stog-closed" onclick="setStatus('closed')">Closed</button>
+      </div>
+    </div>
+
+    <!-- REASON -->
+    <div class="fgroup">
+      <label>Close Reason</label>
+      <div class="dir-row">
+        <button class="dtog on-active" id="rtog-all" onclick="setReason('all')">All</button>
+        <button class="dtog"           id="rtog-tp"  onclick="setReason('tp')" >TP ✓</button>
+        <button class="dtog"           id="rtog-sl"  onclick="setReason('sl')" >SL ✗</button>
+      </div>
+    </div>
+
+  </div><!-- /fgrid -->
+  </div><!-- /fpanel-body -->
+</div><!-- /fpanel -->
+
+<!-- active filter pills -->
+<div class="active-filters" id="pills"></div>
+
+<!-- ═══════════════════════════════ TABLE ════════════════════════════════ -->
+<div class="twrap">
+  <div class="cbar">
+    <span class="cnt">Showing <strong id="rcnt">0</strong> trades</span>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="lupd" id="lupd">—</span>
+      <button class="fbtn export-btn" onclick="exportCSV()">↓ Export CSV</button>
+    </div>
+  </div>
+  <table>
+    <colgroup>
+      <col class="c-time"><col class="c-sym"><col class="c-dir"><col class="c-ticket">
+      <col class="c-score"><col class="c-lot">
+      <col class="c-entry"><col class="c-exit">
+      <col class="c-sl"><col class="c-tp">
+      <col class="c-profit"><col class="c-status"><col class="c-reason">
+      <col class="c-exittime"><col class="c-comment">
+    </colgroup>
+    <thead><tr>
+      <th onclick="srt('time')"      data-col="time">      Time       <i class="si"></i></th>
+      <th onclick="srt('symbol')"    data-col="symbol">    Symbol     <i class="si"></i></th>
+      <th onclick="srt('dir')"       data-col="dir">       Dir        <i class="si"></i></th>
+      <th onclick="srt('ticket')"    data-col="ticket">    Ticket     <i class="si"></i></th>
+      <th onclick="srt('score')"     data-col="score">     Score      <i class="si"></i></th>
+      <th onclick="srt('lot')"       data-col="lot">       Lot        <i class="si"></i></th>
+      <th onclick="srt('entry')"     data-col="entry">     Entry      <i class="si"></i></th>
+      <th onclick="srt('exit_price')"data-col="exit_price">Exit Price <i class="si"></i></th>
+      <th data-col="sl">SL</th>
+      <th data-col="tp">TP</th>
+      <th onclick="srt('profit')"    data-col="profit">    Profit     <i class="si"></i></th>
+      <th onclick="srt('pos_status')"data-col="pos_status">Status<i class="si"></i></th>
+      <th onclick="srt('close_reason')"data-col="close_reason">Reason<i class="si"></i></th>
+      <th onclick="srt('exit_time')" data-col="exit_time"> Exit Time  <i class="si"></i></th>
+      <th data-col="comment">Comment</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="empty" id="empty" style="display:none">
+    <div class="ei">◈</div><div class="et">No trades match the current filters</div>
+  </div>
+</div>
+
+<footer>
+  <span>Solara AI Quant · UBB Rejection SHORT</span>
+  <span id="fts">auto-refreshes every 5s</span>
+</footer>
+
+<script>
+const MS = 5000;
+let allData = [], known = new Set(), sc = 'time', sa = false, staleT = null;
+
+// ── active filter state ─────────────────────────────────────────────────────
+let AF = {
+  dateFrom: '', dateTo: '',
+  symbols: [],
+  dir: 'any',
+  tickets: [],
+  scoreOp: '', scoreVal: '', scoreMin: '', scoreMax: '',
+  lotOp:   '', lotVal:   '', lotMin:   '', lotMax:   '',
+  status: 'any',   // 'any' | 'open' | 'closed'
+  reason: 'all',   // 'all' | 'tp' | 'sl'
+};
+
+// ── direction toggle ────────────────────────────────────────────────────────
+function setDir(d) {
+  AF.dir = d;
+  ['any','short','long'].forEach(x => {
+    const el = document.getElementById('dtog-'+x);
+    el.className = 'dtog' + (x===d ? (x==='short'?' on-short':x==='long'?' on-long':' on-active') : '');
+  });
+}
+setDir('any');
+
+// ── status toggle ───────────────────────────────────────────────────────────
+function setStatus(s) {
+  AF.status = s;
+  ['any','open','closed'].forEach(x => {
+    const el = document.getElementById('stog-'+x);
+    el.className = 'dtog' + (x===s ? ' on-active' : '');
+  });
+}
+setStatus('any');
+
+// ── reason toggle ───────────────────────────────────────────────────────────
+function setReason(r) {
+  AF.reason = r;
+  ['all','tp','sl'].forEach(x => {
+    const el = document.getElementById('rtog-'+x);
+    el.className = 'dtog' + (x===r ? (x==='tp'?' on-long':x==='sl'?' on-short':' on-active') : '');
+  });
+}
+setReason('all');
+
+// ── show/hide range inputs ──────────────────────────────────────────────────
+function toggleRange(field) {
+  const op  = document.getElementById('f-'+field+'-op').value;
+  const row = document.getElementById('f-'+field+'-range');
+  const val = document.getElementById('f-'+field+'-val');
+  if (op === 'range') {
+    row.classList.remove('hidden');
+    val.classList.add('hidden');
+  } else {
+    row.classList.add('hidden');
+    val.classList.remove('hidden');
+  }
+}
+
+// ── apply filters ───────────────────────────────────────────────────────────
+function applyFilters() {
+  AF.dateFrom  = document.getElementById('f-date-from').value.trim();
+  AF.dateTo    = document.getElementById('f-date-to').value.trim();
+  AF.symbols   = document.getElementById('f-symbol').value
+                  .split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  AF.tickets   = document.getElementById('f-ticket').value
+                  .split(',').map(s=>s.trim()).filter(Boolean);
+  AF.scoreOp   = document.getElementById('f-score-op').value;
+  AF.scoreVal  = document.getElementById('f-score-val').value.trim();
+  AF.scoreMin  = document.getElementById('f-score-min').value.trim();
+  AF.scoreMax  = document.getElementById('f-score-max').value.trim();
+  AF.lotOp     = document.getElementById('f-lot-op').value;
+  AF.lotVal    = document.getElementById('f-lot-val').value.trim();
+  AF.lotMin    = document.getElementById('f-lot-min').value.trim();
+  AF.lotMax    = document.getElementById('f-lot-max').value.trim();
+  renderPills();
+  draw([]);
+}
+
+// ── clear all filters ───────────────────────────────────────────────────────
+function clearAll() {
+  document.getElementById('f-date-from').value = '';
+  document.getElementById('f-date-to').value   = '';
+  document.getElementById('f-symbol').value    = '';
+  document.getElementById('f-ticket').value    = '';
+  ['score','lot'].forEach(f => {
+    document.getElementById('f-'+f+'-op').value  = '';
+    document.getElementById('f-'+f+'-val').value = '';
+    document.getElementById('f-'+f+'-min').value = '';
+    document.getElementById('f-'+f+'-max').value = '';
+    document.getElementById('f-'+f+'-range').classList.add('hidden');
+    document.getElementById('f-'+f+'-val').classList.remove('hidden');
+  });
+  setDir('any');
+  setStatus('any');
+  setReason('all');
+  AF = { dateFrom:'',dateTo:'',symbols:[],dir:'any',tickets:[],
+         scoreOp:'',scoreVal:'',scoreMin:'',scoreMax:'',
+         lotOp:'',lotVal:'',lotMin:'',lotMax:'',
+         status:'any', reason:'all' };
+  renderPills();
+  draw([]);
+}
+
+// ── clear single filter ─────────────────────────────────────────────────────
+function clearFilter(key) {
+  switch(key) {
+    case 'date':
+      AF.dateFrom=''; AF.dateTo='';
+      document.getElementById('f-date-from').value='';
+      document.getElementById('f-date-to').value=''; break;
+    case 'symbol':
+      AF.symbols=[];
+      document.getElementById('f-symbol').value=''; break;
+    case 'dir':
+      AF.dir='any'; setDir('any'); break;
+    case 'ticket':
+      AF.tickets=[];
+      document.getElementById('f-ticket').value=''; break;
+    case 'score':
+      AF.scoreOp=''; AF.scoreVal=''; AF.scoreMin=''; AF.scoreMax='';
+      document.getElementById('f-score-op').value='';
+      document.getElementById('f-score-val').value='';
+      document.getElementById('f-score-min').value='';
+      document.getElementById('f-score-max').value='';
+      document.getElementById('f-score-range').classList.add('hidden');
+      document.getElementById('f-score-val').classList.remove('hidden'); break;
+    case 'lot':
+      AF.lotOp=''; AF.lotVal=''; AF.lotMin=''; AF.lotMax='';
+      document.getElementById('f-lot-op').value='';
+      document.getElementById('f-lot-val').value='';
+      document.getElementById('f-lot-min').value='';
+      document.getElementById('f-lot-max').value='';
+      document.getElementById('f-lot-range').classList.add('hidden');
+      document.getElementById('f-lot-val').classList.remove('hidden'); break;
+    case 'status':
+      AF.status='any'; setStatus('any'); break;
+    case 'reason':
+      AF.reason='all'; setReason('all'); break;
+  }
+  renderPills();
+  draw([]);
+}
+
+// ── active filter pills ─────────────────────────────────────────────────────
+function renderPills() {
+  const container = document.getElementById('pills');
+  const pills = [];
+
+  if (AF.dateFrom || AF.dateTo)
+    pills.push(`<span class="apill">📅 ${AF.dateFrom||'…'} → ${AF.dateTo||'…'}<button onclick="clearFilter('date')">×</button></span>`);
+  if (AF.symbols.length)
+    pills.push(`<span class="apill">Symbol: ${AF.symbols.join(', ')}<button onclick="clearFilter('symbol')">×</button></span>`);
+  if (AF.dir !== 'any')
+    pills.push(`<span class="apill">Dir: ${AF.dir.toUpperCase()}<button onclick="clearFilter('dir')">×</button></span>`);
+  if (AF.tickets.length)
+    pills.push(`<span class="apill">Ticket: ${AF.tickets.join(', ')}<button onclick="clearFilter('ticket')">×</button></span>`);
+  if (AF.scoreOp) {
+    const lbl = AF.scoreOp==='range'
+      ? `Score: ${AF.scoreMin} – ${AF.scoreMax}`
+      : `Score ${opLabel(AF.scoreOp)} ${AF.scoreVal}`;
+    pills.push(`<span class="apill">${lbl}<button onclick="clearFilter('score')">×</button></span>`);
+  }
+  if (AF.lotOp) {
+    const lbl = AF.lotOp==='range'
+      ? `Lot: ${AF.lotMin} – ${AF.lotMax}`
+      : `Lot ${opLabel(AF.lotOp)} ${AF.lotVal}`;
+    pills.push(`<span class="apill">${lbl}<button onclick="clearFilter('lot')">×</button></span>`);
+  }
+  if (AF.status !== 'any')
+    pills.push(`<span class="apill">Status: ${AF.status.toUpperCase()}<button onclick="clearFilter('status')">×</button></span>`);
+  if (AF.reason !== 'all')
+    pills.push(`<span class="apill">Reason: ${AF.reason.toUpperCase()}<button onclick="clearFilter('reason')">×</button></span>`);
+
+  container.innerHTML = pills.join('');
+}
+
+function opLabel(op) {
+  return {eq:'=',gt:'>',gte:'>=',lt:'<',lte:'<='}[op] || op;
+}
+
+// ── filter logic ────────────────────────────────────────────────────────────
+function numPass(op, val, min, max, rowVal) {
+  if (!op) return true;
+  const v = parseFloat(rowVal);
+  if (isNaN(v)) return false;
+  if (op === 'range') {
+    const lo = parseFloat(min), hi = parseFloat(max);
+    return (!isNaN(lo) ? v >= lo : true) && (!isNaN(hi) ? v <= hi : true);
+  }
+  const ref = parseFloat(val);
+  if (isNaN(ref)) return true;
+  if (op==='eq')  return v === ref;
+  if (op==='gt')  return v >   ref;
+  if (op==='gte') return v >=  ref;
+  if (op==='lt')  return v <   ref;
+  if (op==='lte') return v <=  ref;
+  return true;
+}
+
+function passesFilters(d) {
+  if (AF.dateFrom && d.time && d.time.slice(0,10) < AF.dateFrom) return false;
+  if (AF.dateTo   && d.time && d.time.slice(0,10) > AF.dateTo)   return false;
+  if (AF.symbols.length && !AF.symbols.includes((d.symbol||'').toUpperCase())) return false;
+  if (AF.dir !== 'any' && (d.dir||'').toUpperCase() !== AF.dir.toUpperCase()) return false;
+  if (AF.tickets.length && !AF.tickets.includes(String(d.ticket||''))) return false;
+  if (!numPass(AF.scoreOp, AF.scoreVal, AF.scoreMin, AF.scoreMax, d.score)) return false;
+  if (!numPass(AF.lotOp,   AF.lotVal,   AF.lotMin,   AF.lotMax,   d.lot))   return false;
+  if (AF.status !== 'any') {
+    const ps = (d.pos_status||'').toLowerCase();
+    if (AF.status === 'open'   && ps !== 'open')   return false;
+    if (AF.status === 'closed' && ps !== 'closed') return false;
+  }
+  if (AF.reason !== 'all') {
+    const cr = (d.close_reason || '').toLowerCase();
+    if (AF.reason === 'tp' && !cr.includes('[tp')) return false;
+    if (AF.reason === 'sl' && !cr.includes('[sl')) return false;
+  }
+  return true;
+}
+
+// ── sort ────────────────────────────────────────────────────────────────────
+function srt(c) { sa = sc===c ? !sa : c!=='time'; sc=c; draw([]); }
+
+function sorted(d) {
+  return [...d].sort((a,b)=>{
+    let av=a[sc]??'', bv=b[sc]??'';
+    if(['lot','entry','exit_price','sl','tp','score','profit'].includes(sc)){
+      av=parseFloat(av)||0; bv=parseFloat(bv)||0;
+    }
+    return av<bv?(sa?-1:1):av>bv?(sa?1:-1):0;
+  });
+}
+
+// ── draw ────────────────────────────────────────────────────────────────────
+function draw(nw) {
+  const filtered = sorted(allData.filter(passesFilters));
+  document.getElementById('rcnt').textContent  = filtered.length;
+  document.getElementById('s-vis').textContent = filtered.length;
+
+  document.querySelectorAll('thead th[data-col]').forEach(th=>{
+    th.classList.remove('sa','sd');
+    if(th.dataset.col===sc) th.classList.add(sa?'sa':'sd');
+  });
+
+  if (!filtered.length) {
+    document.getElementById('tbody').innerHTML='';
+    document.getElementById('empty').style.display='block';
+    return;
+  }
+  document.getElementById('empty').style.display='none';
+
+  document.getElementById('tbody').innerHTML = filtered.map(d=>{
+    const isNew  = nw.includes(d.ticket);
+    const sn     = d.score ? parseFloat(d.score) : null;
+    const th2    = parseFloat(d.threshold)||0;
+    const scCls  = sn===null?'sce':sn>=th2?'sca':'scb';
+    const dirCls = d.dir==='SHORT'?'ds':'dl';
+    const dirSym = d.dir==='SHORT'?'▼':'▲';
+
+    // ── status badge ────────────────────────────────────────────────────────
+    const ps = (d.pos_status||'').toUpperCase();
+    let statusCell = '<span class="mv">—</span>';
+    if      (ps==='OPEN')   statusCell = '<span class="badge badge-open">OPEN</span>';
+    else if (ps==='CLOSED') statusCell = '<span class="badge badge-closed">CLOSED</span>';
+
+    // ── exit price ──────────────────────────────────────────────────────────
+    const exitPriceCell = d.exit_price
+      ? `<span class="pv">${d.exit_price}</span>`
+      : '<span class="mv">—</span>';
+
+    // ── exit time ───────────────────────────────────────────────────────────
+    const exitTimeCell = d.exit_time
+      ? `<span class="tv">${d.exit_time}</span>`
+      : '<span class="mv">—</span>';
+
+    // ── profit colouring ────────────────────────────────────────────────────
+    let profitCell = '<span class="mv">—</span>';
+    if (d.profit && d.profit !== '') {
+      const pv = parseFloat(d.profit);
+      const cls = pv > 0 ? 'profit-pos' : pv < 0 ? 'profit-neg' : 'profit-zero';
+      profitCell = `<span class="${cls}">${d.profit}</span>`;
+    }
+
+    // ── close reason (from exit deal comment e.g. "[tp 1.98608]" / "[sl 92.673]") ──
+    let reasonCell = '<span class="mv">—</span>';
+    const cr = d.close_reason || '';
+    if (cr) {
+      const tpMatch = cr.match(/\[tp\s+([\d.]+)\]/i);
+      const slMatch = cr.match(/\[sl\s+([\d.]+)\]/i);
+      if (tpMatch) {
+        reasonCell = `<span class="reason-tp" title="${cr}">TP ✓</span>`;
+      } else if (slMatch) {
+        reasonCell = `<span class="reason-sl" title="${cr}">SL ✗</span>`;
+      }
+    }
+
+    // ── comment (raw text, trimmed) ─────────────────────────────────────────
+    const commentCell = d.comment
+      ? `<span class="mv" title="${d.comment}">${d.comment}</span>`
+      : '<span class="mv">—</span>';
+
+    return `<tr${isNew?' class="nr"':''}>
+      <td class="tv">${d.time?d.time.slice(0,19).replace('T',' '):'—'}</td>
+      <td class="sv">${d.symbol||'—'}</td>
+      <td class="${dirCls}">${dirSym} ${d.dir||'—'}</td>
+      <td class="kv">${d.ticket||'—'}</td>
+      <td class="${scCls}">${d.score||'—'}</td>
+      <td class="lv">${d.lot||'—'}</td>
+      <td class="pv">${d.entry||'—'}</td>
+      <td>${exitPriceCell}</td>
+      <td class="pv">${d.sl||'—'}</td>
+      <td class="pv">${d.tp||'—'}</td>
+      <td>${profitCell}</td>
+      <td>${statusCell}</td>
+      <td>${reasonCell}</td>
+      <td>${exitTimeCell}</td>
+      <td>${commentCell}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── stats ────────────────────────────────────────────────────────────────────
+function stats() {
+  const today  = new Date().toISOString().slice(0,10);
+  const scored = allData.filter(d=>d.score&&d.score!=='');
+  const avg    = scored.length
+    ? (scored.reduce((s,d)=>s+parseFloat(d.score),0)/scored.length).toFixed(4) : '—';
+  const openCount = allData.filter(d=>(d.pos_status||'').toUpperCase()==='OPEN').length;
+
+  document.getElementById('s-total').textContent = allData.length;
+  document.getElementById('s-today').textContent = allData.filter(d=>d.time&&d.time.startsWith(today)).length;
+  document.getElementById('s-avg').textContent   = avg;
+
+  const openEl = document.getElementById('s-open');
+  openEl.textContent = openCount;
+  openEl.classList.toggle('has-open', openCount > 0);
+}
+
+// ── fetch ────────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const r = await fetch('/data');
+    if (!r.ok) throw r.status;
+    const fresh = await r.json();
+    const nw = fresh.filter(d=>d.ticket&&!known.has(d.ticket)).map(d=>d.ticket);
+    nw.forEach(t=>known.add(t));
+    allData = fresh;
+    draw(nw); stats();
+    document.getElementById('lupd').textContent = 'updated '+new Date().toLocaleTimeString();
+    const dot = document.getElementById('pdot');
+    dot.classList.remove('stale');
+    document.getElementById('plbl').textContent='live';
+    clearTimeout(staleT);
+    staleT=setTimeout(()=>{dot.classList.add('stale');document.getElementById('plbl').textContent='stale';},30000);
+  } catch(e){ console.warn(e); }
+}
+
+// allow Enter key to apply filters
+document.querySelectorAll('.fi, .fsel').forEach(el=>{
+  el.addEventListener('keydown', e=>{ if(e.key==='Enter') applyFilters(); });
+});
+
+// ── filter panel toggle ─────────────────────────────────────────────────────
+function toggleFilters() {
+  const body  = document.getElementById('fbody');
+  const arrow = document.getElementById('farrow');
+  const isOpen = body.classList.toggle('open');
+  arrow.textContent = isOpen ? '▼' : '▶';
+}
+
+
+// ── export to CSV ────────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = sorted(allData.filter(passesFilters));
+  if (!rows.length) return;
+
+  const cols = [
+    { key: 'time',         label: 'Time'        },
+    { key: 'symbol',       label: 'Symbol'      },
+    { key: 'dir',          label: 'Direction'   },
+    { key: 'ticket',       label: 'Ticket'      },
+    { key: 'score',        label: 'Score'       },
+    { key: 'lot',          label: 'Lot'         },
+    { key: 'entry',        label: 'Entry Price' },
+    { key: 'exit_price',   label: 'Exit Price'  },
+    { key: 'sl',           label: 'SL'          },
+    { key: 'tp',           label: 'TP'          },
+    { key: 'profit',       label: 'Profit'      },
+    { key: 'pos_status',   label: 'Status'      },
+    { key: 'close_reason', label: 'Close Reason'},
+    { key: 'exit_time',    label: 'Exit Time'   },
+    { key: 'comment',      label: 'Comment'     },
+  ];
+
+  const escape = v => {
+    if (v === null || v === undefined) return '';
+    const s = String(v);
+    // wrap in quotes if contains comma, quote, or newline
+    return (s.includes(',') || s.includes('"') || s.includes('\n'))
+      ? '"' + s.replace(/"/g, '""') + '"'
+      : s;
+  };
+
+  const header = cols.map(c => escape(c.label)).join(',');
+  const body   = rows.map(r =>
+    cols.map(c => escape(r[c.key] ?? '')).join(',')
+  ).join('\n');
+
+  const csv  = header + '\n' + body;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+
+  const now  = new Date();
+  const ts   = now.getFullYear()
+    + String(now.getMonth()+1).padStart(2,'0')
+    + String(now.getDate()).padStart(2,'0')
+    + '_' + String(now.getHours()).padStart(2,'0')
+    + String(now.getMinutes()).padStart(2,'0');
+  const filename = `saq_trades_${ts}.csv`;
+
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+load();
+setInterval(load, MS);
+</script>
+</body>
+</html>

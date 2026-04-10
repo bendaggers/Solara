@@ -1,0 +1,35 @@
+# ─────────────────────────────────────────────
+# Solara AI Quant — .gitignore
+# ─────────────────────────────────────────────
+
+# Credentials — NEVER commit
+.env
+
+# Database
+state/solara_aq.db
+state/solara_aq.db-shm
+state/solara_aq.db-wal
+
+# Logs
+logs/
+reports/
+
+# ML Models — managed separately
+Models/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
