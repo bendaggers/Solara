@@ -1,0 +1,43 @@
+/* ── Shared dummy page styles ── */
+.dummy-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 16px;
+  text-align: center;
+}
+
+.dummy-page-icon {
+  font-size: 56px;
+  line-height: 1;
+}
+
+.dummy-page-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f1929;
+  letter-spacing: -0.02em;
+}
+
+.dummy-page-subtitle {
+  font-size: 14px;
+  color: #8894a8;
+  max-width: 320px;
+  line-height: 1.6;
+}
+
+.dummy-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 30px;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}

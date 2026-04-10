@@ -239,7 +239,7 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
 
         # ── 4. Trend alignment check ──────────────────────────────────────
         trend_aligned, trend_direction = self._check_alignment(
-            h4_trend_pred, d1_trend_pred, w1_trend_pred
+            h4_trend_pred, d1_trend_pred, w1_trend_pred, sym=sym
         )
 
         # ── 5. H4 pullback features (last _SWING_WINDOW + buffer bars) ────
@@ -638,29 +638,45 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         h4_pred: Optional[pd.DataFrame],
         d1_pred: Optional[pd.DataFrame],
         w1_pred: Optional[pd.DataFrame],
+        sym: str = '',
     ) -> tuple[bool, str]:
         """
         Check if ≥ 2/3 trend models agree on a directional (non-sideways) class.
         Returns (aligned: bool, consensus_direction: str).
         """
         preds = []
-        for pred in (h4_pred, d1_pred, w1_pred):
+        tf_results = {}
+        for tf, pred in (('H4', h4_pred), ('D1', d1_pred), ('W1', w1_pred)):
             if pred is not None and pred['model_valid'].any():
-                # Take the last valid bar's prediction
                 valid = pred[pred['model_valid']]
-                cls = valid['predicted_class'].iloc[-1]
+                row   = valid.iloc[-1]
+                cls   = row['predicted_class']
+                up    = round(float(row.get('prob_up',   0)), 3)
+                dn    = round(float(row.get('prob_down', 0)), 3)
                 preds.append(cls)
+                tf_results[tf] = f"{cls}(↑{up} ↓{dn})"
+            elif pred is None:
+                tf_results[tf] = 'failed/missing'
+            else:
+                tf_results[tf] = 'no_valid_bars'
+
+        tf_summary = '  '.join(f"{tf}:{v}" for tf, v in tf_results.items())
 
         if len(preds) < 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — only {len(preds)}/3 TFs valid → not aligned  [{tf_summary}]")
             return False, 'sideways'
 
         up_count   = preds.count('uptrend')
         down_count = preds.count('downtrend')
 
         if up_count >= 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — UPTREND ✓  [{tf_summary}]")
             return True, 'uptrend'
         if down_count >= 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — DOWNTREND ✓  [{tf_summary}]")
             return True, 'downtrend'
+
+        logger.debug(f"[PullBackFE] {sym}: alignment — mixed/sideways ({up_count} up {down_count} dn)  [{tf_summary}]")
         return False, 'sideways'
 
     # ─────────────────────────────────────────────────────────────────────────

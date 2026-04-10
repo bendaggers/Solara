@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f0f3f8;
+  font-family: 'DM Sans', sans-serif;
+  color: #1a2232;
+}
+
+::-webkit-scrollbar { height: 5px; width: 5px; }
+::-webkit-scrollbar-track { background: #f0f3f8; }
+::-webkit-scrollbar-thumb { background: #c8d3e0; border-radius: 4px; }
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  padding: 32px 32px 60px;
+  overflow: auto;
+  background: #f0f3f8;
+}
