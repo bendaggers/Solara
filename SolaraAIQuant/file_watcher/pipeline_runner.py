@@ -223,13 +223,13 @@ class PipelineRunner:
                     else "none passed conflict check"))
 
             # ── Stage 7: RISK ─────────────────────────────────────────────────
-            approved = self._stage_risk(valid_signals, timeframe)
+            approved, risk_skip_reason = self._stage_risk(valid_signals, timeframe)
             if approved:
                 stages.append(dict(step=7, name="risk", status="ok",
                     detail=f"{len(approved)}/{len(valid_signals)} approved"))
             elif valid_signals:
                 stages.append(dict(step=7, name="risk", status="skip",
-                    detail=f"0/{len(valid_signals)} approved — position limits"))
+                    detail=f"0/{len(valid_signals)} approved — {risk_skip_reason}"))
             else:
                 stages.append(dict(step=7, name="risk", status="skip",
                     detail="no signals to check"))
@@ -340,25 +340,31 @@ class PipelineRunner:
         from signals.aggregator import SignalAggregator
         return SignalAggregator().aggregate(result_set)
 
-    def _stage_risk(self, signals: List, timeframe: Timeframe) -> List:
+    def _stage_risk(self, signals: List, timeframe: Timeframe):
         """
         Stage 7: Risk / position-limit check.
 
         Converts AggregatedSignal → ApprovedSignal.
-        Checks:
-          - Model has not exceeded max_positions (by magic number)
-          - Resolves lot size via model's confidence_tiers
+        Checks (in order):
+          1. Cooldown  — no re-entry within 5 min on same symbol+magic
+          2. Position  — model has not exceeded max_positions (by magic)
+          3. Confidence — signal confidence matches a lot-size tier
 
         No MT5 connection required — position check uses mt5_manager
         only if connected; if not connected, skips the check and
         approves everything (so dev-mode signals still reach Stage 8
         where they are logged and dropped cleanly).
+
+        Returns:
+            (approved: List[ApprovedSignal], skip_reason: str)
+            skip_reason is a human-readable summary of why signals were
+            rejected, used by the Stage 7 terminal display.
         """
         from signals.signal_models import ApprovedSignal, SignalStatus, RejectionReason
         from engine.registry import model_registry
 
         if not signals:
-            return []
+            return [], ""
 
         # Try to get live position counts (None = MT5 not connected)
         try:
@@ -372,6 +378,11 @@ class PipelineRunner:
         # duplicate trades on the same setup seconds apart.
         COOLDOWN_SECONDS = 300  # 5 minutes
 
+        # Rejection counters for the Stage 7 display summary
+        n_cooldown   = 0
+        n_pos_limit  = 0
+        n_low_conf   = 0
+
         approved = []
         for agg_sig in signals:
             model_config = model_registry.get_model(agg_sig.raw_signal.model_name)
@@ -379,7 +390,7 @@ class PipelineRunner:
                 logger.warning(f"Risk: no config for {agg_sig.raw_signal.model_name}")
                 continue
 
-            # ── Cooldown check ─────────────────────────────────────────────
+            # ── 1. Cooldown check ──────────────────────────────────────────
             # Skip if a FILLED trade for this symbol+magic was placed within
             # the last COOLDOWN_SECONDS. Works in both prod and dev mode.
             try:
@@ -399,6 +410,7 @@ class PipelineRunner:
                         'secs':  COOLDOWN_SECONDS,
                     }).scalar()
                 if recent and recent > 0:
+                    n_cooldown += 1
                     logger.info(
                         f"Risk: {agg_sig.symbol} skipped — cooldown active "
                         f"({COOLDOWN_SECONDS}s) [{agg_sig.raw_signal.model_name}]"
@@ -407,7 +419,7 @@ class PipelineRunner:
             except Exception as _e:
                 logger.warning(f"Risk: cooldown check failed for {agg_sig.symbol}: {_e}")
 
-            # ── Position-limit check (only when connected — dev mode skips)
+            # ── 2. Position-limit check (only when connected — dev mode skips)
             if mt5_connected:
                 try:
                     from mt5.mt5_manager import mt5_manager
@@ -416,6 +428,7 @@ class PipelineRunner:
                     )
                     max_pos = model_config.get_max_positions(timeframe.value)
                     if open_count >= max_pos:
+                        n_pos_limit += 1
                         logger.info(
                             f"Risk: {agg_sig.symbol} skipped — "
                             f"{agg_sig.raw_signal.model_name} at max positions "
@@ -425,14 +438,15 @@ class PipelineRunner:
                 except Exception as e:
                     logger.warning(f"Risk: position count check failed: {e}")
 
-            # Resolve lot size from confidence tiers.
+            # ── 3. Confidence-tier check ───────────────────────────────────
             # None means confidence is below the lowest tier — reject signal.
             lot_size = model_config.get_fixed_lot(agg_sig.combined_confidence)
 
             if lot_size is None:
+                n_low_conf += 1
                 logger.info(
                     f"Risk: {agg_sig.symbol} rejected — "
-                    f"score {agg_sig.combined_confidence:.4f} below minimum tier "
+                    f"score {agg_sig.combined_confidence:.4f} below min tier "
                     f"for {agg_sig.raw_signal.model_name}"
                 )
                 continue
@@ -443,7 +457,17 @@ class PipelineRunner:
                 status=SignalStatus.APPROVED,
             ))
 
-        return approved
+        # Build a concise rejection reason string for the Stage 7 display
+        parts = []
+        if n_pos_limit:
+            parts.append(f"pos limit ×{n_pos_limit}")
+        if n_cooldown:
+            parts.append(f"cooldown ×{n_cooldown}")
+        if n_low_conf:
+            parts.append(f"low conf ×{n_low_conf}")
+        skip_reason = ", ".join(parts) if parts else "rejected"
+
+        return approved, skip_reason
 
     def _stage_execute(self, approved: List, timeframe: Timeframe) -> List:
         """

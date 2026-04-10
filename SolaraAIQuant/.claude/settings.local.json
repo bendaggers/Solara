@@ -3,7 +3,8 @@
     "allow": [
       "Bash(python -c ':*)",
       "Bash(Get-Content \"C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Experts\\\\Advisors\\\\Solara\\\\SolaraAIQuant\\\\logs\\\\saq.log\")",
-      "Bash(Select-Object -Last 100)"
+      "Bash(Select-Object -Last 100)",
+      "Bash(del \"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\forex_trend_model\\\\models\\\\__pycache__\\\\ensemble.cpython-311.pyc\")"
     ]
   }
 }

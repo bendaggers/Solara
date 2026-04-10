@@ -167,7 +167,7 @@ models:
     timeout: 30
     magic: 300401
     comment: "PH_Long"
-    max_positions: 1        # EURUSD only — one long position at a time
+    max_positions: 999        # EURUSD only — one long position at a time
 
     # Default TP/SL loaded from .pkl export; these are fallbacks only.
     # export_model.py optimises TP/SL on the training window and saves them.
@@ -232,6 +232,7 @@ models:
   #   Gate 3 — P(win) >= 0.48
   # =========================================================================
   - name: "Punk Hazard Short"
+    enabled: false          # set true after punk_hazard_short.pkl is generated
     description: "EURUSD H4 BB upper-band mean-reversion SHORT — Run 29"
     class_path: "predictors.punk_hazard_short.PunkHazardShortPredictor"
     model_file: "punk_hazard_short.pkl"
@@ -301,7 +302,6 @@ models:
       - CADCHF
       - CHFJPY
 
-    enabled: false          # set true after punk_hazard_short.pkl is generated
 
 
   # =========================================================================
@@ -325,6 +325,7 @@ models:
   # TP/SL: 80/40 pips (2:1 R:R) — adjust after paper trading analysis.
   # =========================================================================
   - name: "TI V2 Long"
+    enabled: true   # Set to true when ready to start paper trading
     description: "V2 Universal Trend Identifier — 28 pairs H4 — LONG signals (92.6% accuracy)"
     class_path: "predictors.trend_identifier_v2.TrendIdentifierV2Predictor"
     model_file: "trend_identifier_v2.pkl"
@@ -362,7 +363,7 @@ models:
     timeout: 60
     magic: 400401
     comment: "TI_V2_Long"
-    max_positions: 3
+    max_positions: 999
 
     # TP/SL: conservative trend-following defaults (2:1 R:R on H4)
     # Review and tune after 30 days of paper trading.
@@ -415,7 +416,6 @@ models:
       - USDCHF
       - USDJPY
 
-    enabled: true   # Set to true when ready to start paper trading
 
 
   # =========================================================================
@@ -426,6 +426,7 @@ models:
   # Signal logic: p(downtrend) >= min_confidence → SHORT signal
   # =========================================================================
   - name: "TI V2 Short"
+    enabled: true   # Set to true when ready to start paper trading
     description: "V2 Universal Trend Identifier — 28 pairs H4 — SHORT signals (92.6% accuracy)"
     class_path: "predictors.trend_identifier_v2.TrendIdentifierV2Predictor"
     model_file: "trend_identifier_v2.pkl"
@@ -455,7 +456,7 @@ models:
     timeout: 60
     magic: 400402
     comment: "TI_V2_Short"
-    max_positions: 3
+    max_positions: 999
 
     tp_pips: 80
     sl_pips: 40
@@ -506,7 +507,6 @@ models:
       - USDCHF
       - USDJPY
 
-    enabled: true   # Set to true when ready to start paper trading
 
 
   # =========================================================================
@@ -533,6 +533,7 @@ models:
   # merge_timeframes is [] — no pipeline-level merging needed.
   # =========================================================================
   - name: "Pull Back Entry Long"
+    enabled: true   # Set true after paper trading validation
     description: "3-stage pullback entry LONG — trend alignment + H4 exhaustion + H1 entry (28 pairs)"
     class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
     model_file: "pull_back_entry_h1.joblib"
@@ -546,7 +547,7 @@ models:
     # ── Confidence tiers (entry_prob from XGBoost) ──────────────────────────
     # Threshold from training: 0.80
     confidence_tiers:
-      - min_confidence: 0.80
+      - min_confidence: 0.60
         max_confidence: 0.849
         fixed_lot: 0.01
       - min_confidence: 0.85
@@ -564,7 +565,7 @@ models:
     timeout: 90          # trend models take longer than single-model inference
     magic: 500301
     comment: "PB_Long"
-    max_positions: 3
+    max_positions: 999
 
     tp_pips: 30
     sl_pips: 20
@@ -600,7 +601,6 @@ models:
       - USDCHF
       - USDJPY
 
-    enabled: true   # Set true after paper trading validation
 
 
   # =========================================================================
@@ -638,7 +638,7 @@ models:
     timeout: 90
     magic: 500302
     comment: "PB_Short"
-    max_positions: 3
+    max_positions: 999
 
     tp_pips: 30
     sl_pips: 20
