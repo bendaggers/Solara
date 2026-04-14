@@ -1,7 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import StatCard from "../components/StatCard";
 import TypeBadge from "../components/TypeBadge";
-import { TRADES, SYMBOL_COLORS } from "../data/trades";
+import TradeModal from "../components/TradeModal";
+import { SYMBOL_COLORS } from "../data/trades";
+import { useTrades } from "../api/trades";
 import "./Trades.css";
 
 /* ── Helpers ── */
@@ -20,7 +22,7 @@ const fmtPips   = (v) => parseFloat(v) >= 0 ? `+${v}` : `${v}`;
 
 /* ── Column definitions ──
    defaultVisible: true  → shown on first load
-   defaultVisible: false → hidden, user can enable via panel
+   defaultVisible: false → hidden, user can enable via Columns panel
 */
 const COLUMNS = [
   { key: "symbol",       label: "Symbol",         defaultVisible: true,  noSort: false },
@@ -44,17 +46,21 @@ const DEFAULT_VISIBILITY = Object.fromEntries(
 );
 
 export default function Trades() {
-  const [search,     setSearch]     = useState("");
-  const [filter,     setFilter]     = useState("all");
-  const [sortCol,    setSortCol]    = useState("symbol");
-  const [sortDir,    setSortDir]    = useState("asc");
-  const [visibility, setVisibility] = useState(DEFAULT_VISIBILITY);
-  const [panelOpen,  setPanelOpen]  = useState(false);
+  const [search,      setSearch]      = useState("");
+  const [filter,      setFilter]      = useState("all");
+  const [sortCol,     setSortCol]     = useState("symbol");
+  const [sortDir,     setSortDir]     = useState("asc");
+  const [visibility,  setVisibility]  = useState(DEFAULT_VISIBILITY);
+  const [panelOpen,   setPanelOpen]   = useState(false);
+  const [activeTrade, setActiveTrade] = useState(null);
+
+  /* ── API data ── polls every 30 s for live price updates */
+  const { trades, summary, loading, error, refetch } = useTrades(30_000);
 
   const panelRef = useRef(null);
   const btnRef   = useRef(null);
 
-  // Close panel on outside click
+  /* Close column panel on outside click */
   useEffect(() => {
     function onOutside(e) {
       if (
@@ -75,16 +81,18 @@ export default function Trades() {
   const visibleCols = COLUMNS.filter(c => visibility[c.key]);
   const hiddenCount = COLUMNS.filter(c => !visibility[c.key]).length;
 
-  /* ── Stats ── */
-  const totalProfit = TRADES.reduce((a, t) => a + t.profit, 0);
-  const winners     = TRADES.filter(t => t.profit > 0).length;
-  const losers      = TRADES.filter(t => t.profit < 0).length;
-  const winRate     = ((winners / TRADES.length) * 100).toFixed(1);
-  const totalVol    = TRADES.reduce((a, t) => a + t.volume, 0).toFixed(2);
+  /* ── Stats — derived from live trades array ── */
+  const totalProfit = trades.reduce((a, t) => a + Number(t.profit), 0);
+  const winners     = trades.filter(t => Number(t.profit) > 0).length;
+  const losers      = trades.filter(t => Number(t.profit) < 0).length;
+  const winRate     = trades.length > 0
+    ? ((winners / trades.length) * 100).toFixed(1)
+    : "0.0";
+  const totalVol    = trades.reduce((a, t) => a + Number(t.volume), 0).toFixed(2);
 
   /* ── Filtered + sorted rows ── */
   const rows = useMemo(() => {
-    let d = [...TRADES];
+    let d = [...trades];
     if (search) d = d.filter(r =>
       r.symbol.toLowerCase().includes(search.toLowerCase()) ||
       String(r.ticket).includes(search) ||
@@ -98,7 +106,7 @@ export default function Trades() {
       return sortDir === "asc" ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
     });
     return d;
-  }, [search, filter, sortCol, sortDir]);
+  }, [trades, search, filter, sortCol, sortDir]);
 
   const handleSort = (key) => {
     if (sortCol === key) setSortDir(d => d === "asc" ? "desc" : "asc");
@@ -123,13 +131,13 @@ export default function Trades() {
       case "type":
         return <td key="type" style={{ background: bg }}><TypeBadge type={t.type} /></td>;
       case "volume":
-        return <td key="volume" style={{ background: bg }}>{t.volume.toFixed(2)}</td>;
+        return <td key="volume" style={{ background: bg }}>{Number(t.volume).toFixed(2)}</td>;
       case "entry":
-        return <td key="entry" style={{ background: bg }}>{t.entry.toFixed(5)}</td>;
+        return <td key="entry" style={{ background: bg }}>{Number(t.entry).toFixed(5)}</td>;
       case "profit":
         return (
-          <td key="profit" style={{ background: bg }} className={t.profit >= 0 ? "cell-profit-pos" : "cell-profit-neg"}>
-            {fmtProfit(t.profit)}
+          <td key="profit" style={{ background: bg }} className={Number(t.profit) >= 0 ? "cell-profit-pos" : "cell-profit-neg"}>
+            {fmtProfit(Number(t.profit))}
           </td>
         );
       case "_pips":
@@ -139,15 +147,15 @@ export default function Trades() {
           </td>
         );
       case "currentPrice":
-        return <td key="currentPrice" style={{ background: bg }}>{t.currentPrice.toFixed(5)}</td>;
+        return <td key="currentPrice" style={{ background: bg }}>{Number(t.currentPrice).toFixed(5)}</td>;
       case "ticket":
         return <td key="ticket" style={{ background: bg }} className="cell-muted">#{t.ticket}</td>;
       case "time":
         return <td key="time" style={{ background: bg }} className="cell-time">{t.time}</td>;
       case "sl":
-        return <td key="sl" style={{ background: bg }} className="cell-sl">{t.sl.toFixed(5)}</td>;
+        return <td key="sl" style={{ background: bg }} className="cell-sl">{Number(t.sl).toFixed(5)}</td>;
       case "tp":
-        return <td key="tp" style={{ background: bg }} className="cell-tp">{t.tp.toFixed(5)}</td>;
+        return <td key="tp" style={{ background: bg }} className="cell-tp">{Number(t.tp).toFixed(5)}</td>;
       case "magic":
         return <td key="magic" style={{ background: bg }} className="cell-muted">{t.magic}</td>;
       case "comment":
@@ -161,23 +169,45 @@ export default function Trades() {
     }
   };
 
+  /* ── Loading state ── */
+  if (loading) {
+    return (
+      <div className="trades-loading">
+        <div className="trades-loading-spinner" />
+        <p className="trades-loading-text">Loading trades…</p>
+      </div>
+    );
+  }
+
+  /* ── Error state ── */
+  if (error) {
+    return (
+      <div className="trades-error">
+        <span className="trades-error-icon">⚠️</span>
+        <p className="trades-error-title">Could not load trades</p>
+        <p className="trades-error-msg">{error}</p>
+        <button className="trades-retry-btn" onClick={refetch}>Retry</button>
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
       <div className="trades-header">
         <div>
           <h1 className="trades-title">Open Trades</h1>
-          <p className="trades-subtitle">Real-time monitoring · {TRADES.length} active positions</p>
+          <p className="trades-subtitle">Real-time monitoring · {trades.length} active positions</p>
         </div>
         <div className="live-badge">🟢 Live · Updated just now</div>
       </div>
 
       {/* Stat Cards */}
       <div className="stats-row">
-        <StatCard icon="📂" label="Total Trades"  value={TRADES.length}          sub={`${winners} win · ${losers} loss`}       accent="#3b82f6" />
-        <StatCard icon="💰" label="Floating P&L"  value={fmtProfit(totalProfit)}  sub="USD net profit"                          accent={totalProfit >= 0 ? "#16a34a" : "#dc2626"} />
-        <StatCard icon="🎯" label="Win Rate"       value={`${winRate}%`}           sub={`${winners} of ${TRADES.length} trades`} accent="#8b5cf6" />
-        <StatCard icon="📦" label="Total Volume"   value={`${totalVol} lots`}      sub="across all positions"                   accent="#f59e0b" />
+        <StatCard icon="📂" label="Total Trades"  value={trades.length}           sub={`${winners} win · ${losers} loss`}        accent="#3b82f6" />
+        <StatCard icon="💰" label="Floating P&L"  value={fmtProfit(totalProfit)}  sub="USD net profit"                           accent={totalProfit >= 0 ? "#16a34a" : "#dc2626"} />
+        <StatCard icon="🎯" label="Win Rate"       value={`${winRate}%`}           sub={`${winners} of ${trades.length} trades`}  accent="#8b5cf6" />
+        <StatCard icon="📦" label="Total Volume"   value={`${totalVol} lots`}      sub="across all positions"                    accent="#f59e0b" />
       </div>
 
       {/* Table Card */}
@@ -207,9 +237,9 @@ export default function Trades() {
             ))}
           </div>
 
-          <span className="row-count">{rows.length} of {TRADES.length} rows</span>
+          <span className="row-count">{rows.length} of {trades.length} rows</span>
 
-          {/* Column toggle button */}
+          {/* Column toggle */}
           <div className="col-toggle-wrapper">
             <button
               ref={btnRef}
@@ -299,7 +329,12 @@ export default function Trades() {
               {rows.map((t, i) => {
                 const bg = i % 2 === 0 ? "#fff" : "#fafbfd";
                 return (
-                  <tr key={t.ticket}>
+                  <tr
+                    key={t.ticket}
+                    className="trade-row"
+                    onClick={() => setActiveTrade(t)}
+                    title={`View details for ticket #${t.ticket}`}
+                  >
                     {visibleCols.map(col => renderCell(col, t, bg))}
                   </tr>
                 );
@@ -315,7 +350,7 @@ export default function Trades() {
 
         {/* Footer */}
         <div className="table-footer">
-          <span className="footer-text">Showing {rows.length} trades</span>
+          <span className="footer-text">Showing {rows.length} trades · click any row for details</span>
           <div className="footer-pnl">
             <span className="footer-text">Net Floating P&L:</span>
             <span className={`pnl-value ${totalProfit >= 0 ? "pnl-pos" : "pnl-neg"}`}>
@@ -325,6 +360,14 @@ export default function Trades() {
         </div>
 
       </div>
+
+      {/* Trade detail modal — keyed by ticket, renders when a row is clicked */}
+      {activeTrade && (
+        <TradeModal
+          trade={activeTrade}
+          onClose={() => setActiveTrade(null)}
+        />
+      )}
     </div>
   );
 }

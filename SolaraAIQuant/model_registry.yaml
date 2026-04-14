@@ -325,7 +325,7 @@ models:
   # TP/SL: 80/40 pips (2:1 R:R) — adjust after paper trading analysis.
   # =========================================================================
   - name: "TI V2 Long"
-    enabled: true   # Set to true when ready to start paper trading
+    enabled: false   # Set to true when ready to start paper trading
     description: "V2 Universal Trend Identifier — 28 pairs H4 — LONG signals (92.6% accuracy)"
     class_path: "predictors.trend_identifier_v2.TrendIdentifierV2Predictor"
     model_file: "trend_identifier_v2.pkl"
@@ -426,7 +426,7 @@ models:
   # Signal logic: p(downtrend) >= min_confidence → SHORT signal
   # =========================================================================
   - name: "TI V2 Short"
-    enabled: true   # Set to true when ready to start paper trading
+    enabled: false   # Set to true when ready to start paper trading
     description: "V2 Universal Trend Identifier — 28 pairs H4 — SHORT signals (92.6% accuracy)"
     class_path: "predictors.trend_identifier_v2.TrendIdentifierV2Predictor"
     model_file: "trend_identifier_v2.pkl"

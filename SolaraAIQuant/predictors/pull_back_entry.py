@@ -92,7 +92,13 @@ class PullBackEntryPredictor(BasePredictor):
         return pkg['model']
 
     def get_required_features(self) -> List[str]:
-        return self._feature_cols if self._feature_cols else ENTRY_FEATURES
+        # 37 model features + gate columns the predictor reads for gating logic
+        base = self._feature_cols if self._feature_cols else ENTRY_FEATURES
+        gate_cols = [
+            '_pb_trend_aligned', '_pb_direction',
+            '_pb_exhaust_prob', '_pb_h4_label', 'close',
+        ]
+        return base + [c for c in gate_cols if c not in base]
 
     def predict(self, df_features: pd.DataFrame, config) -> List[Dict]:
         if not self.model_loaded or self.model is None:

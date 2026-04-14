@@ -10,7 +10,9 @@
       "Bash(Write-Host \"All __pycache__ cleared\")",
       "Bash(cmd.exe /c \"for /d /r \\\\\"C:\\\\Users\\\\Ben Michael Oracion\\\\Documents\\\\Solara\\\\Model Training\\\\Trend Identifier\\\\\" %d in \\(__pycache__\\) do @rd /s /q \\\\\"%d\\\\\" 2>nul\")",
       "Bash(python3 -c ':*)",
-      "Bash(python -c \"import catboost; print\\(catboost.__version__\\); import sklearn; print\\(sklearn.__version__\\); import inspect; from catboost import CatBoostClassifier; print\\(inspect.getsource\\(CatBoostClassifier.get_params\\)\\)\")"
+      "Bash(python -c \"import catboost; print\\(catboost.__version__\\); import sklearn; print\\(sklearn.__version__\\); import inspect; from catboost import CatBoostClassifier; print\\(inspect.getsource\\(CatBoostClassifier.get_params\\)\\)\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Experts\\\\Advisors\\\\Solara\\\\SolaraAIQuant\\\\logs\\\\saq.log' -Encoding UTF8 | Select-String 'PullBackFE|PullBackEntry|TrendEnsemble' | Select-Object -Last 80\")",
+      "Bash(powershell -Command ':*)"
     ]
   }
 }

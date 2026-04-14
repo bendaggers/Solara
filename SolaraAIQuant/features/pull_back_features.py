@@ -148,7 +148,11 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         ]
 
     def get_output_features(self) -> List[str]:
-        return ENTRY_FEATURES
+        # 37 model features + gate/metadata columns that the predictor reads
+        return ENTRY_FEATURES + [
+            '_pb_trend_aligned', '_pb_direction',
+            '_pb_exhaust_prob', '_pb_h4_label', 'close',
+        ]
 
     def compute(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -190,6 +194,10 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
                 logger.error(f"[PullBackFE] {sym} failed: {exc}", exc_info=True)
 
         if not rows:
+            logger.warning(
+                f"[PullBackFE] compute() produced 0 rows from {len(symbols)} symbols "
+                f"— check H4 bar count / trend model loading / CSV availability"
+            )
             return pd.DataFrame()
 
         result = pd.DataFrame(rows)
@@ -301,6 +309,18 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         row['_pb_direction']      = trend_direction
         row['_pb_exhaust_prob']   = h4_ctx['h4_pb_prob_exhaust']
         row['_pb_h4_label']       = h4_ctx['h4_pb_label']
+
+        _exhaust = h4_ctx['h4_pb_prob_exhaust']
+        _label   = h4_ctx['h4_pb_label']
+        _label_name = {0: 'trend', 1: 'pullback', 2: 'exhaust'}.get(_label, str(_label))
+        _exhaust_ok = '✓' if _exhaust >= 0.65 else '✗'
+        logger.debug(
+            f"[PullBackFE] {sym}: pullback — label={_label_name}({_label})  "
+            f"exhaust_prob={_exhaust:.3f} {_exhaust_ok}  "
+            f"pb_prob={h4_ctx['h4_pb_prob_pullback']:.3f}  "
+            f"trend_prob={h4_ctx['h4_pb_prob_trend']:.3f}  "
+            f"cse={cse}"
+        )
 
         return row
 

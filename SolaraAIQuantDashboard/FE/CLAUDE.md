@@ -163,7 +163,7 @@ The `BE/` folder is currently empty and reserved for the backend service. Planne
 
 | Page        | File                    | Status       | Description                          |
 |-------------|-------------------------|--------------|--------------------------------------|
-| Trades      | `pages/Trades.jsx`      | ✅ Active    | Open positions table with filtering and column visibility toggle |
+| Trades      | `pages/Trades.jsx`      | ✅ Active    | Open positions table with filtering, column visibility toggle, and row detail modal |
 | History     | `pages/History.jsx`     | 🚧 Planned   | Closed trade logs                    |
 | Performance | `pages/Performance.jsx` | 🚧 Planned   | Charts, win rate, drawdown analysis  |
 | Back Up     | `pages/BackUp.jsx`      | 🚧 Planned   | Export/backup trade data             |
@@ -185,6 +185,20 @@ The `BE/` folder is currently empty and reserved for the backend service. Planne
 ### `TypeBadge`
 - Props: `type` ("buy" | "sell")
 - Renders a green pill for buy, red pill for sell
+
+### `TradeModal`
+- File: `src/components/TradeModal.jsx` + `TradeModal.css`
+- Props: `trade` (trade object | null), `onClose` (function)
+- Opens as a centered overlay when a row is clicked in `Trades.jsx`
+- Keyed by `trade.ticket` — always shows the full detail for the selected trade
+- Displays **all** trade fields regardless of column visibility state:
+  - Header: symbol badge (colored per `SYMBOL_COLORS`), ticket number, open time, type badge
+  - P&L hero strip: Floating P&L and Profit in Pips side-by-side
+  - Position section: Volume, Entry Price, Market Price
+  - Risk Levels section: Stop Loss (red), Take Profit (green)
+  - Metadata section: Magic Number, Comment
+- Closes on: backdrop click, close button (`×`), or `Escape` key
+- Locks body scroll while open
 
 ---
 
@@ -215,30 +229,6 @@ export const SYMBOL_COLORS = { EURUSD: "#3b82f6", ... };
   comment:      String,   // e.g. "TI V2 LONG"
 }
 ```
-
-### Column Visibility (Trades page)
-
-The `Trades.jsx` page supports show/hide column toggling via a **Columns** button in the table toolbar. Column state is defined in the `COLUMNS` array at the top of `Trades.jsx`.
-
-Each column entry has a `defaultVisible` flag:
-
-| `defaultVisible: true` (shown by default) | `defaultVisible: false` (hidden by default) |
-|-------------------------------------------|---------------------------------------------|
-| Symbol                                    | Ticket                                      |
-| Type                                      | Open Time                                   |
-| Volume                                    | Stop Loss (SL)                              |
-| Entry Price                               | Take Profit (TP)                            |
-| Profit                                    | Magic No.                                   |
-| Profit in Pips                            | Comment                                     |
-| Market Price                              |                                             |
-
-- Clicking **Columns** opens a dropdown panel split into *Default columns* and *Optional columns* sections.
-- Each row has a custom checkbox (styled to match the design system — blue `#3b82f6` when checked).
-- A **Reset** link restores the original default visibility.
-- A badge on the Columns button shows how many columns are currently hidden.
-- Panel closes on outside click.
-
-To add a new column: add an entry to the `COLUMNS` array in `Trades.jsx` with a unique `key`, a `label`, `defaultVisible` (true/false), and `noSort` (true if not sortable). Then add its render case inside `renderCell()`.
 
 ### Pip Calculation Logic
 
@@ -301,6 +291,7 @@ Located in `Trades.jsx` as `pipValue()`:
 
 - [ ] Connect `Trades` page to live MT5 data via BE API
 - [x] Add column show/hide toggle to `Trades` page (7 default, 6 optional)
+- [x] Add trade detail modal on row click (all fields, keyed by ticket number)
 - [ ] Build `History` page with closed trade logs and date filtering
 - [ ] Build `Performance` page with equity curve chart and key metrics
 - [ ] Build `Back Up` page with CSV/JSON export

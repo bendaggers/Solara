@@ -153,6 +153,12 @@
   color: #5a7090;
 }
 
+/* Clickable rows */
+.trade-row {
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
 .trades-table tbody tr:hover td {
   background: #f0f6ff !important;
 }
@@ -377,7 +383,6 @@
   background: #f5f8ff;
 }
 
-/* hide native checkbox */
 .col-checkbox-wrap input[type="checkbox"] {
   display: none;
 }
