@@ -545,9 +545,9 @@ models:
     feature_engineering_class: "features.pull_back_features.PullBackFeatureEngineer"
 
     # ── Confidence tiers (entry_prob from XGBoost) ──────────────────────────
-    # Threshold from training: 0.80
+    # Threshold from training: 0.80 → lowered to 0.65 (2026-04-15) for better frequency
     confidence_tiers:
-      - min_confidence: 0.60
+      - min_confidence: 0.65
         max_confidence: 0.849
         fixed_lot: 0.01
       - min_confidence: 0.85
@@ -604,23 +604,27 @@ models:
 
 
   # =========================================================================
-  # PULL BACK ENTRY SHORT — same model, opposite direction
-  # See "Pull Back Entry Long" above for full training facts.
+  # PULL BACK ENTRY SHORT — mirror of Long, bearish direction
+  # Trained: 2026-04-15 | SL=20p / TP=30p | 28 pairs | 1999–2025
+  # Walk-forward (6-fold): Precision=0.715±0.015 | EV=+15.72±0.74 pips
+  # Pipeline: Precision=0.707±0.016 | EV=+15.35±0.80 pips
   # Signal logic: trend consensus = downtrend → SHORT entry
   # =========================================================================
   - name: "Pull Back Entry Short"
-    description: "3-stage pullback entry SHORT — trend alignment + H4 exhaustion + H1 entry (28 pairs)"
+    enabled: true
+    description: "3-stage pullback entry SHORT — trend alignment + H4 exhaustion + H1 entry (28 pairs) | WF precision=0.715 EV=+15.72p"
     class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
-    model_file: "pull_back_entry_h1.joblib"
+    model_file: "pull_back_entry_h1_short.joblib"
     feature_version: "pb1"
     model_type: "SHORT"
     timeframe: "H1"
     trigger_timeframes: ["H1"]
     merge_timeframes: []
-    feature_engineering_class: "features.pull_back_features.PullBackFeatureEngineer"
+    feature_engineering_class: "features.pull_back_short_features.PullBackShortFeatureEngineer"
 
+    # Threshold from training: 0.80 → lowered to 0.65 (2026-04-15) for better frequency
     confidence_tiers:
-      - min_confidence: 0.80
+      - min_confidence: 0.65
         max_confidence: 0.849
         fixed_lot: 0.01
       - min_confidence: 0.85
@@ -674,7 +678,203 @@ models:
       - USDCHF
       - USDJPY
 
-    enabled: false   # Set true after paper trading validation
+
+
+
+  # =========================================================================
+  # TREND REVERSAL SHORT H4 — Universal 28-pair H4 Reversal Entry
+  # Trained: 2026-04-15 | SL=20p / TP=60p | 28 pairs | 1999–2025
+  #
+  # Training facts (5-fold expanding walk-forward):
+  #   algorithm:          XGBoost binary:logistic
+  #   features:           19 (H4 break-bar + trend context)
+  #   threshold:          0.74 (median across folds, WF-optimised)
+  #   mean_precision:     59.3% ± 10.9%
+  #   mean_EV_trade:      +27.4 ± 8.7 pips
+  #   break_even_prec:    25.0%
+  #   worst_fold:         44.4% (2019–2022, COVID era)
+  #   all_folds_pos_EV:   true
+  #   signal_rate:        ~15–20 signals/year at threshold=0.50 (was 10-14 at 0.60, 5-7 at 0.74)
+  #
+  # Detection logic (in ReversalShortFeatureEngineer):
+  #   1. H4 cascade flip  — predicted_class flips uptrend→downtrend within 6 bars
+  #   2. Structure break  — H4 close < swing_low(last 20 bars) − 2pip buffer
+  #   3. XGBoost classifier — 19 break-bar features ≥ threshold
+  #
+  # Threshold note: lowered from 0.74 → 0.60 → 0.50 to increase frequency.
+  #   At 0.50 est. precision ~40–45%, EV ~+15–18p — still well above break-even (25%).
+  #   Break-even precision = SL/(TP+SL) = 20/80 = 25.0%
+  #
+  # Top features: break_magnitude_vs_impulse, break_magnitude_atr,
+  #               brk_body_pct_of_range, brk_volume_ratio, h4_prob_down_at_break
+  # =========================================================================
+  - name: "Trend Reversal Short H4"
+    enabled: true
+    description: "H4 cascade flip + structure break SHORT — 28 pairs | WF precision=59.3% EV=+27.4p | threshold=0.50"
+    class_path: "predictors.reversal_short_entry.ReversalShortEntryPredictor"
+    model_file: "reversal_H4_short.joblib"
+    feature_version: "rev1"
+    model_type: "SHORT"
+    timeframe: "H4"
+    trigger_timeframes: ["H4"]
+    merge_timeframes: []
+    feature_engineering_class: "features.reversal_short_features.ReversalShortFeatureEngineer"
+
+    # ── Confidence tiers ────────────────────────────────────────────────────
+    # Threshold lowered to 0.50 (was 0.60 → 0.74 WF median) for higher frequency.
+    # Break-even is 25% — worst WF fold was 44.4%, est ~40-45% at 0.50 — safe margin.
+    # Lot sizing starts conservative; raise after 30+ live signals.
+    confidence_tiers:
+      - min_confidence: 0.50
+        max_confidence: 0.739
+        fixed_lot: 0.01
+      - min_confidence: 0.74
+        max_confidence: 0.849
+        fixed_lot: 0.02
+      - min_confidence: 0.85
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 9
+    timeout: 90       # trend models take ~10s per symbol; 28 symbols ~40s total
+    magic: 600401
+    comment: "Rev_Short_H4"
+    max_positions: 999
+
+    # TP/SL from walk-forward training (3:1 R:R)
+    tp_pips: 60
+    sl_pips: 20
+    max_holding_bars: 30    # ~5 days on H4 — reversals run but give them room
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      - EURGBP
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+
+
+
+
+  # =========================================================================
+  # TREND REVERSAL LONG H4 — Universal 28-pair H4 Reversal Entry (LONG)
+  # Trained: 2026-04-15 | SL=20p / TP=60p | 28 pairs | 1999–2025
+  #
+  # Training facts (5-fold expanding walk-forward):
+  #   algorithm:          XGBoost binary:logistic
+  #   features:           19 (H4 break-bar + trend context)
+  #   threshold:          0.76 (median across folds, WF-optimised)
+  #   mean_precision:     50.9% ± 7.4%
+  #   mean_EV_trade:      +20.7 ± 5.9 pips
+  #   break_even_prec:    25.0%
+  #   all_folds_pos_EV:   true  (worst fold: +13.7p)
+  #   signal_rate:        ~12–18 signals/year at threshold=0.45 (was 10-14 at 0.50, 5-7 at 0.76)
+  #
+  # Detection logic (in ReversalLongFeatureEngineer):
+  #   1. H4 cascade flip  — predicted_class flips downtrend→uptrend within 6 bars
+  #   2. Structure break  — H4 close > swing_high(last 20 bars) + 2pip buffer
+  #   3. XGBoost classifier — 19 break-bar features ≥ threshold
+  #
+  # Threshold note: lowered from 0.76 → 0.50 → 0.45 for higher frequency.
+  #   At 0.45 est. precision ~38–45%, EV ~+10–18p — still well above break-even (25%).
+  #   LONG is weaker than SHORT — small nudge only; conservative lot sizing maintained.
+  #
+  # Top features: break_magnitude_atr, break_magnitude_vs_impulse,
+  #               brk_candle_rejection, w1_prob_down_at_break, brk_body_pct_of_range
+  # =========================================================================
+  - name: "Trend Reversal Long H4"
+    enabled: true
+    description: "H4 cascade flip + structure break LONG — 28 pairs | WF precision=50.9% EV=+20.7p | threshold=0.45"
+    class_path: "predictors.reversal_long_entry.ReversalLongEntryPredictor"
+    model_file: "reversal_H4_long.joblib"
+    feature_version: "rev1"
+    model_type: "LONG"
+    timeframe: "H4"
+    trigger_timeframes: ["H4"]
+    merge_timeframes: []
+    feature_engineering_class: "features.reversal_long_features.ReversalLongFeatureEngineer"
+
+    # ── Confidence tiers ────────────────────────────────────────────────────
+    # Threshold lowered to 0.45 (was 0.50 → 0.76 WF median) for higher frequency.
+    # Break-even is 25% — worst WF fold was 42.1% at threshold 0.70, still safe.
+    # LONG is weaker than SHORT — conservative lot sizing; only small nudge lower.
+    confidence_tiers:
+      - min_confidence: 0.45
+        max_confidence: 0.699
+        fixed_lot: 0.01
+      - min_confidence: 0.70
+        max_confidence: 0.849
+        fixed_lot: 0.02
+      - min_confidence: 0.85
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 10
+    timeout: 90
+    magic: 600402
+    comment: "Rev_Long_H4"
+    max_positions: 999
+
+    tp_pips: 60
+    sl_pips: 20
+    max_holding_bars: 30
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      - EURGBP
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+
+
 
 
   # =========================================================================

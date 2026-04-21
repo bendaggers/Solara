@@ -293,6 +293,46 @@ The EA computes and exports all 28 indicator columns for every bar — not just 
 
 ---
 
+## Parked Feature — Market Overview Dashboard
+
+**Status:** Planned, not started. Resume when Pull Back is validated live.
+
+### Goal
+A live grid of all 28 pairs showing trend state and model scores per cycle — so you can see what every pair scored on every model, not just the ones that fired.
+
+### What needs to be built (5 phases)
+
+**Phase 1 — Two new DB tables (`state/models.py`)**
+- `prediction_log` — one row per symbol × model × cycle:
+  `symbol | model_name | bar_time | confidence | direction | gate_reached | signal_fired | features_json`
+  - `gate_reached` = 0–99 (which gate it got to before failing; 99 = all passed)
+- `pair_trend_state` — latest trend snapshot per symbol × TF (upsert, not append):
+  `symbol | timeframe | trend_dir | prob_up | prob_down | updated_at`
+
+**Phase 2 — Write `pair_trend_state` from FEs**
+- `PullBackFeatureEngineer.compute()` after trend models run → write H4/D1/W1 for all 28 pairs
+- `ReversalShortFeatureEngineer` + `ReversalLongFeatureEngineer` → same upsert
+
+**Phase 3 — Write `prediction_log` from execution engine**
+- After each model run in `execution_engine.py`, write rows for ALL symbols (even filtered ones)
+- Feature DataFrames already contain all probabilities — just persist them
+
+**Phase 4 — New API endpoint in `dashboard/trade_server.py`**
+- `GET /api/market-overview` → latest `pair_trend_state` + most recent `prediction_log` per model
+- `GET /api/prediction-history?symbol=EURUSD&model=Pull+Back+Entry+Long` → time series
+
+**Phase 5 — New "Market Overview" tab in dashboard HTML**
+- 28 rows (pairs) × columns (H4/D1/W1 trend + one column per enabled model)
+- Color coded: green = uptrend, red = downtrend, grey = sideways
+- Each model cell shows: latest confidence score + gate reached (e.g. "0.43 G2")
+- Bold + bell icon = signal fired this cycle
+- Click cell → history chart popup
+
+### Key design decision (settled)
+`pair_trend_state` should be written by **whichever FE runs that cycle** (upsert pattern). Pull Back covers all 28 pairs × 3 TFs. Reversal FEs also update it. Latest writer wins.
+
+---
+
 ## Tests
 
 ```bash

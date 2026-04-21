@@ -10,6 +10,7 @@ Key behaviour:
 """
 
 import logging
+import logging.handlers
 import threading
 from datetime import datetime
 from typing import Optional, Dict, List
@@ -248,6 +249,29 @@ class SAQLogger:
 saq_log = SAQLogger()
 
 
+class _WindowsSafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
+    """
+    RotatingFileHandler that survives Windows file-locking failures.
+
+    On Windows, os.rename('saq.log', 'saq.log.1') can fail with PermissionError
+    when the file is momentarily locked by another thread, antivirus, or the OS.
+    The standard handler silently closes the stream and drops all subsequent
+    log records.  This subclass catches the error and falls back to continued
+    appending on the current file, so log output is never silently lost.
+    """
+    def doRollover(self):
+        try:
+            super().doRollover()
+        except (PermissionError, OSError):
+            # Rotation failed (Windows file-lock race) — keep appending.
+            # Re-open the stream so the handler is in a usable state.
+            try:
+                if self.stream is None or self.stream.closed:
+                    self.stream = self._open()
+            except Exception:
+                pass  # truly unrecoverable — handler stays silent
+
+
 def configure_stdlib_logging(log_file: Optional[str] = None, level: str = "INFO"):
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
@@ -255,11 +279,10 @@ def configure_stdlib_logging(log_file: Optional[str] = None, level: str = "INFO"
     root.addHandler(logging.NullHandler())
 
     if log_file:
-        from logging.handlers import RotatingFileHandler
         from pathlib import Path
         Path(log_file).parent.mkdir(parents=True, exist_ok=True)
-        fh = RotatingFileHandler(
-            log_file, maxBytes=10 * 1024 * 1024,
+        fh = _WindowsSafeRotatingFileHandler(
+            log_file, maxBytes=50 * 1024 * 1024,
             backupCount=5, encoding="utf-8",
         )
         fh.setLevel(logging.DEBUG)

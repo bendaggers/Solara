@@ -291,6 +291,26 @@ class MT5Manager:
         
         return symbol_info
     
+    def get_symbol_tick(self, symbol: str) -> Optional[Any]:
+        """
+        Get the latest tick (bid/ask) for a symbol.
+
+        Returns:
+            MT5 tick object with .bid and .ask attributes, or None on failure.
+        """
+        if not IS_WINDOWS:
+            return None
+        if not self.ensure_connected():
+            return None
+        try:
+            tick = mt5.symbol_info_tick(symbol)
+            if tick is None:
+                logger.warning(f"[MT5] get_symbol_tick: no tick data for {symbol}")
+            return tick
+        except Exception as exc:
+            logger.error(f"[MT5] get_symbol_tick failed for {symbol}: {exc}")
+            return None
+
     def get_positions(self, symbol: Optional[str] = None, magic: Optional[int] = None) -> List[Any]:
         """
         Get open positions.
