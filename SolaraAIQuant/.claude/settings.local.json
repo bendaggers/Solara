@@ -52,7 +52,13 @@
       "Bash(powershell -Command \"Select-String 'propagate' *.py, predictors\\\\*.py, features\\\\*.py, file_watcher\\\\*.py, engine\\\\*.py\")",
       "Bash(powershell -Command \"Select-String 'debounce_seconds|DEBOUNCE|debounce' config.py\")",
       "Bash(powershell -Command \"Select-String 'tp_pips|tp=|take_profit|modify_position|order_send' engine\\\\execution_engine.py, mt5\\\\mt5_manager.py | Select-Object -First 40\")",
-      "Bash(powershell -Command \"Select-String 'class PositionState|tp_pips|initial_tp|current_tp|tp =' state\\\\models.py | Select-Object -First 20\")"
+      "Bash(powershell -Command \"Select-String 'class PositionState|tp_pips|initial_tp|current_tp|tp =' state\\\\models.py | Select-Object -First 20\")",
+      "Bash(powershell -Command \"Get-Item 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Files\\\\saq.log' | Select-Object LastWriteTime, Length\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Files\\\\saq.log' -Tail 80 -Encoding UTF8\")",
+      "Bash(powershell -Command \"Select-String '_TI_ROOT|_PB_STRATEGY_ROOT|Trend Identifier|Model Training|not available|skipping' features\\\\pull_back_features.py | Select-Object -First 20\")",
+      "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Files\\\\saq.log' -Encoding UTF8 | Select-String 'user|Default|Files|MQL5_FILES|WATCH|TI_ROOT|PB_STRATEGY|watch.*dir' | Select-Object -First 30\")",
+      "Bash(powershell -Command \"Select-String 'TI_ROOT|PB_STRATEGY_ROOT|Trend Identifier|Ben Michael' features\\\\pull_back_short_features.py | Select-Object -First 15\")",
+      "Bash(powershell -Command \"Get-Content .env -ErrorAction SilentlyContinue\")"
     ]
   }
 }

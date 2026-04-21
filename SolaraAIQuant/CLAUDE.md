@@ -132,31 +132,24 @@ All active models have `feature_engineering_class` set. This causes Stage 4 (glo
 ### PunkHazardFeatureEngineer does not inherit BaseFeatureEngineer
 It implements `transform()` not `compute()`. The execution engine calls `safe_compute()` which calls `compute()`. `PunkHazardFeatureEngineer` must implement `compute()` to be compatible — this is a **latent bug**. Fix before enabling Punk Hazard.
 
-### TI V2 and Pull Back share the same external path
-Both `features/trend_id_v2_features.py` and `features/pull_back_features.py` import from:
-```
-C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier
-```
-Neither model can run without this path. **On VPS deployment, update both files.**
+### forex_trend_model package is bundled in vendor/
+All feature engineers and `trend_identifier_v2.py` load `forex_trend_model` from `vendor/forex_trend_model/` inside the SAQ folder. There are no external path dependencies. SAQ is fully self-contained — copy the entire folder and it runs anywhere.
 
-### Pull Back trend models have a separate hard-coded path
-`features/pull_back_features.py` also loads trend models from:
-```
-C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Pull Back Strategy\models\
-```
-Files needed: `Trend_Identifier_H4.joblib`, `Trend_Identifier_D1.joblib`, `Trend_Identifier_W1.joblib`.
-**On VPS deployment, copy these files and update `_PB_STRATEGY_ROOT` in `pull_back_features.py`.**
+`sys.path.insert(0, str(SAQ_ROOT / 'vendor'))` is added at module import time in all FE files, and also inside `TrendIdentifierV2Predictor.load_model()` (to guard the parallel-thread case where the predictor loads before any FE module is imported).
 
-### TI V2 predictor must add sys.path before loading the model file
-`predictors/trend_identifier_v2.py` adds the Trend Identifier path to `sys.path` inside `load_model()` before calling `joblib.load()`. This is intentional. The model `.joblib` file contains serialized `forex_trend_model` objects — if the path isn't set before deserialization, you get `ModuleNotFoundError: No module named 'forex_trend_model'`.
+### Trend identifier joblib files are bundled in Models/trend_identifier/
+- `Models/trend_identifier/long/` — H4/D1/W1 models for Pull Back Long
+- `Models/trend_identifier/short/` — H4/D1/W1 models for Pull Back Short, Reversal Long, Reversal Short
+
+These are the `Trend_Identifier_H4.joblib`, `Trend_Identifier_D1.joblib`, `Trend_Identifier_W1.joblib` files exported from the model training project.
 
 ### CatBoost sklearn compatibility fix in ensemble.py
-`forex_trend_model/models/ensemble.py` — `CatBoostTrendModel.predict_proba()` has a fallback to CatBoost's native `predict(prediction_type='Probability')` API. This handles a CatBoost + sklearn version mismatch where `super().get_params()` raises `AttributeError` after several prediction cycles. Do not remove this fallback.
+`vendor/forex_trend_model/models/ensemble.py` — `CatBoostTrendModel.predict_proba()` has a fallback to CatBoost's native `predict(prediction_type='Probability')` API. This handles a CatBoost + sklearn version mismatch where `super().get_params()` raises `AttributeError` after several prediction cycles. Do not remove this fallback.
 
 ### LightGBM TypeError after joblib.load() — fixed in ensemble.py
 `LightGBMTrendModel.predict_proba()` catches **both** `AttributeError` and `TypeError`. After `joblib.load()`, LightGBM's internal predict function pointer can be `None`, which raises `TypeError: 'NoneType' object is not callable` (not just AttributeError). The fallback uses `model.booster_.predict()` directly, which survives deserialization correctly. A shape guard ensures single-row input is reshaped to `(1, n_classes)`. Do not revert this to catching `AttributeError` only.
 
-File edited: `C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier\forex_trend_model\models\ensemble.py` (outside SAQ git repo — must be re-applied after any reinstall of the Trend Identifier package).
+File to patch when updating the package: `vendor/forex_trend_model/models/ensemble.py` (re-apply after copying a fresh version of the package).
 
 ### TrendIDV2FeatureEngineer does not inherit BaseFeatureEngineer
 `features/trend_id_v2_features.py` has a manually added `safe_compute()` method (wraps `compute()`). The execution engine always calls `safe_compute()`. If you remove this method, TI V2 will crash every cycle with `AttributeError: 'TrendIDV2FeatureEngineer' object has no attribute 'safe_compute'`.
@@ -209,11 +202,9 @@ D1 and W1 act only as a pre-filter gate. The trained models themselves are blind
 
 Before deploying to a Windows VPS for paper trading:
 
-- [ ] Copy entire `SolaraAIQuant/` directory to VPS
-- [ ] Copy `Models/` directory (`.joblib` files)
-- [ ] Copy Pull Back trend model files to the same path or update `_PB_STRATEGY_ROOT` in `pull_back_features.py`
-- [ ] Copy or clone the `Trend Identifier` package to VPS; update `_TI_ROOT` in both `trend_id_v2_features.py` and `pull_back_features.py`; update the path in `trend_identifier_v2.py` `load_model()`
-- [ ] Re-apply the LightGBM `TypeError` fix to `forex_trend_model/models/ensemble.py` (catch `TypeError` in addition to `AttributeError` in `LightGBMTrendModel.predict_proba`)
+- [ ] Copy entire `SolaraAIQuant/` directory to VPS — `vendor/` and `Models/trend_identifier/` are included, no separate steps needed
+- [ ] Verify `vendor/forex_trend_model/` exists and `Models/trend_identifier/long/` and `Models/trend_identifier/short/` contain the 3 joblib files each
+- [ ] Verify `vendor/forex_trend_model/models/ensemble.py` has the LightGBM `TypeError` fix (catches both `AttributeError` and `TypeError` in `LightGBMTrendModel.predict_proba`)
 - [ ] Install dependencies: `pip install -r requirements.txt`
 - [ ] Install MT5 on VPS and configure broker connection in `.env`
 - [ ] Configure EA to export CSVs to the correct `MQL5/Files/` path; update `MQL5_FILES_DIR` in `.env` if needed

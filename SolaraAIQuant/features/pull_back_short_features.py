@@ -52,12 +52,11 @@ from features.base_feature_engineer import BaseFeatureEngineer
 
 logger = logging.getLogger(__name__)
 
-# ── External package path (same as Long FE / TI V2) ───────────────────────────
-_TI_ROOT = Path(
-    r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier"
-)
-if str(_TI_ROOT) not in sys.path:
-    sys.path.insert(0, str(_TI_ROOT))
+# ── Trend Identifier package (bundled in vendor/) ────────────────────────────
+_SAQ_ROOT   = Path(__file__).resolve().parent.parent
+_VENDOR_DIR = _SAQ_ROOT / 'vendor'
+if str(_VENDOR_DIR) not in sys.path:
+    sys.path.insert(0, str(_VENDOR_DIR))
 
 try:
     from forex_trend_model.inference.live_pipeline import LiveTrendPredictor
@@ -68,18 +67,16 @@ try:
 except ImportError as _e:
     _TI_AVAILABLE = False
     logger.critical(
-        f"[PBShortFE] Cannot import Trend Identifier package: {_e}. "
-        f"Check that {_TI_ROOT} exists."
+        f"[PBShortFE] Cannot import forex_trend_model: {_e}. "
+        f"Copy the forex_trend_model/ package into {_VENDOR_DIR}/"
     )
 
-# ── Pull Back Strategy SHORT model paths ──────────────────────────────────────
-_PB_SHORT_STRATEGY_ROOT = Path(
-    r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Pull Back Strategy Short"
-)
+# ── Trend model joblib files (Models/trend_identifier/short/) ────────────────
+_TREND_MODELS_DIR = _SAQ_ROOT / 'Models' / 'trend_identifier' / 'short'
 _SHORT_TREND_MODEL_PATHS = {
-    'H4': _PB_SHORT_STRATEGY_ROOT / 'models' / 'Trend_Identifier_H4.joblib',
-    'D1': _PB_SHORT_STRATEGY_ROOT / 'models' / 'Trend_Identifier_D1.joblib',
-    'W1': _PB_SHORT_STRATEGY_ROOT / 'models' / 'Trend_Identifier_W1.joblib',
+    'H4': _TREND_MODELS_DIR / 'Trend_Identifier_H4.joblib',
+    'D1': _TREND_MODELS_DIR / 'Trend_Identifier_D1.joblib',
+    'W1': _TREND_MODELS_DIR / 'Trend_Identifier_W1.joblib',
 }
 _PULLBACK_SHORT_MODEL_PATH = MODELS_DIR / 'pull_back_pullback_h4_short.joblib'
 
