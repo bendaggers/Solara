@@ -50,7 +50,9 @@
       "Bash(powershell -Command \"Get-ChildItem . -Filter 'saq*' -Force | Format-Table Name, LastWriteTime, Length -AutoSize\")",
       "Bash(powershell -Command \"Get-ChildItem 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Experts\\\\Advisors\\\\Solara\\\\SolaraAIQuant' -Filter 'saq*.log' -Recurse | Format-Table FullName, LastWriteTime, Length -AutoSize\")",
       "Bash(powershell -Command \"Select-String 'propagate' *.py, predictors\\\\*.py, features\\\\*.py, file_watcher\\\\*.py, engine\\\\*.py\")",
-      "Bash(powershell -Command \"Select-String 'debounce_seconds|DEBOUNCE|debounce' config.py\")"
+      "Bash(powershell -Command \"Select-String 'debounce_seconds|DEBOUNCE|debounce' config.py\")",
+      "Bash(powershell -Command \"Select-String 'tp_pips|tp=|take_profit|modify_position|order_send' engine\\\\execution_engine.py, mt5\\\\mt5_manager.py | Select-Object -First 40\")",
+      "Bash(powershell -Command \"Select-String 'class PositionState|tp_pips|initial_tp|current_tp|tp =' state\\\\models.py | Select-Object -First 20\")"
     ]
   }
 }

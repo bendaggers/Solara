@@ -193,11 +193,13 @@ class SurvivorRunner:
                     logger.error(f"SL modified callback error: {e}")
         
         # 6. Log summary if changes occurred
-        if cycle_stats['stage_changes'] > 0 or cycle_stats['sl_modifications'] > 0:
+        tp_removals = cycle_stats.get('tp_removals', 0)
+        if cycle_stats['stage_changes'] > 0 or cycle_stats['sl_modifications'] > 0 or tp_removals > 0:
             logger.info(
                 f"Survivor cycle: {cycle_stats['processed']} positions, "
                 f"{cycle_stats['stage_changes']} stage changes, "
-                f"{cycle_stats['sl_modifications']} SL modifications"
+                f"{cycle_stats['sl_modifications']} SL modifications, "
+                f"{tp_removals} TP removals"
             )
     
     def _get_open_positions(self) -> List[Dict]:

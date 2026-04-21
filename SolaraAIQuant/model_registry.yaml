@@ -549,16 +549,16 @@ models:
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
-        fixed_lot: 0.01
+        fixed_lot: 0.02
       - min_confidence: 0.85
         max_confidence: 0.899
-        fixed_lot: 0.02
+        fixed_lot: 0.03
       - min_confidence: 0.90
         max_confidence: 0.949
-        fixed_lot: 0.05
+        fixed_lot: 0.1
       - min_confidence: 0.95
         max_confidence: 1.000
-        fixed_lot: 0.10
+        fixed_lot: 0.15
 
     weight: 1.0
     priority: 7
@@ -600,6 +600,8 @@ models:
       - USDCAD
       - USDCHF
       - USDJPY
+      - XAUUSD
+      - XAGUSD
 
 
 
@@ -626,16 +628,16 @@ models:
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
-        fixed_lot: 0.01
+        fixed_lot: 0.02
       - min_confidence: 0.85
         max_confidence: 0.899
-        fixed_lot: 0.02
+        fixed_lot: 0.05
       - min_confidence: 0.90
         max_confidence: 0.949
-        fixed_lot: 0.05
+        fixed_lot: 0.1
       - min_confidence: 0.95
         max_confidence: 1.000
-        fixed_lot: 0.10
+        fixed_lot: 0.15
 
     weight: 1.0
     priority: 8
@@ -677,6 +679,8 @@ models:
       - USDCAD
       - USDCHF
       - USDJPY
+      - XAUUSD
+      - XAGUSD
 
 
 

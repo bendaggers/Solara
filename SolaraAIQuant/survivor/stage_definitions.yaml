@@ -19,6 +19,11 @@ settings:
   check_interval_seconds: 60     # How often to check positions
   use_server_time: true          # Use MT5 server time for checks
   pip_buffer: 2                  # Buffer pips to account for spread
+  remove_tp_at_stage: 3          # Remove TP once this stage is reached (0 = disabled).
+                                 # Stage 3 = 20 pips profit, SL locked at +4 pips above
+                                 # entry — TP (30 pips) has not been hit yet, 10-pip gap
+                                 # gives Survivor time to remove it before MT5 triggers it.
+                                 # After removal the trailing SL is the only exit.
 
 # Stage definitions
 stages:
@@ -145,6 +150,8 @@ stages:
 
 # Notes:
 # - Stages only move forward (never backward)
-# - SL is calculated: entry_price + (current_profit_pips * protection_pct * pip_value)
+# - SL is calculated: entry_price + (max_profit_pips * protection_pct * pip_value)
 # - For SHORT positions, signs are reversed
-# - TP is not modified by Survivor Engine (set by model)
+# - TP is removed (set to 0.0 in MT5) when position reaches remove_tp_at_stage.
+#   This is a one-time action — TP is never re-added after removal.
+#   After removal the trailing SL is the sole exit mechanism, enabling full wave riding.
