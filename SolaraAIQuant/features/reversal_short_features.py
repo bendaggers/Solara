@@ -134,7 +134,11 @@ class ReversalShortFeatureEngineer(BaseFeatureEngineer):
     # ── Per-compute() CSV cache ───────────────────────────────────────────────
     _csv_cache: dict = {}
 
-    def __init__(self):
+    def __init__(self, config=None):
+        # Detection constants — read from registry config if provided, else use module defaults
+        self._swing_window      = int(getattr(config, 'rev_swing_window',      _SWING_WINDOW))
+        self._flip_lookback     = int(getattr(config, 'rev_flip_lookback',     _FLIP_LOOKBACK))
+        self._break_buffer_pips = int(getattr(config, 'rev_break_buffer_pips', _BREAK_BUFFER_PIPS))
         self._load_reversal_model()
         self._load_trend_models()
 
@@ -245,20 +249,20 @@ class ReversalShortFeatureEngineer(BaseFeatureEngineer):
             return self._null_row(sym, curr)
 
         # ── 5. Gate: cascade flip — uptrend within last N bars ────────────
-        flip_start = max(0, curr_idx - _FLIP_LOOKBACK)
+        flip_start = max(0, curr_idx - self._flip_lookback)
         recent_classes = h4.iloc[flip_start:curr_idx]['_predicted_class'].tolist()
         if 'uptrend' not in recent_classes:
             logger.debug(
-                f"[RevShortFE] {sym}: no uptrend in last {_FLIP_LOOKBACK} bars — no flip"
+                f"[RevShortFE] {sym}: no uptrend in last {self._flip_lookback} bars — no flip"
             )
             return self._null_row(sym, curr)
 
         # ── 6. Gate: structure break ───────────────────────────────────────
         pip = 0.01 if 'JPY' in sym else 0.0001
-        buf = _BREAK_BUFFER_PIPS * pip
+        buf = self._break_buffer_pips * pip
 
-        swing_low  = h4['low'].rolling(_SWING_WINDOW, min_periods=_SWING_WINDOW).min().shift(1)
-        swing_high = h4['high'].rolling(_SWING_WINDOW, min_periods=_SWING_WINDOW).max().shift(1)
+        swing_low  = h4['low'].rolling(self._swing_window, min_periods=self._swing_window).min().shift(1)
+        swing_high = h4['high'].rolling(self._swing_window, min_periods=self._swing_window).max().shift(1)
 
         sl_curr = swing_low.iloc[curr_idx]
         sh_curr = swing_high.iloc[curr_idx]

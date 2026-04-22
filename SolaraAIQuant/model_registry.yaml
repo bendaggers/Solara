@@ -544,8 +544,12 @@ models:
     merge_timeframes: []
     feature_engineering_class: "features.pull_back_features.PullBackFeatureEngineer"
 
+    # ── Pull Back pipeline thresholds ───────────────────────────────────────
+    # Gate 3: H4 pullback exhaustion prob (was 0.65, lowered 2026-04-15)
+    pb_exhaust_threshold: 0.55
+
     # ── Confidence tiers (entry_prob from XGBoost) ──────────────────────────
-    # Threshold from training: 0.80 → lowered to 0.65 (2026-04-15) for better frequency
+    # Gate 4: entry model — lowest tier drives the live threshold (was 0.80, lowered 2026-04-15)
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
@@ -624,7 +628,10 @@ models:
     merge_timeframes: []
     feature_engineering_class: "features.pull_back_short_features.PullBackShortFeatureEngineer"
 
-    # Threshold from training: 0.80 → lowered to 0.65 (2026-04-15) for better frequency
+    # ── Pull Back pipeline thresholds ───────────────────────────────────────
+    pb_exhaust_threshold: 0.55
+
+    # Gate 4: entry model — lowest tier drives the live threshold (was 0.80, lowered 2026-04-15)
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
@@ -724,6 +731,11 @@ models:
     merge_timeframes: []
     feature_engineering_class: "features.reversal_short_features.ReversalShortFeatureEngineer"
 
+    # ── Reversal detection thresholds ───────────────────────────────────────
+    rev_swing_window: 20       # H4 bars for swing high/low lookback
+    rev_flip_lookback: 6       # bars — prior uptrend must exist within this window
+    rev_break_buffer_pips: 2   # pips — close must exceed swing_low by this margin
+
     # ── Confidence tiers ────────────────────────────────────────────────────
     # Threshold lowered to 0.50 (was 0.60 → 0.74 WF median) for higher frequency.
     # Break-even is 25% — worst WF fold was 44.4%, est ~40-45% at 0.50 — safe margin.
@@ -821,6 +833,11 @@ models:
     trigger_timeframes: ["H4"]
     merge_timeframes: []
     feature_engineering_class: "features.reversal_long_features.ReversalLongFeatureEngineer"
+
+    # ── Reversal detection thresholds ───────────────────────────────────────
+    rev_swing_window: 20       # H4 bars for swing high/low lookback
+    rev_flip_lookback: 6       # bars — prior downtrend must exist within this window
+    rev_break_buffer_pips: 2   # pips — close must exceed swing_high by this margin
 
     # ── Confidence tiers ────────────────────────────────────────────────────
     # Threshold lowered to 0.45 (was 0.50 → 0.76 WF median) for higher frequency.

@@ -130,6 +130,14 @@ class ModelConfig:
     # Fields not set in the override fall back to the defaults above.
     timeframe_overrides: Dict[str, TimeframeOverride] = field(default_factory=dict)
 
+    # ── Pull Back pipeline thresholds ────────────────────────────────────
+    pb_exhaust_threshold: float = 0.55   # Gate 3: H4 pullback exhaustion prob
+
+    # ── Reversal detection thresholds ─────────────────────────────────────
+    rev_swing_window:      int   = 20    # H4 bars for swing high/low lookback
+    rev_flip_lookback:     int   = 6     # bars — prior trend must exist within this window
+    rev_break_buffer_pips: int   = 2     # pips — close must exceed swing level by this margin
+
     # ── Filters ───────────────────────────────────────────────────────────
     symbols: List[str] = field(default_factory=list)
 
@@ -228,14 +236,23 @@ class ModelConfig:
         return 0.01
 
     def load_feature_engineer(self):
-        """Dynamically import and instantiate this model's feature engineering class."""
+        """Dynamically import and instantiate this model's feature engineering class.
+
+        Passes self (ModelConfig) to the constructor so FEs can read registry
+        thresholds (e.g. rev_swing_window) without needing a separate config path.
+        FE constructors accept an optional config= kwarg; older FEs that don't
+        declare it receive no argument (fallback via try/except).
+        """
         if not self.feature_engineering_class:
             return None
         try:
             module_path, class_name = self.feature_engineering_class.rsplit('.', 1)
             module   = importlib.import_module(module_path)
             cls      = getattr(module, class_name)
-            instance = cls()
+            try:
+                instance = cls(config=self)
+            except TypeError:
+                instance = cls()
             logger.debug(
                 f"'{self.name}': loaded feature engineer "
                 f"{self.feature_engineering_class}"
@@ -294,6 +311,10 @@ class ModelConfig:
                 }
                 for tf, o in self.timeframe_overrides.items()
             },
+            'pb_exhaust_threshold':  self.pb_exhaust_threshold,
+            'rev_swing_window':      self.rev_swing_window,
+            'rev_flip_lookback':     self.rev_flip_lookback,
+            'rev_break_buffer_pips': self.rev_break_buffer_pips,
             'symbols': self.symbols,
             'enabled': self.enabled,
         }
@@ -429,6 +450,10 @@ class ModelRegistry:
             sl_pips=int(data.get('sl_pips', 50)),
             max_holding_bars=int(data.get('max_holding_bars', 72)),
             timeframe_overrides=overrides,
+            pb_exhaust_threshold=float(data.get('pb_exhaust_threshold', 0.55)),
+            rev_swing_window=int(data.get('rev_swing_window', 20)),
+            rev_flip_lookback=int(data.get('rev_flip_lookback', 6)),
+            rev_break_buffer_pips=int(data.get('rev_break_buffer_pips', 2)),
             symbols=data.get('symbols', []),
             enabled=bool(data.get('enabled', True)),
         )

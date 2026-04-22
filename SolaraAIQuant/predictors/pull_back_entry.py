@@ -163,11 +163,15 @@ class PullBackEntryPredictor(BasePredictor):
             return None
 
         # ── Gate 3: pullback exhaustion probability ────────────────────────
+        # Live threshold from registry pb_exhaust_threshold; falls back to constant.
+        live_exhaust_threshold = float(
+            getattr(config, 'pb_exhaust_threshold', _PB_EXHAUST_THRESHOLD)
+        )
         exhaust_prob = float(row.get('_pb_exhaust_prob', 0.0))
-        if exhaust_prob < _PB_EXHAUST_THRESHOLD:
+        if exhaust_prob < live_exhaust_threshold:
             _digest['gate'] = 3
             self._last_cycle_results[sym] = _digest
-            logger.debug(f"[PullBackEntry] {sym}: exhaust_prob={exhaust_prob:.3f} < {_PB_EXHAUST_THRESHOLD} — skip")
+            logger.debug(f"[PullBackEntry] {sym}: exhaust_prob={exhaust_prob:.3f} < {live_exhaust_threshold} — skip")
             return None
 
         # ── Gate 4: entry model ────────────────────────────────────────────
