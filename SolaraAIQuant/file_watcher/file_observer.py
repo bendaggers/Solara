@@ -83,7 +83,11 @@ class CSVFileHandler(FileSystemEventHandler):
         if timeframe is None:
             return
 
-        # Debounce — ignore if we just processed this file
+        # Debounce — ignore if we just processed this file recently.
+        # NOTE: _last_modified is set to now BEFORE the processing sleep so
+        # that any further OS events fired during the 10s wait are suppressed.
+        # This prevents the double-pipeline-run caused by the EA generating
+        # two filesystem events per write (file-open + file-close/flush).
         with self._lock:
             now  = time.time()
             last = self._last_modified.get(filename, 0)
@@ -94,6 +98,8 @@ class CSVFileHandler(FileSystemEventHandler):
                 )
                 return
 
+            # Stamp NOW (before sleep) so events arriving during the wait
+            # are absorbed by the debounce check above.
             self._last_modified[filename] = now
 
         # Wait for EA to finish writing all symbols
@@ -103,6 +109,11 @@ class CSVFileHandler(FileSystemEventHandler):
                 f"waiting {self.processing_delay_seconds:.0f}s for EA to finish writing"
             )
             time.sleep(self.processing_delay_seconds)
+
+        # Re-stamp after sleep so the NEXT legitimate bar change (which will
+        # arrive ~1 hour later for H1) is not blocked by the old timestamp.
+        with self._lock:
+            self._last_modified[filename] = time.time()
 
         # Verify file is not empty after the wait
         try:

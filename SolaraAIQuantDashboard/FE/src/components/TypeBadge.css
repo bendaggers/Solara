@@ -1,0 +1,21 @@
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.type-badge.buy {
+  background: #e8f9f0;
+  color: #1a9e5c;
+}
+
+.type-badge.sell {
+  background: #ffeef0;
+  color: #e0345a;
+}

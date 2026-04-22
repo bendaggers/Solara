@@ -23,12 +23,11 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# ── Inject Trend Identifier project into Python path ─────────────────────────
-_TREND_ID_ROOT = Path(
-    r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier"
-)
-if str(_TREND_ID_ROOT) not in sys.path:
-    sys.path.insert(0, str(_TREND_ID_ROOT))
+# ── Trend Identifier package (bundled in vendor/) ────────────────────────────
+_SAQ_ROOT   = Path(__file__).resolve().parent.parent
+_VENDOR_DIR = _SAQ_ROOT / 'vendor'
+if str(_VENDOR_DIR) not in sys.path:
+    sys.path.insert(0, str(_VENDOR_DIR))
 
 try:
     from forex_trend_model.features.quant_v2 import (
@@ -41,8 +40,8 @@ try:
 except ImportError as _e:
     _TREND_ID_AVAILABLE = False
     logger.critical(
-        f"[TrendIDV2Features] Cannot import Trend Identifier package: {_e}. "
-        f"Check that {_TREND_ID_ROOT} exists and dependencies are installed."
+        f"[TrendIDV2Features] Cannot import forex_trend_model: {_e}. "
+        f"Copy the forex_trend_model/ package into {_VENDOR_DIR}/"
     )
 
 # ── Pair encoding: MUST match the training order (alphabetical, 0-indexed) ───

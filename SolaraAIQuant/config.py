@@ -225,9 +225,15 @@ class SurvivorConfig:
 @dataclass
 class WatchdogConfig:
     """File watchdog configuration."""
-    # Debounce delay to avoid duplicate triggers
+    # Debounce delay to avoid duplicate triggers.
+    # Windows fires two FILE_NOTIFY_CHANGE_LAST_WRITE events per CSV write:
+    # one on file-open/truncate and one on file-close.  If the EA takes > 2s
+    # to write 9,800 candles, the close event slips through the 2s window and
+    # triggers a second full pipeline run ~21s after the first.
+    # Set to 20s: re-stamp after the 10s processing sleep covers the ~11s
+    # pipeline run (10+20=30s total blockout), then resets for the next bar.
     debounce_seconds: float = field(
-        default_factory=lambda: float(os.getenv('WATCHDOG_DEBOUNCE_SECONDS', '2'))
+        default_factory=lambda: float(os.getenv('WATCHDOG_DEBOUNCE_SECONDS', '20'))
     )
 
     # ADD THIS LINE:

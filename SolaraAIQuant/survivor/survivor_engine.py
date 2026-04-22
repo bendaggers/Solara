@@ -48,6 +48,7 @@ class SurvivorSettings:
     check_interval_seconds: int = 60
     use_server_time: bool = True
     pip_buffer: float = 2.0
+    remove_tp_at_stage: int = 3  # Stage at which MT5 TP is removed permanently (0 = disabled)
 
 
 @dataclass
@@ -64,6 +65,8 @@ class PositionUpdate:
     max_profit_pips: float
     stage_changed: bool
     sl_modified: bool
+    tp_removed: bool = False        # True when TP should be removed this cycle
+    new_tp: Optional[float] = None  # 0.0 = remove TP in MT5; None = leave unchanged
     error_message: Optional[str] = None
 
 
@@ -122,7 +125,8 @@ class SurvivorEngine:
                 min_profit_to_start=settings.get('min_profit_to_start', 10),
                 check_interval_seconds=settings.get('check_interval_seconds', 60),
                 use_server_time=settings.get('use_server_time', True),
-                pip_buffer=settings.get('pip_buffer', 2)
+                pip_buffer=settings.get('pip_buffer', 2),
+                remove_tp_at_stage=settings.get('remove_tp_at_stage', 3),
             )
             
             # Load stages
@@ -247,11 +251,12 @@ class SurvivorEngine:
         current_sl: Optional[float],
         current_stage: int,
         max_profit_pips: float,
+        current_tp: float = 0.0,
         pip_value: float = 0.0001
     ) -> PositionUpdate:
         """
-        Process a single position and determine if SL should be updated.
-        
+        Process a single position and determine if SL/TP should be updated.
+
         Args:
             ticket: Position ticket number
             symbol: Trading symbol
@@ -261,8 +266,9 @@ class SurvivorEngine:
             current_sl: Current stop-loss price
             current_stage: Current Survivor stage
             max_profit_pips: Historical maximum profit reached
+            current_tp: Current take-profit price (0.0 = already removed / not set)
             pip_value: Pip value for the symbol
-            
+
         Returns:
             PositionUpdate with results
         """
@@ -324,7 +330,28 @@ class SurvivorEngine:
             new_sl = current_sl
         
         stage_changed = new_stage > current_stage
-        
+
+        # ── TP removal (one-time action) ──────────────────────────────────────
+        # Once the trailing SL is meaningful (stage >= remove_tp_at_stage),
+        # remove the MT5 TP so the trade can ride the full trend wave.
+        # current_tp > 0 means TP is still active in MT5 and hasn't been removed yet.
+        tp_removed = False
+        new_tp     = None
+        remove_at  = self.settings.remove_tp_at_stage
+
+        if (
+            remove_at > 0           # feature is enabled (0 = disabled)
+            and new_stage >= remove_at
+            and current_tp > 0.0    # TP is still set in MT5
+        ):
+            tp_removed = True
+            new_tp     = 0.0
+            logger.info(
+                f"[Survivor] {symbol} #{ticket}: TP removed at Stage {new_stage} "
+                f"(profit={profit_pips:.1f}p, max={new_max_profit:.1f}p, "
+                f"threshold=Stage {remove_at}) — trailing SL now sole exit"
+            )
+
         return PositionUpdate(
             ticket=ticket,
             symbol=symbol,
@@ -336,7 +363,9 @@ class SurvivorEngine:
             profit_pips=profit_pips,
             max_profit_pips=new_max_profit,
             stage_changed=stage_changed,
-            sl_modified=sl_modified
+            sl_modified=sl_modified,
+            tp_removed=tp_removed,
+            new_tp=new_tp,
         )
     
     def process_all_positions(self, positions: List[Dict]) -> List[PositionUpdate]:
@@ -376,7 +405,8 @@ class SurvivorEngine:
                     current_sl=pos.get('sl'),
                     current_stage=state['current_stage'],
                     max_profit_pips=state['max_profit_pips'],
-                    pip_value=pip_value
+                    current_tp=pos.get('tp', 0.0),
+                    pip_value=pip_value,
                 )
                 
                 results.append(update)
@@ -415,7 +445,9 @@ class SurvivorEngine:
             'stage_changes': 0,
             'sl_modifications': 0,
             'sl_modification_failures': 0,
-            'errors': 0
+            'tp_removals': 0,
+            'tp_removal_failures': 0,
+            'errors': 0,
         }
         
         for update in updates:
@@ -426,30 +458,57 @@ class SurvivorEngine:
                 continue
             
             try:
-                # Apply SL modification via MT5
+                # ── SL modification ───────────────────────────────────────────
                 if update.sl_modified and self.mt5_manager:
                     success = self.mt5_manager.modify_position(
                         ticket=update.ticket,
-                        sl=update.new_sl
+                        sl=update.new_sl,
+                        tp=update.new_tp if update.tp_removed else None,
                     )
-                    
+
                     if success:
                         stats['sl_modifications'] += 1
                         logger.info(
                             f"Position {update.ticket}: SL modified "
                             f"{update.old_sl:.5f} → {update.new_sl:.5f}"
                         )
+                        if update.tp_removed:
+                            stats['tp_removals'] += 1
+                            logger.info(
+                                f"Position {update.ticket} ({update.symbol}): "
+                                f"TP removed — trailing SL now sole exit"
+                            )
                     else:
                         stats['sl_modification_failures'] += 1
                         logger.warning(
                             f"Position {update.ticket}: SL modification failed"
                         )
                         continue
-                
-                # Update database state
-                if update.stage_changed or update.sl_modified:
+
+                # ── TP-only removal (SL didn't change this cycle but TP needs removing) ──
+                elif update.tp_removed and self.mt5_manager:
+                    success = self.mt5_manager.modify_position(
+                        ticket=update.ticket,
+                        sl=None,        # keep current SL
+                        tp=0.0,         # remove TP
+                    )
+                    if success:
+                        stats['tp_removals'] += 1
+                        logger.info(
+                            f"Position {update.ticket} ({update.symbol}): "
+                            f"TP removed (SL unchanged) — trailing SL now sole exit"
+                        )
+                    else:
+                        stats['tp_removal_failures'] += 1
+                        logger.warning(
+                            f"Position {update.ticket}: TP removal failed"
+                        )
+                        continue
+
+                # ── Persist state changes ─────────────────────────────────────
+                if update.stage_changed or update.sl_modified or update.tp_removed:
                     self._update_position_state(update)
-                    
+
                     if update.stage_changed:
                         stats['stage_changes'] += 1
                         logger.info(
@@ -485,16 +544,16 @@ class SurvivorEngine:
         """Update position state in database."""
         if self.db_manager is None:
             return
-        
-        if update.stage_changed:
+
+        if update.stage_changed or update.tp_removed:
             self.db_manager.update_position_stage(
                 ticket=update.ticket,
                 new_stage=update.new_stage,
                 new_sl=update.new_sl,
-                new_tp=None,  # TP not modified by Survivor
+                new_tp=update.new_tp,   # 0.0 when TP removed, None when unchanged
                 trigger_pips=update.max_profit_pips,
                 protection_pct=self.stages[update.new_stage].protection_pct
-                    if update.new_stage < len(self.stages) else 0
+                    if update.new_stage < len(self.stages) else 0,
             )
     
     def _get_pip_value(self, symbol: str) -> float:

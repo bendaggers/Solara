@@ -131,17 +131,14 @@ class TrendIdentifierV2Predictor(BasePredictor):
                 "Install with: pip install joblib"
             )
 
-        # Ensure the Trend Identifier package is on sys.path before deserialization.
-        # The FE module adds this path at import time, but the predictor may load
-        # the model file in a parallel thread before the FE module is imported —
-        # causing "No module named 'forex_trend_model'" during joblib.load().
+        # Ensure forex_trend_model is importable before joblib deserializes it.
+        # The FE adds vendor/ to sys.path at import time, but the predictor may
+        # load in a parallel thread before the FE module is imported.
         import sys
         from pathlib import Path as _Path
-        _ti_root = str(_Path(
-            r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier"
-        ))
-        if _ti_root not in sys.path:
-            sys.path.insert(0, _ti_root)
+        _vendor_dir = str(_Path(__file__).resolve().parent.parent / 'vendor')
+        if _vendor_dir not in sys.path:
+            sys.path.insert(0, _vendor_dir)
 
         artifact = _joblib.load(model_path)
 

@@ -48,12 +48,11 @@ from features.base_feature_engineer import BaseFeatureEngineer
 
 logger = logging.getLogger(__name__)
 
-# ── External package path (same as TI V2) ─────────────────────────────────────
-_TI_ROOT = Path(
-    r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier"
-)
-if str(_TI_ROOT) not in sys.path:
-    sys.path.insert(0, str(_TI_ROOT))
+# ── Trend Identifier package (bundled in vendor/) ────────────────────────────
+_SAQ_ROOT   = Path(__file__).resolve().parent.parent
+_VENDOR_DIR = _SAQ_ROOT / 'vendor'
+if str(_VENDOR_DIR) not in sys.path:
+    sys.path.insert(0, str(_VENDOR_DIR))
 
 try:
     from forex_trend_model.inference.live_pipeline import LiveTrendPredictor
@@ -64,18 +63,16 @@ try:
 except ImportError as _e:
     _TI_AVAILABLE = False
     logger.critical(
-        f"[PullBackFE] Cannot import Trend Identifier package: {_e}. "
-        f"Check that {_TI_ROOT} exists."
+        f"[PullBackFE] Cannot import forex_trend_model: {_e}. "
+        f"Copy the forex_trend_model/ package into {_VENDOR_DIR}/"
     )
 
-# ── Pull Back Strategy model paths ────────────────────────────────────────────
-_PB_STRATEGY_ROOT = Path(
-    r"C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Pull Back Strategy"
-)
+# ── Trend model joblib files (Models/trend_identifier/long/) ─────────────────
+_TREND_MODELS_DIR = _SAQ_ROOT / 'Models' / 'trend_identifier' / 'long'
 _TREND_MODEL_PATHS = {
-    'H4': _PB_STRATEGY_ROOT / 'models' / 'Trend_Identifier_H4.joblib',
-    'D1': _PB_STRATEGY_ROOT / 'models' / 'Trend_Identifier_D1.joblib',
-    'W1': _PB_STRATEGY_ROOT / 'models' / 'Trend_Identifier_W1.joblib',
+    'H4': _TREND_MODELS_DIR / 'Trend_Identifier_H4.joblib',
+    'D1': _TREND_MODELS_DIR / 'Trend_Identifier_D1.joblib',
+    'W1': _TREND_MODELS_DIR / 'Trend_Identifier_W1.joblib',
 }
 _PULLBACK_MODEL_PATH = MODELS_DIR / 'pull_back_pullback_h4.joblib'
 
@@ -148,7 +145,11 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         ]
 
     def get_output_features(self) -> List[str]:
-        return ENTRY_FEATURES
+        # 37 model features + gate/metadata columns that the predictor reads
+        return ENTRY_FEATURES + [
+            '_pb_trend_aligned', '_pb_direction',
+            '_pb_exhaust_prob', '_pb_h4_label', 'close',
+        ]
 
     def compute(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -190,6 +191,10 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
                 logger.error(f"[PullBackFE] {sym} failed: {exc}", exc_info=True)
 
         if not rows:
+            logger.warning(
+                f"[PullBackFE] compute() produced 0 rows from {len(symbols)} symbols "
+                f"— check H4 bar count / trend model loading / CSV availability"
+            )
             return pd.DataFrame()
 
         result = pd.DataFrame(rows)
@@ -239,7 +244,7 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
 
         # ── 4. Trend alignment check ──────────────────────────────────────
         trend_aligned, trend_direction = self._check_alignment(
-            h4_trend_pred, d1_trend_pred, w1_trend_pred
+            h4_trend_pred, d1_trend_pred, w1_trend_pred, sym=sym
         )
 
         # ── 5. H4 pullback features (last _SWING_WINDOW + buffer bars) ────
@@ -301,6 +306,18 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         row['_pb_direction']      = trend_direction
         row['_pb_exhaust_prob']   = h4_ctx['h4_pb_prob_exhaust']
         row['_pb_h4_label']       = h4_ctx['h4_pb_label']
+
+        _exhaust = h4_ctx['h4_pb_prob_exhaust']
+        _label   = h4_ctx['h4_pb_label']
+        _label_name = {0: 'trend', 1: 'pullback', 2: 'exhaust'}.get(_label, str(_label))
+        _exhaust_ok = '✓' if _exhaust >= 0.65 else '✗'
+        logger.debug(
+            f"[PullBackFE] {sym}: pullback — label={_label_name}({_label})  "
+            f"exhaust_prob={_exhaust:.3f} {_exhaust_ok}  "
+            f"pb_prob={h4_ctx['h4_pb_prob_pullback']:.3f}  "
+            f"trend_prob={h4_ctx['h4_pb_prob_trend']:.3f}  "
+            f"cse={cse}"
+        )
 
         return row
 
@@ -626,7 +643,7 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
             return pd.DataFrame(results, index=df.index)
 
         except Exception as exc:
-            logger.error(f"[PullBackFE] Trend model {tf} failed for {sym}: {exc}")
+            logger.error(f"[PullBackFE] Trend model {tf} failed for {sym}: {exc}", exc_info=True)
             return None
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -638,29 +655,45 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         h4_pred: Optional[pd.DataFrame],
         d1_pred: Optional[pd.DataFrame],
         w1_pred: Optional[pd.DataFrame],
+        sym: str = '',
     ) -> tuple[bool, str]:
         """
         Check if ≥ 2/3 trend models agree on a directional (non-sideways) class.
         Returns (aligned: bool, consensus_direction: str).
         """
         preds = []
-        for pred in (h4_pred, d1_pred, w1_pred):
+        tf_results = {}
+        for tf, pred in (('H4', h4_pred), ('D1', d1_pred), ('W1', w1_pred)):
             if pred is not None and pred['model_valid'].any():
-                # Take the last valid bar's prediction
                 valid = pred[pred['model_valid']]
-                cls = valid['predicted_class'].iloc[-1]
+                row   = valid.iloc[-1]
+                cls   = row['predicted_class']
+                up    = round(float(row.get('prob_up',   0)), 3)
+                dn    = round(float(row.get('prob_down', 0)), 3)
                 preds.append(cls)
+                tf_results[tf] = f"{cls}(↑{up} ↓{dn})"
+            elif pred is None:
+                tf_results[tf] = 'failed/missing'
+            else:
+                tf_results[tf] = 'no_valid_bars'
+
+        tf_summary = '  '.join(f"{tf}:{v}" for tf, v in tf_results.items())
 
         if len(preds) < 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — only {len(preds)}/3 TFs valid → not aligned  [{tf_summary}]")
             return False, 'sideways'
 
         up_count   = preds.count('uptrend')
         down_count = preds.count('downtrend')
 
         if up_count >= 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — UPTREND ✓  [{tf_summary}]")
             return True, 'uptrend'
         if down_count >= 2:
+            logger.debug(f"[PullBackFE] {sym}: alignment — DOWNTREND ✓  [{tf_summary}]")
             return True, 'downtrend'
+
+        logger.debug(f"[PullBackFE] {sym}: alignment — mixed/sideways ({up_count} up {down_count} dn)  [{tf_summary}]")
         return False, 'sideways'
 
     # ─────────────────────────────────────────────────────────────────────────

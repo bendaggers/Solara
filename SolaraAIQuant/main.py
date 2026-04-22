@@ -282,8 +282,8 @@ def show_status():
         saq_log.ok("Watch",   str(MQL5_FILES_DIR))
 
         print()
-        saq_log.ok("MT5 server", str(mt5_config.get('server', 'Not set')))
-        saq_log.ok("MT5 login",  str(mt5_config.get('login',  'Not set')))
+        saq_log.ok("MT5 server", str(mt5_config.server) if mt5_config.server else 'Not set')
+        saq_log.ok("MT5 login",  str(mt5_config.login)  if mt5_config.login  else 'Not set')
 
         print()
         from engine.registry import model_registry

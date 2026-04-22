@@ -30,17 +30,17 @@ input string AdditionalSymbols = "";
 
 // ================== MULTIPLE TIMEFRAME SELECTION ==================
 input group "Timeframe Selection"
-input bool TF_W1 = false;
+input bool TF_W1 = true;
 input string W1_Filename = "";
-input bool TF_D1 = false;
+input bool TF_D1 = true;
 input string D1_Filename = "";
 input bool TF_H4 = true;
 input string H4_Filename = "";
-input bool TF_H1 = false;
+input bool TF_H1 = true;
 input string H1_Filename = "";
 input bool TF_M30 = false;
 input string M30_Filename = "";
-input bool TF_M15 = false;
+input bool TF_M15 = true;
 input string M15_Filename = "";
 input bool TF_M5 = false;
 input string M5_Filename = "";
@@ -53,7 +53,7 @@ input int WaitSecondsAfterCandleClose = 5;
 
 // ================== DATA RETENTION SETTINGS ==================
 input group "Data Retention"
-input int KeepLastNCandles = 3;
+input int KeepLastNCandles = 350;
 
 // ================== FIXED INDICATOR SETTINGS ==================
 const int BB_Period           = 20;
@@ -348,6 +348,32 @@ void LogExportCompletion(string tfStr, int symbolsProcessed)
    else { FileSeek(h, 0, SEEK_END); FileWrite(h, ts, tfStr, symbolsProcessed, keepCandles); FileClose(h); }
 }
 
+
+bool EnsureHistoryLoaded(string symbol, ENUM_TIMEFRAMES tf, int requiredBars)
+{
+   int attempts = 0;
+
+   while(attempts < 5)
+   {
+      int bars = Bars(symbol, tf);
+
+      if(bars >= requiredBars)
+         return true;
+
+      // Force download
+      MqlRates rates[];
+      CopyRates(symbol, tf, 0, requiredBars, rates);
+
+      Sleep(200);
+      attempts++;
+   }
+
+   Print("FAILED to load history: ", symbol, " ", EnumToString(tf),
+         " bars=", Bars(symbol, tf), " required=", requiredBars);
+
+   return false;
+}
+
 //+------------------------------------------------------------------+
 //| OnTimer                                                          |
 //+------------------------------------------------------------------+
@@ -442,21 +468,50 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
 {
    datetime lcs = iTime(symbol, tf, 1);
    if(lcs == 0) return;
-   if(TimeCurrent() < lcs + PeriodSeconds(tf) + WaitSecondsAfterCandleClose) return;
 
-   int maxP    = MathMax(MathMax(BB_Period,RSI_Period),MathMax(ATR_Period,MathMax(SMA_Long,Volume_SMA_Period)));
-   int lookback = maxP + Touch_Lookback + Resistance_Lookback + keepCandles + 5;
+   if(TimeCurrent() < lcs + PeriodSeconds(tf) + WaitSecondsAfterCandleClose)
+      return;
+
+   int maxP = MathMax(MathMax(BB_Period,RSI_Period),
+              MathMax(ATR_Period,MathMax(SMA_Long,Volume_SMA_Period)));
+
+   // ✅ FIX: DO NOT include keepCandles in lookback
+   int lookback = maxP + Touch_Lookback + Resistance_Lookback + 50;
+
+   int requiredBars = lookback + keepCandles + 10;
+
+   // ✅ FORCE history availability
+   if(!EnsureHistoryLoaded(symbol, tf, requiredBars))
+      return;
 
    MqlRates rates[];
-   int bars = CopyRates(symbol, tf, lcs, lookback+1, rates);
-   if(bars <= lookback) { Print("Insufficient data: ",symbol); return; }
+   int bars = CopyRates(symbol, tf, 0, requiredBars, rates);
 
+   if(bars < requiredBars)
+   {
+      Print("Still insufficient: ", symbol,
+            " got=", bars, " need=", requiredBars);
+      return;
+   }
+
+   // ✅ find target candle safely
+   // CopyRates (non-series): rates[0]=oldest, rates[bars-1]=newest.
+   // Search BACKWARDS to find the most recent bar whose time <= lcs.
+   // Searching forward always matches rates[0] (oldest), giving tgt=0
+   // and done=1 in the export loop — that was the "Only 1/350" bug.
    int tgt = -1;
-   for(int i = 0; i < bars; i++) if(rates[i].time == lcs) { tgt = i; break; }
+   for(int i = bars-1; i >= 0; i--)
+   {
+      if(rates[i].time <= lcs)
+      {
+         tgt = i;
+         break;
+      }
+   }
    if(tgt == -1) return;
 
    double bbU[],bbM[],bbL[],rsi[],volSMA[],atr[],smaS[],smaL2[];
-   int    touchUp[]; double rHigh[], rLow[];
+   int touchUp[]; double rHigh[], rLow[];
 
    ArrayResize(bbU,bars);ArrayResize(bbM,bars);ArrayResize(bbL,bars);
    ArrayResize(rsi,bars);ArrayResize(volSMA,bars);ArrayResize(atr,bars);
@@ -466,17 +521,17 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
    double cl[]; ArrayResize(cl,bars);
    for(int i=0;i<bars;i++) cl[i]=rates[i].close;
 
-   // Bollinger Bands
+   // === INDICATORS (UNCHANGED) ===
    for(int i=0;i<bars;i++)
    {
       if(i+1<BB_Period){bbM[i]=bbU[i]=bbL[i]=0;continue;}
-      double s=0; for(int j=i-BB_Period+1;j<=i;j++) s+=cl[j]; double ma=s/BB_Period;
+      double s=0; for(int j=i-BB_Period+1;j<=i;j++) s+=cl[j];
+      double ma=s/BB_Period;
       double v=0; for(int j=i-BB_Period+1;j<=i;j++) v+=MathPow(cl[j]-ma,2);
       double sd=MathSqrt(v/BB_Period);
       bbM[i]=ma; bbU[i]=ma+BB_Deviation*sd; bbL[i]=ma-BB_Deviation*sd;
    }
 
-   // RSI
    for(int i=0;i<bars;i++) rsi[i]=0;
    double gS=0,lS=0;
    for(int i=1;i<=RSI_Period;i++){double c=cl[i]-cl[i-1];if(c>0)gS+=c;else lS-=c;}
@@ -485,11 +540,11 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
    for(int i=RSI_Period+1;i<bars;i++)
    {
       double c=cl[i]-cl[i-1],g=(c>0)?c:0,l=(c<0)?-c:0;
-      aG=(aG*(RSI_Period-1)+g)/RSI_Period; aL=(aL*(RSI_Period-1)+l)/RSI_Period;
+      aG=(aG*(RSI_Period-1)+g)/RSI_Period;
+      aL=(aL*(RSI_Period-1)+l)/RSI_Period;
       rsi[i]=(aL==0)?100:100-(100/(1+aG/aL));
    }
 
-   // Volume SMA
    for(int i=0;i<bars;i++)
    {
       if(i+1<Volume_SMA_Period){volSMA[i]=(double)rates[i].tick_volume;continue;}
@@ -497,36 +552,41 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
       volSMA[i]=s/(double)Volume_SMA_Period;
    }
 
-   // ATR
    for(int i=0;i<bars;i++)
    {
       if(i==0){atr[i]=rates[i].high-rates[i].low;continue;}
-      double tr=MathMax(rates[i].high-rates[i].low,MathMax(MathAbs(rates[i].high-rates[i-1].close),MathAbs(rates[i].low-rates[i-1].close)));
+      double tr=MathMax(rates[i].high-rates[i].low,
+               MathMax(MathAbs(rates[i].high-rates[i-1].close),
+                       MathAbs(rates[i].low-rates[i-1].close)));
       atr[i]=(i<ATR_Period)?(atr[i-1]*i+tr)/(i+1):(atr[i-1]*(ATR_Period-1)+tr)/ATR_Period;
    }
 
-   // SMA Short
    for(int i=0;i<bars;i++)
    {
       if(i+1<SMA_Short){smaS[i]=cl[i];continue;}
-      double s=0; for(int j=i-SMA_Short+1;j<=i;j++) s+=cl[j]; smaS[i]=s/SMA_Short;
+      double s=0; for(int j=i-SMA_Short+1;j<=i;j++) s+=cl[j];
+      smaS[i]=s/SMA_Short;
    }
 
-   // SMA Long
    for(int i=0;i<bars;i++)
    {
       if(i+1<SMA_Long){smaL2[i]=cl[i];continue;}
-      double s=0; for(int j=i-SMA_Long+1;j<=i;j++) s+=cl[j]; smaL2[i]=s/SMA_Long;
+      double s=0; for(int j=i-SMA_Long+1;j<=i;j++) s+=cl[j];
+      smaL2[i]=s/SMA_Long;
    }
 
-   // Touch history (upper band)
    for(int i=0;i<bars;i++)
    {
       touchUp[i]=0;
-      if(i>=Touch_Lookback){int tc=0;for(int j=i-Touch_Lookback+1;j<=i;j++)if(rates[j].high>=bbU[j])tc++;touchUp[i]=tc;}
+      if(i>=Touch_Lookback)
+      {
+         int tc=0;
+         for(int j=i-Touch_Lookback+1;j<=i;j++)
+            if(rates[j].high>=bbU[j]) tc++;
+         touchUp[i]=tc;
+      }
    }
 
-   // Recent highs
    for(int i=0;i<bars;i++)
    {
       int f=(i<Resistance_Lookback)?0:i-Resistance_Lookback+1;
@@ -535,7 +595,6 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
       rHigh[i]=mx;
    }
 
-   // Recent lows
    for(int i=0;i<bars;i++)
    {
       int f=(i<Resistance_Lookback)?0:i-Resistance_Lookback+1;
@@ -547,102 +606,154 @@ void ProcessLastNCandles(string symbol, ENUM_TIMEFRAMES tf)
    CandleData buf[]; ArrayResize(buf,0);
    int done=0;
 
+   // ✅ STRICT 350 candles — fill OHLCV + all indicator fields
    for(int i=tgt; i>=0 && done<keepCandles; i--)
    {
       int ns=ArraySize(buf)+1; ArrayResize(buf,ns); int x=ns-1;
 
-      double bbRng  = bbU[i]-bbL[i];
-      double bbPos  = (bbRng==0)?0.5:(rates[i].close-bbL[i])/bbRng;
-      double bbWPct = (bbM[i]==0)?0.0:((bbU[i]-bbL[i])/bbM[i])*100.0;
-      double bbTS   = (bbU[i]==0)?1.0:rates[i].high/bbU[i];
-      double volR   = (volSMA[i]==0)?1.0:(double)rates[i].tick_volume/volSMA[i];
+      // ── OHLCV ────────────────────────────────────────────────────────────
+      buf[x].timestamp = rates[i].time;
+      buf[x].symbol    = symbol;
+      buf[x].open      = rates[i].open;
+      buf[x].high      = rates[i].high;
+      buf[x].low       = rates[i].low;
+      buf[x].close     = rates[i].close;
+      buf[x].volume    = rates[i].tick_volume;
 
-      double body  = MathAbs(rates[i].close-rates[i].open);
-      double uWick = rates[i].high-MathMax(rates[i].open,rates[i].close);
-      double rng   = rates[i].high-rates[i].low;
-      double candR = (body==0)?0.0:uWick/body;
-      double cbPct = (rates[i].close==0)?0.0:((rates[i].close-rates[i].open)/rates[i].close)*100.0;
-      double atrP  = (rates[i].close==0)?0.0:(atr[i]/rates[i].close)*100.0;
-      double trStr = (rates[i].close==0)?0.0:((smaS[i]-smaL2[i])/rates[i].close)*100.0;
+      // ── Bollinger Bands ───────────────────────────────────────────────────
+      buf[x].lower_band  = bbL[i];
+      buf[x].middle_band = bbM[i];
+      buf[x].upper_band  = bbU[i];
 
-      double pBPct=0.0,pVR=1.0,gPC=0.0,pMom=0.0;
-      if(i>0)
+      double bbRange = bbU[i] - bbL[i];
+      // BB position: 0=at lower band, 0.5=at midline, 1=at upper band
+      buf[x].bb_position  = (bbRange > 0) ? (rates[i].close - bbL[i]) / bbRange : 0.5;
+      // BB width pct: width relative to midline (volatility measure)
+      buf[x].bb_width_pct = (bbM[i]   > 0) ? (bbRange / bbM[i]) * 100.0        : 0.0;
+
+      // ── RSI ───────────────────────────────────────────────────────────────
+      buf[x].rsi_value = rsi[i];
+
+      // ── Volume ratio: current volume vs SMA ───────────────────────────────
+      buf[x].volume_ratio = (volSMA[i] > 0)
+                            ? (double)rates[i].tick_volume / volSMA[i]
+                            : 1.0;
+
+      // ── ATR pct: ATR normalised to close ──────────────────────────────────
+      buf[x].atr_pct = (rates[i].close > 0) ? atr[i] / rates[i].close * 100.0 : 0.0;
+
+      // ── Candle structure ──────────────────────────────────────────────────
+      double candleRange = rates[i].high - rates[i].low;
+      double body        = MathAbs(rates[i].close - rates[i].open);
+      double upperWick   = rates[i].high - MathMax(rates[i].open, rates[i].close);
+
+      buf[x].candle_body_pct = (candleRange > 0) ? body        / candleRange : 0.0;
+      // Short-side candle rejection: upper wick relative to body
+      buf[x].candle_rejection = (body > 0) ? upperWick / body : 0.0;
+
+      // ── Trend strength: SMA50 / SMA200 - 1 ───────────────────────────────
+      buf[x].trend_strength = (smaL2[i] > 0) ? (smaS[i] / smaL2[i]) - 1.0 : 0.0;
+
+      // ── Previous-candle features ──────────────────────────────────────────
+      if(i > 0)
       {
-         if(rates[i-1].close!=0) pBPct=((rates[i-1].close-rates[i-1].open)/rates[i-1].close)*100.0;
-         if(volSMA[i-1]!=0)      pVR=(double)rates[i-1].tick_volume/volSMA[i-1];
-         if(rates[i-1].close!=0) gPC=((rates[i].open-rates[i-1].close)/rates[i-1].close)*100.0;
-         if(rates[i-1].high!=0)  pMom=((rates[i].high-rates[i-1].high)/rates[i-1].high)*100.0;
+         double pRange = rates[i-1].high - rates[i-1].low;
+         double pBody  = MathAbs(rates[i-1].close - rates[i-1].open);
+         buf[x].prev_candle_body_pct = (pRange > 0) ? pBody / pRange : 0.0;
+         buf[x].prev_volume_ratio    = (volSMA[i-1] > 0)
+                                       ? (double)rates[i-1].tick_volume / volSMA[i-1]
+                                       : 1.0;
+         buf[x].gap_from_prev_close  = rates[i].open - rates[i-1].close;
+         buf[x].prev_was_rally       = (rates[i-1].close > rates[i-1].open) ? 1 : 0;
+         buf[x].prev_was_selloff     = (rates[i-1].close < rates[i-1].open) ? 1 : 0;
+      }
+      else
+      {
+         buf[x].prev_candle_body_pct = 0.0;
+         buf[x].prev_volume_ratio    = 1.0;
+         buf[x].gap_from_prev_close  = 0.0;
+         buf[x].prev_was_rally       = 0;
+         buf[x].prev_was_selloff     = 0;
       }
 
-      int prevWasRally   = (pBPct>0.3  && pVR>1.5)?1:0;
-      int prevWasSelloff = (pBPct<-0.3 && pVR>1.5)?1:0;
+      // ── Price momentum: 4-bar close-over-close % ─────────────────────────
+      buf[x].price_momentum = (i >= 4 && rates[i-4].close > 0)
+                              ? (rates[i].close - rates[i-4].close) / rates[i-4].close * 100.0
+                              : 0.0;
 
-      int tst=999; for(int j=i;j>=0;j--) if(rates[j].high>=bbU[j]){tst=i-j;break;}
-      double rDist=(rates[i].close!=0&&rHigh[i]!=0)?(rHigh[i]-rates[i].close)/rates[i].close:0.0;
-      double sDist=(rates[i].close!=0&&rLow[i]!=0) ?(rates[i].close-rLow[i])/rates[i].close :0.0;
+      // ── Upper-BB touch count (last Touch_Lookback bars) ───────────────────
+      buf[x].previous_touches = touchUp[i];
 
-      int session=3;
-      MqlDateTime dt; TimeToStruct(rates[i].time,dt);
-      if(dt.hour>=London_Start&&dt.hour<London_End) session=1;
-      else if(dt.hour>=NY_Start&&dt.hour<NY_End)    session=2;
+      // ── BB touch strength (short side): high / upper_band ────────────────
+      buf[x].bb_touch_strength = (bbU[i] > 0) ? rates[i].high / bbU[i] : 0.0;
 
-      int closeAbove = (bbU[i]>0 && rates[i].close>bbU[i])?1:0;
-      int highTouch  = (bbU[i]>0 && rates[i].high>=bbU[i])?1:0;
-      double uWickPct= (rng>0)?uWick/rng:0.0;
-      int bearish    = (rates[i].close<rates[i].open)?1:0;
-      int nearUBB    = (bbPos>=0.95)?1:0;
-      int noUWBR     = (nearUBB && bearish && uWickPct<=0.15)?1:0;
-      int failedBrk  = noUWBR;
+      // ── RSI divergence (short side, 5-bar): price↑ but RSI↓ = 1 ─────────
+      if(i >= 5 && rsi[i] > 0 && rsi[i-5] > 0)
+         buf[x].rsi_divergence = (rates[i].close > rates[i-5].close && rsi[i] < rsi[i-5]) ? 1 : 0;
+      else
+         buf[x].rsi_divergence = 0;
 
-      int bbEvType=0;
-      if(closeAbove)                  bbEvType=1;
-      else if(highTouch)              bbEvType=2;
-      else if(failedBrk || nearUBB)  bbEvType=3;
+      // ── Time since last upper-BB touch ────────────────────────────────────
+      {
+         int tsl = 0;
+         for(int k = i-1; k >= 0 && tsl < Touch_Lookback; k--)
+         {
+            if(rates[k].high >= bbU[k]) break;
+            tsl++;
+         }
+         buf[x].time_since_last_touch = tsl;
+      }
 
-      double ubbDist = (bbU[i]>0)?(rates[i].close-bbU[i])/bbU[i]:0.0;
+      // ── Resistance / Support distance % ──────────────────────────────────
+      buf[x].resistance_distance_pct = (rates[i].close > 0)
+                                       ? (rHigh[i] - rates[i].close) / rates[i].close * 100.0
+                                       : 0.0;
+      buf[x].support_distance_pct    = (rates[i].close > 0)
+                                       ? (rates[i].close - rLow[i])  / rates[i].close * 100.0
+                                       : 0.0;
 
-      buf[x].timestamp              = rates[i].time;
-      buf[x].symbol                 = symbol;
-      buf[x].open                   = rates[i].open;
-      buf[x].high                   = rates[i].high;
-      buf[x].low                    = rates[i].low;
-      buf[x].close                  = rates[i].close;
-      buf[x].volume                 = rates[i].tick_volume;
-      buf[x].lower_band             = bbL[i];
-      buf[x].middle_band            = bbM[i];
-      buf[x].upper_band             = bbU[i];
-      buf[x].bb_touch_strength      = bbTS;
-      buf[x].bb_position            = bbPos;
-      buf[x].bb_width_pct           = bbWPct;
-      buf[x].rsi_value              = rsi[i];
-      buf[x].rsi_divergence         = (i>=5 && rates[i].high>rates[i-5].high && rsi[i]<rsi[i-5])?1:0;
-      buf[x].volume_ratio           = volR;
-      buf[x].candle_rejection       = candR;
-      buf[x].candle_body_pct        = cbPct;
-      buf[x].atr_pct                = atrP;
-      buf[x].trend_strength         = trStr;
-      buf[x].prev_candle_body_pct   = pBPct;
-      buf[x].prev_volume_ratio      = pVR;
-      buf[x].gap_from_prev_close    = gPC;
-      buf[x].price_momentum         = pMom;
-      buf[x].prev_was_rally         = prevWasRally;
-      buf[x].previous_touches       = touchUp[i];
-      buf[x].time_since_last_touch  = tst;
-      buf[x].resistance_distance_pct= rDist;
-      buf[x].session                = session;
-      buf[x].support_distance_pct      = sDist;
-      buf[x].prev_was_selloff           = prevWasSelloff;
-      buf[x].close_above_ubb            = closeAbove;
-      buf[x].high_touch_ubb             = highTouch;
-      buf[x].no_upper_wick_bear_reject  = noUWBR;
-      buf[x].failed_break_ubb           = failedBrk;
-      buf[x].bb_event_type              = bbEvType;
-      buf[x].ubb_distance_close         = ubbDist;
+      // ── UBB event features ────────────────────────────────────────────────
+      buf[x].close_above_ubb = (rates[i].close > bbU[i]) ? 1 : 0;
+      buf[x].high_touch_ubb  = (rates[i].high >= bbU[i]) ? 1 : 0;
+      buf[x].failed_break_ubb = (rates[i].high >= bbU[i] && rates[i].close < bbU[i]) ? 1 : 0;
+      buf[x].no_upper_wick_bear_reject = (candleRange > 0
+                                          && upperWick / candleRange < 0.15
+                                          && rates[i].close >= rates[i].open) ? 1 : 0;
+
+      // bb_event_type: 0=normal, 1=touch only, 2=close above UBB, 3=failed break
+      if(buf[x].close_above_ubb)       buf[x].bb_event_type = 2;
+      else if(buf[x].failed_break_ubb) buf[x].bb_event_type = 3;
+      else if(buf[x].high_touch_ubb)   buf[x].bb_event_type = 1;
+      else                              buf[x].bb_event_type = 0;
+
+      // UBB distance: signed distance from close to upper band, in ATR units
+      buf[x].ubb_distance_close = (atr[i] > 0) ? (rates[i].close - bbU[i]) / atr[i] : 0.0;
+
+      // ── Session ───────────────────────────────────────────────────────────
+      {
+         MqlDateTime dt;
+         TimeToStruct(rates[i].time, dt);
+         int hour      = dt.hour;
+         bool inLondon = (hour >= London_Start && hour < London_End);
+         bool inNY     = (hour >= NY_Start     && hour < NY_End);
+         if(inLondon && inNY)  buf[x].session = 3;   // London/NY overlap
+         else if(inLondon)     buf[x].session = 1;   // London only
+         else if(inNY)         buf[x].session = 2;   // NY only
+         else                  buf[x].session = 0;   // Off-session
+      }
 
       done++;
    }
 
-   if(done > 0) UpdateCacheWithLatestCandles(symbol, tf, buf);
+   // 🚨 HARD REQUIREMENT
+   if(done < keepCandles)
+   {
+      Print("ERROR: Only ", done, "/", keepCandles,
+            " candles for ", symbol, " ", EnumToString(tf));
+      return;
+   }
+
+   UpdateCacheWithLatestCandles(symbol, tf, buf);
 }
 
 //+------------------------------------------------------------------+
@@ -754,7 +865,7 @@ int OnInit()
 {
    Print("MarketDataExporter v6.6");
    keepCandles = KeepLastNCandles;
-   if(keepCandles < 1 || keepCandles > 1000) { keepCandles = 3; Print("Invalid KeepLastNCandles, using 3"); }
+   if(keepCandles < 1 || keepCandles > 5000) { keepCandles = 350; Print("Invalid KeepLastNCandles, using 350"); }
 
    PrepareSymbolList();
    PrepareTimeframeList();

@@ -36,6 +36,8 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 
+from utils.cycle_digest import write_cycle_digest
+
 from config import feature_config
 from ingestion import CSVReader, DataValidator
 from features import feature_engineer
@@ -80,6 +82,14 @@ class PipelineRunner:
         from engine.execution_engine import ExecutionEngine
         from engine.registry import model_registry
         self._execution_engine = ExecutionEngine(registry=model_registry)
+
+        # Pre-create cycle_digest.log so Get-Content -Wait works immediately
+        # on startup, before the first H1 cycle has fired and written to it.
+        try:
+            from utils.cycle_digest import ensure_digest_log_exists
+            ensure_digest_log_exists()
+        except Exception:
+            pass
 
     def run(self, file_path: Path, timeframe: Timeframe) -> PipelineResult:
         start_time = datetime.now()
@@ -174,6 +184,12 @@ class PipelineRunner:
             # ── Stage 5: MODELS ───────────────────────────────────────────────
             result_set = self._stage_models(df, timeframe)
             result.models_run = result_set.total_models if result_set else 0
+
+            # ── Cycle digest (non-critical — never blocks the pipeline) ───────
+            try:
+                self._write_cycle_digest(timeframe, result_set, start_time)
+            except Exception as _digest_err:
+                logger.debug(f"Cycle digest skipped: {_digest_err}")
 
             if result_set and result_set.failed_models > 0:
                 # At least one model actually crashed or timed out
@@ -638,6 +654,41 @@ class PipelineRunner:
                     logger.warning(f"Execute: db log (failed) error: {e}")
 
         return executed
+
+
+    def _write_cycle_digest(
+        self,
+        timeframe,
+        result_set,
+        start_time: datetime,
+    ) -> None:
+        """
+        Write a clean per-cycle summary to logs/cycle_digest.log.
+
+        Reads _last_cycle_results from the cached Long and Short predictor
+        instances to get per-symbol gate outcomes, then delegates formatting
+        to write_cycle_digest(). Completely non-critical — any exception here
+        is caught by the caller and logged at DEBUG level only.
+        """
+        pred_cache = self._execution_engine._predictor_cache
+        long_pred  = pred_cache.get('Pull Back Entry Long')
+        short_pred = pred_cache.get('Pull Back Entry Short')
+
+        # Only write if at least one predictor ran this cycle
+        if long_pred is None and short_pred is None:
+            return
+
+        signals = result_set.get_all_predictions() if result_set else []
+        elapsed = result_set.duration_seconds      if result_set else 0.0
+
+        write_cycle_digest(
+            cycle_time = start_time,
+            timeframe  = timeframe.value if hasattr(timeframe, 'value') else str(timeframe),
+            long_pred  = long_pred,
+            short_pred = short_pred,
+            signals    = signals,
+            elapsed    = elapsed,
+        )
 
 
 pipeline_runner = PipelineRunner()

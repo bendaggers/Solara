@@ -6,8 +6,8 @@ Runs the H1 entry model (entry_H1.joblib) for the Pull Back strategy.
 
 Entry conditions (all must pass per symbol):
   1. Trend alignment:  ≥ 2/3 of (W1, D1, H4) trend models agree on direction
-  2. Pullback exhaust: H4 pullback model class-2 prob ≥ 0.65
-  3. Entry signal:     H1 entry model prob ≥ 0.80
+  2. Pullback exhaust: H4 pullback model class-2 prob ≥ 0.55  (was 0.65, lowered 2026-04-15)
+  3. Entry signal:     H1 entry model prob ≥ 0.65  (was 0.80, set via registry confidence_tiers)
 
 One predictor class handles both LONG and SHORT via config.model_type.
 Direction comes from the consensus trend (_pb_direction from the FE).
@@ -37,8 +37,8 @@ from .base_predictor import BasePredictor, PredictionSignal
 logger = logging.getLogger(__name__)
 
 # Confidence gates used by the FE (replicated here for clarity / pre-filter log)
-_PB_EXHAUST_THRESHOLD = 0.65
-_ENTRY_THRESHOLD      = 0.80   # default; overridden by pkg['threshold'] at load
+_PB_EXHAUST_THRESHOLD = 0.55   # was 0.65 — lowered 2026-04-15 for better frequency
+_ENTRY_THRESHOLD      = 0.80   # default; overridden by pkg['threshold'] at load and by registry
 
 # Features the entry model expects (must match ENTRY_FEATURES in pull_back_features.py)
 ENTRY_FEATURES = [
@@ -67,12 +67,20 @@ class PullBackEntryPredictor(BasePredictor):
       1. _pb_trend_aligned == True (FE computed ≥ 2/3 trend alignment)
       2. _pb_direction matches this instance's model_type
          (LONG → 'uptrend', SHORT → 'downtrend')
-      3. _pb_exhaust_prob >= _PB_EXHAUST_THRESHOLD (0.65)
-      4. entry_prob (from XGBoost) >= threshold (0.80)
+      3. _pb_exhaust_prob >= _PB_EXHAUST_THRESHOLD (0.55, was 0.65)
+      4. entry_prob (from XGBoost) >= live threshold (0.65 via registry, was 0.80)
+
+    After each predict() call, self._last_cycle_results holds a dict keyed by
+    symbol with per-pair outcome: gate reached, direction, exhaust/entry prob.
+    This is read by cycle_digest.py to write logs/cycle_digest.log.
     """
 
     _entry_threshold : float = _ENTRY_THRESHOLD
     _feature_cols    : List[str] = []
+
+    # Populated after each predict() call — read by CycleDigestWriter
+    # (instance variable — set in predict() to avoid class-level sharing)
+    _last_cycle_results: Dict = {}
 
     # ─────────────────────────────────────────────────────────────────────────
     # BasePredictor interface
@@ -92,7 +100,13 @@ class PullBackEntryPredictor(BasePredictor):
         return pkg['model']
 
     def get_required_features(self) -> List[str]:
-        return self._feature_cols if self._feature_cols else ENTRY_FEATURES
+        # 37 model features + gate columns the predictor reads for gating logic
+        base = self._feature_cols if self._feature_cols else ENTRY_FEATURES
+        gate_cols = [
+            '_pb_trend_aligned', '_pb_direction',
+            '_pb_exhaust_prob', '_pb_h4_label', 'close',
+        ]
+        return base + [c for c in gate_cols if c not in base]
 
     def predict(self, df_features: pd.DataFrame, config) -> List[Dict]:
         if not self.model_loaded or self.model is None:
@@ -101,6 +115,9 @@ class PullBackEntryPredictor(BasePredictor):
 
         if df_features is None or len(df_features) == 0:
             return []
+
+        # Reset per-cycle results (creates instance var, shadows class default)
+        self._last_cycle_results = {}
 
         _mt = getattr(config, 'model_type', 'LONG')
         model_type = _mt.value.upper() if hasattr(_mt, 'value') else str(_mt).upper()
@@ -121,38 +138,73 @@ class PullBackEntryPredictor(BasePredictor):
     def _predict_row(self, row, config, required_direction: str, model_type: str):
         sym = row.get('symbol', 'UNKNOWN')
 
+        # ── Base digest info (collected regardless of outcome) ─────────────
+        _digest = {
+            'aligned':      bool(row.get('_pb_trend_aligned', False)),
+            'direction':    str(row.get('_pb_direction', 'sideways')),
+            'exhaust_prob': float(row.get('_pb_exhaust_prob', 0.0)),
+            'entry_prob':   0.0,
+            'gate':         99,
+        }
+
         # ── Gate 1: trend alignment ────────────────────────────────────────
         if not row.get('_pb_trend_aligned', False):
+            _digest['gate'] = 1
+            self._last_cycle_results[sym] = _digest
             logger.debug(f"[PullBackEntry] {sym}: trend not aligned — skip")
             return None
 
         # ── Gate 2: direction match ────────────────────────────────────────
         pb_dir = row.get('_pb_direction', 'sideways')
         if pb_dir != required_direction:
+            _digest['gate'] = 2
+            self._last_cycle_results[sym] = _digest
             logger.debug(f"[PullBackEntry] {sym}: direction {pb_dir} ≠ {required_direction} — skip")
             return None
 
         # ── Gate 3: pullback exhaustion probability ────────────────────────
         exhaust_prob = float(row.get('_pb_exhaust_prob', 0.0))
         if exhaust_prob < _PB_EXHAUST_THRESHOLD:
+            _digest['gate'] = 3
+            self._last_cycle_results[sym] = _digest
             logger.debug(f"[PullBackEntry] {sym}: exhaust_prob={exhaust_prob:.3f} < {_PB_EXHAUST_THRESHOLD} — skip")
             return None
 
         # ── Gate 4: entry model ────────────────────────────────────────────
+        # Live threshold driven by registry confidence_tiers (lowest tier = gate).
+        # Falls back to joblib threshold (_entry_threshold) if config has no tiers.
+        live_entry_threshold = self._entry_threshold
+        if hasattr(config, 'get_min_confidence'):
+            live_entry_threshold = config.get_min_confidence()
+        elif hasattr(config, 'min_confidence'):
+            live_entry_threshold = float(config.min_confidence)
+
         feature_cols = self._feature_cols if self._feature_cols else ENTRY_FEATURES
         X = self._build_feature_row(row, feature_cols)
         if X is None:
+            _digest['gate'] = 99  # feature build error
+            self._last_cycle_results[sym] = _digest
             return None
 
         try:
             entry_prob = float(self.model.predict_proba(X)[0, 1])
         except Exception as exc:
+            _digest['gate'] = 99  # model error
+            self._last_cycle_results[sym] = _digest
             logger.error(f"[PullBackEntry] {sym}: predict_proba failed: {exc}")
             return None
 
-        if entry_prob < self._entry_threshold:
-            logger.debug(f"[PullBackEntry] {sym}: entry_prob={entry_prob:.3f} < {self._entry_threshold} — skip")
+        _digest['entry_prob'] = entry_prob
+
+        if entry_prob < live_entry_threshold:
+            _digest['gate'] = 4
+            self._last_cycle_results[sym] = _digest
+            logger.debug(f"[PullBackEntry] {sym}: entry_prob={entry_prob:.3f} < {live_entry_threshold:.2f} — skip")
             return None
+
+        # ── All gates passed → signal ──────────────────────────────────────
+        _digest['gate'] = 0
+        self._last_cycle_results[sym] = _digest
 
         # ── Build signal ───────────────────────────────────────────────────
         entry_price = float(row.get('close', 0.0))

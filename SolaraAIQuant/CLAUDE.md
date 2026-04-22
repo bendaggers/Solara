@@ -98,9 +98,9 @@ SolaraAIQuant/
 
 | Model | Magic | Trigger | Status | Notes |
 |-------|-------|---------|--------|-------|
-| TI V2 Long | 400401 | H4 | ✅ enabled | H4 trend classifier — fires every 4 hours |
-| TI V2 Short | 400402 | H4 | ✅ enabled | H4 trend classifier — fires every 4 hours |
-| Pull Back Entry Long | 500301 | H1 | ✅ enabled | 3-stage pullback entry — fires every hour |
+| TI V2 Long | 400401 | H4 | ❌ disabled | Trend identifier only — not an entry model. Disabled intentionally. |
+| TI V2 Short | 400402 | H4 | ❌ disabled | Trend identifier only — not an entry model. Disabled intentionally. |
+| Pull Back Entry Long | 500301 | H1 | ✅ enabled | 3-stage pullback entry — fires every hour. Pipeline confirmed working. |
 | Pull Back Entry Short | 500302 | H1 | ❌ disabled | Enable after Pull Back Long validation |
 | Punk Hazard Long | 200401 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
 | Punk Hazard Short | 200402 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
@@ -132,26 +132,24 @@ All active models have `feature_engineering_class` set. This causes Stage 4 (glo
 ### PunkHazardFeatureEngineer does not inherit BaseFeatureEngineer
 It implements `transform()` not `compute()`. The execution engine calls `safe_compute()` which calls `compute()`. `PunkHazardFeatureEngineer` must implement `compute()` to be compatible — this is a **latent bug**. Fix before enabling Punk Hazard.
 
-### TI V2 and Pull Back share the same external path
-Both `features/trend_id_v2_features.py` and `features/pull_back_features.py` import from:
-```
-C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Trend Identifier
-```
-Neither model can run without this path. **On VPS deployment, update both files.**
+### forex_trend_model package is bundled in vendor/
+All feature engineers and `trend_identifier_v2.py` load `forex_trend_model` from `vendor/forex_trend_model/` inside the SAQ folder. There are no external path dependencies. SAQ is fully self-contained — copy the entire folder and it runs anywhere.
 
-### Pull Back trend models have a separate hard-coded path
-`features/pull_back_features.py` also loads trend models from:
-```
-C:\Users\Ben Michael Oracion\Documents\Solara\Model Training\Pull Back Strategy\models\
-```
-Files needed: `Trend_Identifier_H4.joblib`, `Trend_Identifier_D1.joblib`, `Trend_Identifier_W1.joblib`.
-**On VPS deployment, copy these files and update `_PB_STRATEGY_ROOT` in `pull_back_features.py`.**
+`sys.path.insert(0, str(SAQ_ROOT / 'vendor'))` is added at module import time in all FE files, and also inside `TrendIdentifierV2Predictor.load_model()` (to guard the parallel-thread case where the predictor loads before any FE module is imported).
 
-### TI V2 predictor must add sys.path before loading the model file
-`predictors/trend_identifier_v2.py` adds the Trend Identifier path to `sys.path` inside `load_model()` before calling `joblib.load()`. This is intentional. The model `.joblib` file contains serialized `forex_trend_model` objects — if the path isn't set before deserialization, you get `ModuleNotFoundError: No module named 'forex_trend_model'`.
+### Trend identifier joblib files are bundled in Models/trend_identifier/
+- `Models/trend_identifier/long/` — H4/D1/W1 models for Pull Back Long
+- `Models/trend_identifier/short/` — H4/D1/W1 models for Pull Back Short, Reversal Long, Reversal Short
+
+These are the `Trend_Identifier_H4.joblib`, `Trend_Identifier_D1.joblib`, `Trend_Identifier_W1.joblib` files exported from the model training project.
 
 ### CatBoost sklearn compatibility fix in ensemble.py
-`forex_trend_model/models/ensemble.py` — `CatBoostTrendModel.predict_proba()` has a fallback to CatBoost's native `predict(prediction_type='Probability')` API. This handles a CatBoost + sklearn version mismatch where `super().get_params()` raises `AttributeError` after several prediction cycles. Do not remove this fallback.
+`vendor/forex_trend_model/models/ensemble.py` — `CatBoostTrendModel.predict_proba()` has a fallback to CatBoost's native `predict(prediction_type='Probability')` API. This handles a CatBoost + sklearn version mismatch where `super().get_params()` raises `AttributeError` after several prediction cycles. Do not remove this fallback.
+
+### LightGBM TypeError after joblib.load() — fixed in ensemble.py
+`LightGBMTrendModel.predict_proba()` catches **both** `AttributeError` and `TypeError`. After `joblib.load()`, LightGBM's internal predict function pointer can be `None`, which raises `TypeError: 'NoneType' object is not callable` (not just AttributeError). The fallback uses `model.booster_.predict()` directly, which survives deserialization correctly. A shape guard ensures single-row input is reshaped to `(1, n_classes)`. Do not revert this to catching `AttributeError` only.
+
+File to patch when updating the package: `vendor/forex_trend_model/models/ensemble.py` (re-apply after copying a fresh version of the package).
 
 ### TrendIDV2FeatureEngineer does not inherit BaseFeatureEngineer
 `features/trend_id_v2_features.py` has a manually added `safe_compute()` method (wraps `compute()`). The execution engine always calls `safe_compute()`. If you remove this method, TI V2 will crash every cycle with `AttributeError: 'TrendIDV2FeatureEngineer' object has no attribute 'safe_compute'`.
@@ -183,19 +181,34 @@ The production EA CSV does not export long-side BB features (`bb_touch_strength_
 ### model_type in predictors must use .value
 `config.model_type` from the registry is a `ModelType` enum, not a plain string. Any predictor accessing it must call `.value` before string operations: `config.model_type.value.upper()` not `config.model_type.upper()`.
 
+### Gate columns must be declared in BOTH get_output_features() AND get_required_features()
+`execution_engine.py` Step 3b trims the DataFrame to exactly `(symbol, timestamp) + predictor.get_required_features()` before calling `predict()`. Any column the predictor needs for gating logic (e.g. `_pb_trend_aligned`, `_pb_direction`, `_pb_exhaust_prob`, `_pb_h4_label`, `close`) must appear in **both**:
+- `PullBackFeatureEngineer.get_output_features()` — so `safe_compute()` validation passes
+- `PullBackEntryPredictor.get_required_features()` — so Step 3b does not strip them
+
+If a gate column is missing from either list, it is silently stripped and the gate always fails (e.g. `_pb_trend_aligned` missing → defaults to `False` → all pairs fail Gate 1).
+
+### Pull Back multi-timeframe architecture
+The Pull Back pipeline uses W1, D1, and H4 trend models — but their scope is limited:
+- **Gate 1 (trend alignment)**: all 3 TFs (H4 + D1 + W1) must have ≥ 2/3 agreement
+- **Pullback model features**: H4 trend context only (`trend_dir_encoded`, `trend_prob_up`, `trend_prob_down`)
+- **Entry model features**: H4 trend context only (`h4_trend_dir`, `h4_trend_prob_up`, `h4_trend_prob_down`)
+
+D1 and W1 act only as a pre-filter gate. The trained models themselves are blind to D1/W1 probabilities.
+
 ---
 
 ## VPS Deployment Checklist
 
 Before deploying to a Windows VPS for paper trading:
 
-- [ ] Copy entire `SolaraAIQuant/` directory to VPS
-- [ ] Copy `Models/` directory (`.joblib` files)
-- [ ] Copy Pull Back trend model files to the same path or update `_PB_STRATEGY_ROOT` in `pull_back_features.py`
-- [ ] Copy or clone the `Trend Identifier` package to VPS; update `_TI_ROOT` in both `trend_id_v2_features.py` and `pull_back_features.py`; update the path in `trend_identifier_v2.py` `load_model()`
+- [ ] Copy entire `SolaraAIQuant/` directory to VPS — `vendor/` and `Models/trend_identifier/` are included, no separate steps needed
+- [ ] Verify `vendor/forex_trend_model/` exists and `Models/trend_identifier/long/` and `Models/trend_identifier/short/` contain the 3 joblib files each
+- [ ] Verify `vendor/forex_trend_model/models/ensemble.py` has the LightGBM `TypeError` fix (catches both `AttributeError` and `TypeError` in `LightGBMTrendModel.predict_proba`)
 - [ ] Install dependencies: `pip install -r requirements.txt`
 - [ ] Install MT5 on VPS and configure broker connection in `.env`
 - [ ] Configure EA to export CSVs to the correct `MQL5/Files/` path; update `MQL5_FILES_DIR` in `.env` if needed
+- [ ] Verify EA `KeepLastNCandles = 350` in `MarketDataExporter.mq5` (H4 trend model needs ≥ 260 bars warmup; 350 provides safe buffer)
 - [ ] Run `python main.py --status` to verify all models load and paths resolve
 - [ ] Run `python reset_model_health.py` to clear any stale auto-disable records from dev machine
 
@@ -238,6 +251,76 @@ See `requirements.txt`. Key packages:
 - `colorama` — terminal colors
 - `python-dotenv` — env var loading
 - `pydantic` — used in `engine/model_registry.py`
+
+---
+
+## MT5 Expert Advisor — MarketDataExporter
+
+**File:** `MQL5/Production/MarketDataExporter.mq5` (v6.6+)
+
+The EA writes one CSV per enabled timeframe to `MQL5/Files/`. Each CSV contains OHLCV + all pre-computed indicators for every symbol.
+
+### Key parameters
+
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| `KeepLastNCandles` | **350** | H4 trend model needs ≥ 260 bars warmup; 350 = safe buffer. Never set below 300. |
+| `WaitSecondsAfterCandleClose` | 5 | Seconds to wait after bar close before processing |
+| `TF_H4` / `TF_H1` / `TF_D1` / `TF_W1` | true/false | Enable timeframes consumed by SAQ |
+
+### Indicator fields exported per bar
+The EA computes and exports all 28 indicator columns for every bar — not just OHLCV:
+`lower_band`, `middle_band`, `upper_band`, `bb_position`, `bb_width_pct`, `rsi_value`, `volume_ratio`, `atr_pct`, `candle_body_pct`, `candle_rejection`, `trend_strength`, `prev_candle_body_pct`, `prev_volume_ratio`, `gap_from_prev_close`, `prev_was_rally`, `prev_was_selloff`, `price_momentum`, `previous_touches`, `bb_touch_strength`, `rsi_divergence`, `time_since_last_touch`, `resistance_distance_pct`, `support_distance_pct`, `close_above_ubb`, `high_touch_ubb`, `failed_break_ubb`, `no_upper_wick_bear_reject`, `bb_event_type`, `ubb_distance_close`, `session`.
+
+### Known historical bugs (fixed)
+1. **`KeepLastNCandles = 3` default** — EA only wrote 3 bars per symbol (84 rows total for 28 symbols). Trend model needs 260+ bars → all symbols returned "insufficient H4 bars". Fixed: default changed to 350.
+2. **`tgt` search direction bug** — `CopyRates` returns `rates[0]` = oldest bar. The tgt-search loop ran `for(i=0; i<bars; i++)` which immediately matched `rates[0]` (oldest bar ≤ lcs is always true), giving `tgt=0`. The export loop then ran only once → `done=1` → "ERROR: Only 1/350". Fixed: search now runs `for(i=bars-1; i>=0; i--)` to find the most recent closed bar.
+3. **Indicator fields all zeros** — The export loop only copied OHLCV into `buf[x]`; all 28 indicator fields were left at `0.0`. Fixed: all indicator fields are now computed and written per bar inside the export loop.
+
+### After modifying the EA
+1. Recompile in MetaEditor (F7)
+2. Remove EA from chart and re-attach (clears stale global variable state)
+3. Expected first-run log: `H4 export complete — candle: ... (28/28 symbols)` and `CSV written: marketdata_PERIOD_H4.csv — 9800 candles`
+
+---
+
+## Parked Feature — Market Overview Dashboard
+
+**Status:** Planned, not started. Resume when Pull Back is validated live.
+
+### Goal
+A live grid of all 28 pairs showing trend state and model scores per cycle — so you can see what every pair scored on every model, not just the ones that fired.
+
+### What needs to be built (5 phases)
+
+**Phase 1 — Two new DB tables (`state/models.py`)**
+- `prediction_log` — one row per symbol × model × cycle:
+  `symbol | model_name | bar_time | confidence | direction | gate_reached | signal_fired | features_json`
+  - `gate_reached` = 0–99 (which gate it got to before failing; 99 = all passed)
+- `pair_trend_state` — latest trend snapshot per symbol × TF (upsert, not append):
+  `symbol | timeframe | trend_dir | prob_up | prob_down | updated_at`
+
+**Phase 2 — Write `pair_trend_state` from FEs**
+- `PullBackFeatureEngineer.compute()` after trend models run → write H4/D1/W1 for all 28 pairs
+- `ReversalShortFeatureEngineer` + `ReversalLongFeatureEngineer` → same upsert
+
+**Phase 3 — Write `prediction_log` from execution engine**
+- After each model run in `execution_engine.py`, write rows for ALL symbols (even filtered ones)
+- Feature DataFrames already contain all probabilities — just persist them
+
+**Phase 4 — New API endpoint in `dashboard/trade_server.py`**
+- `GET /api/market-overview` → latest `pair_trend_state` + most recent `prediction_log` per model
+- `GET /api/prediction-history?symbol=EURUSD&model=Pull+Back+Entry+Long` → time series
+
+**Phase 5 — New "Market Overview" tab in dashboard HTML**
+- 28 rows (pairs) × columns (H4/D1/W1 trend + one column per enabled model)
+- Color coded: green = uptrend, red = downtrend, grey = sideways
+- Each model cell shows: latest confidence score + gate reached (e.g. "0.43 G2")
+- Bold + bell icon = signal fired this cycle
+- Click cell → history chart popup
+
+### Key design decision (settled)
+`pair_trend_state` should be written by **whichever FE runs that cycle** (upsert pattern). Pull Back covers all 28 pairs × 3 TFs. Reversal FEs also update it. Latest writer wins.
 
 ---
 
