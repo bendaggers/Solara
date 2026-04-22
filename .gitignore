@@ -29,6 +29,7 @@ credentials.py
 *.db-shm
 .env*
 *.db*
+*.pyc
 
 # Large Files (Training Datas)
 Model Training/
