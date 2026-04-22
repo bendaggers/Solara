@@ -4,12 +4,14 @@ Trading Bot/logs/
 .env
 
 
+
 # OS
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
+*.db-shm
 ehthumbs.db
 Thumbs.db
 
@@ -24,7 +26,10 @@ state/solara_aq.db-wal
 # Project specific
 credentials.py
 *.env
+*.db-shm
 .env*
+*.db*
 
 # Large Files (Training Datas)
 Model Training/
+state/
