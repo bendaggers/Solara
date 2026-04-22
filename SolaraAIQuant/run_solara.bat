@@ -1,12 +1,15 @@
 @echo off
-:: Solara AI Quant — Double-click launcher
-:: Calls run_solara.ps1 via PowerShell, bypassing the default execution policy
-:: that blocks .ps1 files from running when double-clicked.
-::
-:: To pass args:  run_solara.bat --production
-::                run_solara.bat --production --dry-run
-::                run_solara.bat --status
+title Solara AI Quant
+cd /d "%~dp0"
 
-pushd "%~dp0"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0run_solara.ps1" %*
-popd
+
+:: Fallback pause — catches the rare case where PowerShell itself fails to start.
+:: Normally Pause-And-Exit inside the .ps1 handles keeping the window open.
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo [ERROR] PowerShell failed to launch the script.
+    echo         Error code: %ERRORLEVEL%
+    echo.
+    pause
+)
