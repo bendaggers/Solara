@@ -58,7 +58,10 @@
       "Bash(powershell -Command \"Select-String '_TI_ROOT|_PB_STRATEGY_ROOT|Trend Identifier|Model Training|not available|skipping' features\\\\pull_back_features.py | Select-Object -First 20\")",
       "Bash(powershell -Command \"Get-Content 'C:\\\\Users\\\\Ben Michael Oracion\\\\AppData\\\\Roaming\\\\MetaQuotes\\\\Terminal\\\\D0E8209F77C8CF37AD8BF550E51FF075\\\\MQL5\\\\Files\\\\saq.log' -Encoding UTF8 | Select-String 'user|Default|Files|MQL5_FILES|WATCH|TI_ROOT|PB_STRATEGY|watch.*dir' | Select-Object -First 30\")",
       "Bash(powershell -Command \"Select-String 'TI_ROOT|PB_STRATEGY_ROOT|Trend Identifier|Ben Michael' features\\\\pull_back_short_features.py | Select-Object -First 15\")",
-      "Bash(powershell -Command \"Get-Content .env -ErrorAction SilentlyContinue\")"
+      "Bash(powershell -Command \"Get-Content .env -ErrorAction SilentlyContinue\")",
+      "Bash(pip freeze *)",
+      "Bash(sqlite3 /d/Solara/SolaraAIQuant/state/solara_aq.db \"SELECT name, magic, is_healthy, consecutive_failures, last_status FROM model_health WHERE name LIKE '%Reversal%';\")",
+      "Bash(python3 -c ' *)"
     ]
   }
 }
