@@ -21,7 +21,7 @@ typing_extensions==4.15.0      # required by pydantic + sqlalchemy
 typing-inspection==0.4.2       # required by pydantic
 
 # ── MT5 (Windows only) ────────────────────────────────────────────────────────
-MetaTrader5==5.0.4200          # omit or comment out on Linux VPS
+MetaTrader5==5.0.5735          # omit or comment out on Linux VPS
 
 # ── Data Processing ───────────────────────────────────────────────────────────
 pandas==2.2.1

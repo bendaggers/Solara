@@ -35,21 +35,53 @@ Write-Host "  $PSScriptRoot" -ForegroundColor DarkGray
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. Check Python is installed
-$PyExe = Get-Command python -ErrorAction SilentlyContinue
-if (-not $PyExe) {
-    Write-Host "[ERROR] Python not found in PATH." -ForegroundColor Red
-    Write-Host "        Install Python 3.11.7 from python.org and ensure" -ForegroundColor Red
-    Write-Host "        'Add Python to PATH' is checked during install." -ForegroundColor Red
-    Pause-And-Exit 1
+# 1. Find Python 3.11 - required for ML package compatibility
+# Try py launcher first (Windows Python Launcher lets you pick version)
+$PythonExe = $null
+$PyLauncher = Get-Command py -ErrorAction SilentlyContinue
+if ($PyLauncher) {
+    $py311 = & py -3.11 --version 2>&1
+    if ($LASTEXITCODE -eq 0) {
+        $PythonExe = "py"
+        $PythonArgs = @("-3.11")
+        Write-Host "[INFO]  Python: $py311 (via py -3.11)" -ForegroundColor DarkGray
+    }
 }
-$PyVersion = & python --version 2>&1
-Write-Host "[INFO]  Python: $PyVersion" -ForegroundColor DarkGray
+
+# Fall back to checking the default 'python' command
+if (-not $PythonExe) {
+    $PyExe = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $PyExe) {
+        Write-Host "[ERROR] Python not found in PATH." -ForegroundColor Red
+        Write-Host "        Install Python 3.11.7 from python.org and tick 'Add to PATH'." -ForegroundColor Red
+        Pause-And-Exit 1
+    }
+    $PyVersion = & python --version 2>&1
+    $PythonExe = "python"
+    $PythonArgs = @()
+    Write-Host "[INFO]  Python: $PyVersion" -ForegroundColor DarkGray
+
+    # Warn if not 3.11 - ML packages (catboost, lightgbm) may fail on other versions
+    if ($PyVersion -notmatch "3\.11") {
+        Write-Host ""
+        Write-Host "[WARN]  Python 3.11 is required. You have: $PyVersion" -ForegroundColor Yellow
+        Write-Host "        Download Python 3.11.7 from:" -ForegroundColor Yellow
+        Write-Host "        https://www.python.org/downloads/release/python-3117/" -ForegroundColor Yellow
+        Write-Host "        After install, re-run this script." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "        Continue anyway? (y to proceed, any other key to exit)" -ForegroundColor Yellow
+        $key = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+        if ($key.Character -ne 'y') {
+            Pause-And-Exit 1
+        }
+        Write-Host ""
+    }
+}
 
 # 2. Create .venv if it does not exist
 if (-not (Test-Path $VenvPython)) {
     Write-Host "[SETUP] .venv not found - creating virtual environment..." -ForegroundColor Yellow
-    & python -m venv "$VenvDir"
+    & $PythonExe @PythonArgs -m venv "$VenvDir"
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $VenvPython)) {
         Write-Host "[ERROR] Failed to create .venv." -ForegroundColor Red
         Pause-And-Exit 1
