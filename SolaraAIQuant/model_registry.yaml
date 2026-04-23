@@ -546,23 +546,23 @@ models:
 
     # ── Pull Back pipeline thresholds ───────────────────────────────────────
     # Gate 3: H4 pullback exhaustion prob (was 0.65, lowered 2026-04-15)
-    pb_exhaust_threshold: 0.55
+    pb_exhaust_threshold: 0.60
 
     # ── Confidence tiers (entry_prob from XGBoost) ──────────────────────────
     # Gate 4: entry model — lowest tier drives the live threshold (was 0.80, lowered 2026-04-15)
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
-        fixed_lot: 0.02
+        fixed_lot: 0.01
       - min_confidence: 0.85
         max_confidence: 0.899
-        fixed_lot: 0.03
+        fixed_lot: 0.01
       - min_confidence: 0.90
         max_confidence: 0.949
-        fixed_lot: 0.1
+        fixed_lot: 0.02
       - min_confidence: 0.95
         max_confidence: 1.000
-        fixed_lot: 0.15
+        fixed_lot: 0.03
 
     weight: 1.0
     priority: 7
@@ -629,22 +629,22 @@ models:
     feature_engineering_class: "features.pull_back_short_features.PullBackShortFeatureEngineer"
 
     # ── Pull Back pipeline thresholds ───────────────────────────────────────
-    pb_exhaust_threshold: 0.55
+    pb_exhaust_threshold: 0.60
 
     # Gate 4: entry model — lowest tier drives the live threshold (was 0.80, lowered 2026-04-15)
     confidence_tiers:
       - min_confidence: 0.65
         max_confidence: 0.849
-        fixed_lot: 0.02
+        fixed_lot: 0.01
       - min_confidence: 0.85
         max_confidence: 0.899
-        fixed_lot: 0.05
+        fixed_lot: 0.01
       - min_confidence: 0.90
         max_confidence: 0.949
-        fixed_lot: 0.1
+        fixed_lot: 0.02
       - min_confidence: 0.95
         max_confidence: 1.000
-        fixed_lot: 0.15
+        fixed_lot: 0.03
 
     weight: 1.0
     priority: 8
@@ -792,6 +792,8 @@ models:
       - USDCAD
       - USDCHF
       - USDJPY
+      - XAUUSD
+      - XAGUSD
 
 
 
