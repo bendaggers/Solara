@@ -569,7 +569,7 @@ models:
     timeout: 90          # trend models take longer than single-model inference
     magic: 500301
     comment: "PB_Long"
-    max_positions: 999
+    max_positions: 10
 
     tp_pips: 30
     sl_pips: 20
@@ -651,7 +651,7 @@ models:
     timeout: 90
     magic: 500302
     comment: "PB_Short"
-    max_positions: 999
+    max_positions: 10
 
     tp_pips: 30
     sl_pips: 20
@@ -756,7 +756,7 @@ models:
     timeout: 90       # trend models take ~10s per symbol; 28 symbols ~40s total
     magic: 600401
     comment: "Rev_Short_H4"
-    max_positions: 999
+    max_positions: 10
 
     # TP/SL from walk-forward training (3:1 R:R)
     tp_pips: 60
@@ -861,7 +861,7 @@ models:
     timeout: 90
     magic: 600402
     comment: "Rev_Long_H4"
-    max_positions: 999
+    max_positions: 10
 
     tp_pips: 60
     sl_pips: 20
