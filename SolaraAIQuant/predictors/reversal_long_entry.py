@@ -65,6 +65,10 @@ class ReversalLongEntryPredictor(BasePredictor):
     _rev_threshold: float    = _DEFAULT_THRESHOLD
     _feature_cols:  List[str] = []
 
+    # Populated after each predict() call — read by cycle_digest.py
+    # gate=0 → signal, gate=1 → no break, gate=2 → below threshold, gate=99 → error
+    _last_cycle_results: Dict = {}
+
     def load_model(self, model_path: Path):
         pkg = joblib.load(model_path)
         self._feature_cols  = pkg.get('feature_cols', REVERSAL_LONG_FEATURES)
@@ -91,6 +95,9 @@ class ReversalLongEntryPredictor(BasePredictor):
             return []
         if df_features is None or len(df_features) == 0:
             return []
+
+        self._last_cycle_results = {}
+
         signals = []
         for _, row in df_features.iterrows():
             sig = self._predict_row(row, config)
@@ -104,6 +111,7 @@ class ReversalLongEntryPredictor(BasePredictor):
         # ── Gate 1: break detected ─────────────────────────────────────────
         if not row.get('_rev_break_detected', False):
             logger.debug(f"[ReversalLongEntry] {sym}: no break detected — skip")
+            self._last_cycle_results[sym] = {'gate': 1, 'prob': 0.0}
             return None
 
         # ── Gate 2: classifier (threshold from registry) ───────────────────
@@ -116,12 +124,14 @@ class ReversalLongEntryPredictor(BasePredictor):
         feature_cols = self._feature_cols if self._feature_cols else REVERSAL_LONG_FEATURES
         X = self._build_feature_row(row, feature_cols)
         if X is None:
+            self._last_cycle_results[sym] = {'gate': 99, 'prob': 0.0}
             return None
 
         try:
             reversal_prob = float(self.model.predict_proba(X)[0, 1])
         except Exception as exc:
             logger.error(f"[ReversalLongEntry] {sym}: predict_proba failed: {exc}")
+            self._last_cycle_results[sym] = {'gate': 99, 'prob': 0.0}
             return None
 
         if reversal_prob < live_threshold:
@@ -129,7 +139,10 @@ class ReversalLongEntryPredictor(BasePredictor):
                 f"[ReversalLongEntry] {sym}: reversal_prob={reversal_prob:.3f} "
                 f"< {live_threshold:.2f} — skip"
             )
+            self._last_cycle_results[sym] = {'gate': 2, 'prob': reversal_prob}
             return None
+
+        self._last_cycle_results[sym] = {'gate': 0, 'prob': reversal_prob}
 
         entry_price = float(row.get('close', 0.0))
         if entry_price <= 0:

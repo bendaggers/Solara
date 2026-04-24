@@ -66,6 +66,10 @@ class VolatilityBreakoutEntryShortPredictor(BasePredictor):
     _entry_threshold: float    = _DEFAULT_THRESHOLD
     _feature_cols:    List[str] = []
 
+    # Populated after each predict() call — read by cycle_digest.py
+    # gate=0 → signal, gate=1 → no breakout (FE), gate=2 → below entry threshold, gate=99 → error
+    _last_cycle_results: Dict = {}
+
     # ─────────────────────────────────────────────────────────────────────────
     # BasePredictor interface
     # ─────────────────────────────────────────────────────────────────────────
@@ -107,6 +111,8 @@ class VolatilityBreakoutEntryShortPredictor(BasePredictor):
         if df_features is None or len(df_features) == 0:
             return []
 
+        self._last_cycle_results = {}
+
         signals = []
         for _, row in df_features.iterrows():
             sig = self._predict_row(row, config)
@@ -125,6 +131,7 @@ class VolatilityBreakoutEntryShortPredictor(BasePredictor):
         # ── Gate 1: breakout confirmed by FE ──────────────────────────────
         if not row.get('_vb_break_detected', False):
             logger.debug(f"[VBShortEntry] {sym}: _vb_break_detected=False — skip")
+            self._last_cycle_results[sym] = {'gate': 1, 'prob': 0.0}
             return None
 
         # ── Gate 2: entry model ───────────────────────────────────────────
@@ -149,6 +156,7 @@ class VolatilityBreakoutEntryShortPredictor(BasePredictor):
             entry_prob = float(self.model.predict_proba(X)[0, 1])
         except Exception as exc:
             logger.error(f"[VBShortEntry] {sym}: predict_proba failed: {exc}")
+            self._last_cycle_results[sym] = {'gate': 99, 'prob': 0.0}
             return None
 
         if entry_prob < live_threshold:
@@ -156,7 +164,13 @@ class VolatilityBreakoutEntryShortPredictor(BasePredictor):
                 f"[VBShortEntry] {sym}: entry_prob={entry_prob:.3f} "
                 f"< {live_threshold:.3f} — skip"
             )
+            self._last_cycle_results[sym] = {
+                'gate': 2, 'prob': entry_prob,
+                'bp_valid': float(row.get('breakout_prob_valid', 0.0)),
+            }
             return None
+
+        self._last_cycle_results[sym] = {'gate': 0, 'prob': entry_prob}
 
         # ── Both gates passed → SHORT signal ──────────────────────────────
         entry_price = float(row.get('close', 0.0))

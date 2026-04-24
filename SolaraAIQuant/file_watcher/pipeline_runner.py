@@ -674,20 +674,34 @@ class PipelineRunner:
         long_pred  = pred_cache.get('Pull Back Entry Long')
         short_pred = pred_cache.get('Pull Back Entry Short')
 
+        # Break-based models — show only those with _last_cycle_results populated
+        # (empty dict = model didn't run this cycle, e.g. Reversal on an H1 cycle)
+        _BREAK_MODEL_LABELS = {
+            'Trend Reversal Short H4': 'Rev-SHORT H4',
+            'Trend Reversal Long H4':  'Rev-LONG  H4',
+            'Volatility Breakout Short': 'VB-SHORT  H1',
+        }
+        extra_preds = {}
+        for model_name, label in _BREAK_MODEL_LABELS.items():
+            pred = pred_cache.get(model_name)
+            if pred is not None:
+                extra_preds[label] = pred
+
         # Only write if at least one predictor ran this cycle
-        if long_pred is None and short_pred is None:
+        if long_pred is None and short_pred is None and not extra_preds:
             return
 
         signals = result_set.get_all_predictions() if result_set else []
         elapsed = result_set.duration_seconds      if result_set else 0.0
 
         write_cycle_digest(
-            cycle_time = start_time,
-            timeframe  = timeframe.value if hasattr(timeframe, 'value') else str(timeframe),
-            long_pred  = long_pred,
-            short_pred = short_pred,
-            signals    = signals,
-            elapsed    = elapsed,
+            cycle_time  = start_time,
+            timeframe   = timeframe.value if hasattr(timeframe, 'value') else str(timeframe),
+            long_pred   = long_pred,
+            short_pred  = short_pred,
+            signals     = signals,
+            elapsed     = elapsed,
+            extra_preds = extra_preds if extra_preds else None,
         )
 
 

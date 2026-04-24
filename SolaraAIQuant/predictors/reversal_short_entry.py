@@ -77,8 +77,13 @@ class ReversalShortEntryPredictor(BasePredictor):
     On signal: places SHORT at current close, TP=60p, SL=20p.
     """
 
-    _rev_threshold: float   = _DEFAULT_THRESHOLD
+    _rev_threshold: float    = _DEFAULT_THRESHOLD
     _feature_cols:  List[str] = []
+
+    # Populated after each predict() call — read by cycle_digest.py
+    # {symbol: {'gate': int, 'prob': float}}
+    # gate=0 → signal, gate=1 → no break, gate=2 → below threshold, gate=99 → error
+    _last_cycle_results: Dict = {}
 
     # ─────────────────────────────────────────────────────────────────────────
     # BasePredictor interface
@@ -123,6 +128,8 @@ class ReversalShortEntryPredictor(BasePredictor):
         if df_features is None or len(df_features) == 0:
             return []
 
+        self._last_cycle_results = {}
+
         signals = []
         for _, row in df_features.iterrows():
             sig = self._predict_row(row, config)
@@ -141,6 +148,7 @@ class ReversalShortEntryPredictor(BasePredictor):
         # ── Gate 1: break detected by FE ──────────────────────────────────
         if not row.get('_rev_break_detected', False):
             logger.debug(f"[ReversalShortEntry] {sym}: no break detected — skip")
+            self._last_cycle_results[sym] = {'gate': 1, 'prob': 0.0}
             return None
 
         # ── Gate 2: reversal classifier ───────────────────────────────────
@@ -156,12 +164,14 @@ class ReversalShortEntryPredictor(BasePredictor):
         feature_cols = self._feature_cols if self._feature_cols else REVERSAL_FEATURES
         X = self._build_feature_row(row, feature_cols)
         if X is None:
+            self._last_cycle_results[sym] = {'gate': 99, 'prob': 0.0}
             return None
 
         try:
             reversal_prob = float(self.model.predict_proba(X)[0, 1])
         except Exception as exc:
             logger.error(f"[ReversalShortEntry] {sym}: predict_proba failed: {exc}")
+            self._last_cycle_results[sym] = {'gate': 99, 'prob': 0.0}
             return None
 
         if reversal_prob < live_threshold:
@@ -169,9 +179,12 @@ class ReversalShortEntryPredictor(BasePredictor):
                 f"[ReversalShortEntry] {sym}: reversal_prob={reversal_prob:.3f} "
                 f"< {live_threshold:.2f} — skip"
             )
+            self._last_cycle_results[sym] = {'gate': 2, 'prob': reversal_prob}
             return None
 
         # ── Signal ────────────────────────────────────────────────────────
+        self._last_cycle_results[sym] = {'gate': 0, 'prob': reversal_prob}
+
         entry_price = float(row.get('close', 0.0))
         if entry_price <= 0:
             return None
