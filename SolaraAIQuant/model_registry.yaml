@@ -942,6 +942,125 @@ models:
     symbols: []
 
 
+  # =========================================================================
+  # VOLATILITY BREAKOUT SHORT — Universal 27-pair H1 Breakout Entry
+  # Trained: 2025 | SL=20p / TP=60p (3:1 RR) | 28 pairs | 2003-2021
+  #
+  # Training facts (5-fold walk-forward, 28 pairs, 18 years):
+  #   algorithm:         XGBoost binary (entry model) + XGBoost 3-class (breakout)
+  #   features:          52 (breakout model) / 57 (entry model)
+  #   entry_threshold:   0.496 (walk-forward optimised)
+  #   bc_threshold:      0.50 (breakout classifier class-1 prob)
+  #   sl_pips:           20 / tp_pips: 60
+  #   mean_win_rate:     35.0% ± 0.9%
+  #   mean_EV_trade:     +8.0 pips (net +6.0 after 2-pip round-trip cost)
+  #   break_even_WR:     25.0%  (SL=20p / TP=60p → 3:1 RR)
+  #   headroom:          +10 percentage points above break-even
+  #   all_folds_pos_EV:  true (all 5 folds positive after costs)
+  #
+  # 3-stage pipeline:
+  #   Stage 1 — H4 rule-based compression detection (ATR/BB/range conditions)
+  #   Stage 2 — H1 XGBoost 3-class: no-setup / valid-breakout / false-breakout
+  #   Stage 3 — H1 XGBoost binary entry model (this predictor)
+  #
+  # Trend direction is a SOFT feature only — not a hard gate.
+  # Model fires in any trend regime; trend context is included as a feature.
+  #
+  # EURGBP excluded: 17.9% raw WR = 7pp below break-even on raw data.
+  # Per-pair performance notes:
+  #   AUDCAD (21.4%), EURCHF (21.5%), CADCHF (23.1%), NZDCAD (23.6%) — monitor.
+  #   All other pairs >= 25% raw WR (break-even), further filtered by entry model.
+  #
+  # Compression detection params (locked from grid search):
+  #   atr_percentile=15, atr_lookback=20, range_window=15,
+  #   range_tightness=4.0, min_duration=3, bb_threshold=0.03, expiry_mult=2.0
+  # =========================================================================
+  - name: "Volatility Breakout Short"
+    enabled: false   # Set true after paper trading validation
+    description: "3-stage volatility breakout SHORT — compression+H1breakout+entry | WF WR=35% EV=+8p | 27 pairs"
+    class_path: "predictors.volatility_breakout_entry_short.VolatilityBreakoutEntryShortPredictor"
+    model_file: "entry_breakout_H1_short.joblib"
+    feature_version: "vb1"
+    model_type: "SHORT"
+    timeframe: "H1"
+    trigger_timeframes: ["H1"]
+    merge_timeframes: []
+    feature_engineering_class: "features.volatility_breakout_short_features.VolatilityBreakoutShortFeatureEngineer"
+
+    # ── Compression detection params ────────────────────────────────────────
+    # These are passed to the FE constructor via config. Locked from grid search.
+    # Changing these requires re-running grid_search.py in the training project.
+    vb_atr_percentile:  15     # ATR must be below 15th percentile of last 20 H4 bars
+    vb_atr_lookback:    20     # trailing window (H4 bars) for ATR percentile
+    vb_range_window:    15     # rolling high-low range window (H4 bars)
+    vb_range_tightness: 4.0    # range must be < 4.0 × ATR (minimum valid: 3.0)
+    vb_min_duration:    3      # minimum consecutive compressed H4 bars
+    vb_bb_threshold:    0.03   # BB width must be < 3%
+    vb_expiry_mult:     2.0    # zone stays active for 2× its duration after ending
+    vb_excursion_k:     0.3    # close must be > 0.3 × ATR below comp_lower
+
+    # ── Confidence tiers (entry_prob from XGBoost entry model) ──────────────
+    # Walk-forward optimised threshold: 0.496
+    # Starting conservatively — raise after 30+ live signals are reviewed.
+    # Break-even win rate is 25.0% (3:1 RR). Entry model adds significant filter.
+    confidence_tiers:
+      - min_confidence: 0.496
+        max_confidence: 0.549
+        fixed_lot: 0.01
+      - min_confidence: 0.55
+        max_confidence: 0.649
+        fixed_lot: 0.01
+      - min_confidence: 0.65
+        max_confidence: 0.749
+        fixed_lot: 0.02
+      - min_confidence: 0.75
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 11
+    timeout: 120     # compression detection + trend models + breakout model per symbol
+    magic: 700301
+    comment: "VB_Short"
+    max_positions: 10
+
+    # TP/SL from walk-forward training (3:1 R:R)
+    tp_pips: 60
+    sl_pips: 20
+    max_holding_bars: 48    # 48 H1 bars = 2 days (max_horizon from training)
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      # EURGBP excluded — 17.9% raw WR, 7pp below break-even on raw data
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+
+
+
 # =========================================================================
 # MAGIC NUMBER CONVENTION
 # =========================================================================
