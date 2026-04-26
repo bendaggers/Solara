@@ -695,6 +695,173 @@ models:
 
 
   # =========================================================================
+  # PULL BACK ENTRY LONG — Experimental variant (exhaust threshold = 0.62)
+  # Same model file as "Pull Back Entry Long" (magic 500301).
+  # Only the Gate 3 exhaustion threshold differs: 0.65 → 0.62.
+  # Purpose: compare signal frequency vs precision against the 0.65 baseline.
+  #
+  # How to use for A/B comparison:
+  #   1. Keep this disabled while running the 0.65 baseline.
+  #   2. Enable this + disable 500301 for a trial period, then compare trade logs.
+  #   OR enable both simultaneously (they use different magic numbers, so MT5
+  #   treats them as independent strategies — double exposure per pair).
+  # =========================================================================
+  - name: "Pull Back Entry Long 0.62"
+    enabled: false   # Enable to A/B test against Pull Back Entry Long (0.65)
+    description: "Pull Back LONG — exhaust threshold 0.62 (vs 0.65 baseline) | same joblib, different Gate 3"
+    class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
+    model_file: "pull_back_entry_h1.joblib"
+    feature_version: "pb1"
+    model_type: "LONG"
+    timeframe: "H1"
+    trigger_timeframes: ["H1"]
+    merge_timeframes: []
+    feature_engineering_class: "features.pull_back_features.PullBackFeatureEngineer"
+
+    # Gate 3 — lowered from 0.65 to 0.62 (lets in slightly more exhaustion events)
+    pb_exhaust_threshold: 0.62
+
+    # Gate 4 — same entry threshold as baseline
+    confidence_tiers:
+      - min_confidence: 0.80
+        max_confidence: 0.849
+        fixed_lot: 0.01
+      - min_confidence: 0.85
+        max_confidence: 0.899
+        fixed_lot: 0.01
+      - min_confidence: 0.90
+        max_confidence: 0.949
+        fixed_lot: 0.02
+      - min_confidence: 0.95
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 12
+    timeout: 90
+    magic: 500303
+    comment: "PB_Long_062"
+    max_positions: 10
+
+    tp_pips: 30
+    sl_pips: 20
+    max_holding_bars: 24
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      - EURGBP
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+      - XAUUSD
+      - XAGUSD
+
+
+
+  # =========================================================================
+  # PULL BACK ENTRY SHORT — Experimental variant (exhaust threshold = 0.62)
+  # Same model file as "Pull Back Entry Short" (magic 500302).
+  # Only the Gate 3 exhaustion threshold differs: 0.65 → 0.62.
+  # =========================================================================
+  - name: "Pull Back Entry Short 0.62"
+    enabled: false   # Enable to A/B test against Pull Back Entry Short (0.65)
+    description: "Pull Back SHORT — exhaust threshold 0.62 (vs 0.65 baseline) | same joblib, different Gate 3"
+    class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
+    model_file: "pull_back_entry_h1_short.joblib"
+    feature_version: "pb1"
+    model_type: "SHORT"
+    timeframe: "H1"
+    trigger_timeframes: ["H1"]
+    merge_timeframes: []
+    feature_engineering_class: "features.pull_back_short_features.PullBackShortFeatureEngineer"
+
+    # Gate 3 — lowered from 0.65 to 0.62
+    pb_exhaust_threshold: 0.62
+
+    # Gate 4 — same entry threshold as baseline
+    confidence_tiers:
+      - min_confidence: 0.80
+        max_confidence: 0.849
+        fixed_lot: 0.01
+      - min_confidence: 0.85
+        max_confidence: 0.899
+        fixed_lot: 0.01
+      - min_confidence: 0.90
+        max_confidence: 0.949
+        fixed_lot: 0.02
+      - min_confidence: 0.95
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 13
+    timeout: 90
+    magic: 500304
+    comment: "PB_Short_062"
+    max_positions: 10
+
+    tp_pips: 30
+    sl_pips: 20
+    max_holding_bars: 24
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      - EURGBP
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+      - XAUUSD
+      - XAGUSD
+
+
+
+  # =========================================================================
   # TREND REVERSAL SHORT H4 — Universal 28-pair H4 Reversal Entry
   # Trained: 2026-04-15 | SL=20p / TP=60p | 28 pairs | 1999–2025
   #
@@ -976,7 +1143,7 @@ models:
   #   range_tightness=4.0, min_duration=3, bb_threshold=0.03, expiry_mult=2.0
   # =========================================================================
   - name: "Volatility Breakout Short"
-    enabled: false   # Set true after paper trading validation
+    enabled: true   # Set true after paper trading validation
     description: "3-stage volatility breakout SHORT — compression+H1breakout+entry | WF WR=35% EV=+8p | 27 pairs"
     class_path: "predictors.volatility_breakout_entry_short.VolatilityBreakoutEntryShortPredictor"
     model_file: "entry_breakout_H1_short.joblib"
