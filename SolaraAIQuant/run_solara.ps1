@@ -17,7 +17,6 @@ Set-Location -Path $PSScriptRoot
 
 $VenvDir    = Join-Path $PSScriptRoot ".venv"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
-$VenvPip    = Join-Path $VenvDir "Scripts\pip.exe"
 $Activate   = Join-Path $VenvDir "Scripts\Activate.ps1"
 $Reqs       = Join-Path $PSScriptRoot "requirements.txt"
 
@@ -104,7 +103,10 @@ if ((Test-Path $StampFile) -and (Test-Path $Reqs)) {
 
 if ($ReqsChanged) {
     Write-Host "[SETUP] Installing dependencies (first run - may take a few minutes)..." -ForegroundColor Yellow
-    & $VenvPip install -r "$Reqs" --quiet
+    # Use 'python -m pip' instead of pip.exe directly.
+    # Windows may block newly-created pip.exe in restricted folders (MQL5, AppData, etc.)
+    # python.exe is already trusted; running pip as a module bypasses the block.
+    & $VenvPython -m pip install -r "$Reqs" --quiet
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[ERROR] pip install failed. Check requirements.txt or your internet connection." -ForegroundColor Red
         Pause-And-Exit 1
