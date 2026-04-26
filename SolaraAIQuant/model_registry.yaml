@@ -707,7 +707,7 @@ models:
   #   treats them as independent strategies — double exposure per pair).
   # =========================================================================
   - name: "Pull Back Entry Long 0.62"
-    enabled: false   # Enable to A/B test against Pull Back Entry Long (0.65)
+    enabled: true    # A/B test: running alongside Pull Back Entry Long (0.65) — keep lots small
     description: "Pull Back LONG — exhaust threshold 0.62 (vs 0.65 baseline) | same joblib, different Gate 3"
     class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
     model_file: "pull_back_entry_h1.joblib"
@@ -787,7 +787,7 @@ models:
   # Only the Gate 3 exhaustion threshold differs: 0.65 → 0.62.
   # =========================================================================
   - name: "Pull Back Entry Short 0.62"
-    enabled: false   # Enable to A/B test against Pull Back Entry Short (0.65)
+    enabled: true    # A/B test: running alongside Pull Back Entry Short (0.65) — keep lots small
     description: "Pull Back SHORT — exhaust threshold 0.62 (vs 0.65 baseline) | same joblib, different Gate 3"
     class_path: "predictors.pull_back_entry.PullBackEntryPredictor"
     model_file: "pull_back_entry_h1_short.joblib"
