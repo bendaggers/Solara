@@ -255,6 +255,27 @@ class PullBackShortFeatureEngineer(BaseFeatureEngineer):
             h4_trend_pred, d1_trend_pred, w1_trend_pred, sym=sym
         )
 
+        # ── 4b. W1 veto for SHORT entries ─────────────────────────────────
+        # Problem: H4+D1 can turn downtrend while W1 is still uptrend.
+        # 2/3 rule passes and SHORT fires — but trading against the W1 uptrend
+        # means entering into a structural countertrend move, which consistently
+        # hits SL before the reversal matures.
+        #
+        # Guard: if W1 is available and still shows uptrend, block SHORT entry.
+        # W1 uptrend = the dominant trend is still up → too early for SHORT.
+        # Only fires short when W1 is downtrend OR sideways (neutral / transitioning).
+        if trend_aligned and trend_direction == 'downtrend' and w1_trend_pred is not None:
+            w1_valid = w1_trend_pred[w1_trend_pred['model_valid']]
+            if len(w1_valid) > 0:
+                w1_cls = str(w1_valid.iloc[-1]['predicted_class'])
+                if w1_cls == 'uptrend':
+                    logger.debug(
+                        f"[PBShortFE] {sym}: SHORT gated by W1 veto — "
+                        f"W1={w1_cls} (H4+D1 downtrend but W1 still up — wait for W1 to confirm)"
+                    )
+                    trend_aligned   = False
+                    trend_direction = 'sideways'
+
         # ── 5. H4 pullback features (SHORT: fib from swing_low upward) ────
         h4_with_pb = self._compute_h4_pullback_features(h4, h4_trend_pred)
 
