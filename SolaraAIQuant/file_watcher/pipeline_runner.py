@@ -439,25 +439,6 @@ class PipelineRunner:
             if mt5_connected:
                 try:
                     from mt5.mt5_manager import mt5_manager
-
-                    # ── 2a. Per-symbol duplicate guard ────────────────────────
-                    # If this model already has an open position on this exact
-                    # symbol, do NOT open another one — regardless of max_positions.
-                    # This prevents repeated entries on the same pair during a
-                    # pullback bounce (e.g. 4 × SHORT USDCAD during one bounce).
-                    sym_positions = mt5_manager.get_positions(
-                        symbol=agg_sig.symbol, magic=model_config.magic
-                    )
-                    if sym_positions:
-                        n_pos_limit += 1
-                        logger.info(
-                            f"Risk: {agg_sig.symbol} skipped — already have "
-                            f"{len(sym_positions)} open position(s) on this symbol "
-                            f"for {agg_sig.raw_signal.model_name} (magic={model_config.magic})"
-                        )
-                        continue
-
-                    # ── 2b. Total model position-limit check ──────────────────
                     open_count = mt5_manager.get_position_count(
                         magic=model_config.magic
                     )
