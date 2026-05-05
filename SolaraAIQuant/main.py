@@ -152,7 +152,12 @@ class SolaraAIQuant:
             logger.info(f"File observer ready — watching {MQL5_FILES_DIR}")
 
             # 9. Survivor Engine (production only)
-            if self.production:
+            # Set SURVIVOR_ENABLED = True to re-enable the trailing stop system.
+            # Disabled 2026-05-05 — TP removal at Stage 3 (20p) was closing
+            # Pull Back trades before the trained 30-pip TP, reducing EV vs backtest.
+            SURVIVOR_ENABLED = False
+
+            if self.production and SURVIVOR_ENABLED:
                 from survivor.survivor_engine import SurvivorEngine
                 from survivor.survivor_runner import SurvivorRunner
 
@@ -175,7 +180,7 @@ class SolaraAIQuant:
                 self.survivor_engine = None
                 self.survivor_runner = None
                 saq_log.startup_item("Survivor engine", ok=False,
-                    detail="skipped (not production)")
+                    detail="disabled (SURVIVOR_ENABLED=False)" if self.production else "skipped (not production)")
 
             self._is_initialized = True
             saq_log.startup_mode(
