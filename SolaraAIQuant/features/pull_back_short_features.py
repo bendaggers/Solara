@@ -723,39 +723,76 @@ class PullBackShortFeatureEngineer(BaseFeatureEngineer):
         sym: str = '',
     ) -> tuple[bool, str]:
         """
-        Check if ≥ 2/3 trend models agree on a directional (non-sideways) class.
+        Check trend alignment for SHORT entries.
+
+        Two-part filter:
+          1. D1 mandatory: D1 must classify as DOWNTREND with confidence ≥
+             MIN_D1_CONFIDENCE. If D1 is uptrend/sideways or uncertain, block
+             immediately — D1 is the structural direction for intraday trading.
+          2. Confident 2/3 vote: each TF vote only counts if the winning
+             probability meets MIN_TREND_CONFIDENCE. Weak/uncertain calls
+             (e.g. prob_down=0.42) are treated as abstentions rather than votes.
+
         Returns (aligned: bool, consensus_direction: str).
         """
-        preds = []
+        # ── Confidence thresholds ─────────────────────────────────────────────
+        MIN_TREND_CONFIDENCE = 0.55   # minimum prob for a TF vote to count
+        MIN_D1_CONFIDENCE    = 0.55   # D1 must beat this to satisfy mandatory gate
+
         tf_results = {}
+        tf_votes   = {}   # tf -> confident predicted direction (or 'uncertain')
+
         for tf, pred in (('H4', h4_pred), ('D1', d1_pred), ('W1', w1_pred)):
             if pred is not None and pred['model_valid'].any():
                 valid = pred[pred['model_valid']]
                 row   = valid.iloc[-1]
-                cls   = row['predicted_class']
+                cls   = str(row['predicted_class'])
                 up    = round(float(row.get('prob_up',   0)), 3)
                 dn    = round(float(row.get('prob_down', 0)), 3)
-                preds.append(cls)
-                tf_results[tf] = f"{cls}(↑{up} ↓{dn})"
+                # Only count vote if winning probability meets threshold
+                if cls == 'downtrend' and dn >= MIN_TREND_CONFIDENCE:
+                    tf_votes[tf] = 'downtrend'
+                elif cls == 'uptrend' and up >= MIN_TREND_CONFIDENCE:
+                    tf_votes[tf] = 'uptrend'
+                else:
+                    tf_votes[tf] = 'uncertain'
+                tf_results[tf] = f"{cls}(↑{up} ↓{dn})[{'✓' if tf_votes[tf] != 'uncertain' else '~'}]"
             elif pred is None:
                 tf_results[tf] = 'failed/missing'
+                tf_votes[tf]   = 'missing'
             else:
                 tf_results[tf] = 'no_valid_bars'
+                tf_votes[tf]   = 'missing'
 
         tf_summary = '  '.join(f"{tf}:{v}" for tf, v in tf_results.items())
 
-        if len(preds) < 2:
-            logger.debug(f"[PBShortFE] {sym}: alignment — only {len(preds)}/3 TFs valid → not aligned  [{tf_summary}]")
+        # ── Gate A: D1 mandatory ──────────────────────────────────────────────
+        # D1 must be a confident DOWNTREND. If D1 is uptrend, sideways, uncertain,
+        # or missing — block. Prevents trading against the structural daily trend.
+        d1_vote = tf_votes.get('D1', 'missing')
+        if d1_vote != 'downtrend':
+            logger.debug(
+                f"[PBShortFE] {sym}: alignment — D1 mandatory gate FAILED "
+                f"(D1={d1_vote}, need confident downtrend ≥{MIN_D1_CONFIDENCE})  [{tf_summary}]"
+            )
             return False, 'sideways'
 
-        up_count   = preds.count('uptrend')
-        down_count = preds.count('downtrend')
+        # ── Gate B: confident 2/3 vote ────────────────────────────────────────
+        confident_votes = [v for v in tf_votes.values() if v in ('uptrend', 'downtrend')]
+        if len(confident_votes) < 2:
+            logger.debug(
+                f"[PBShortFE] {sym}: alignment — fewer than 2 confident TF votes  [{tf_summary}]"
+            )
+            return False, 'sideways'
+
+        up_count   = confident_votes.count('uptrend')
+        down_count = confident_votes.count('downtrend')
 
         if up_count >= 2:
-            logger.debug(f"[PBShortFE] {sym}: alignment — UPTREND ✓  [{tf_summary}]")
+            logger.debug(f"[PBShortFE] {sym}: alignment — UPTREND ✓ (confident 2/3)  [{tf_summary}]")
             return True, 'uptrend'
         if down_count >= 2:
-            logger.debug(f"[PBShortFE] {sym}: alignment — DOWNTREND ✓  [{tf_summary}]")
+            logger.debug(f"[PBShortFE] {sym}: alignment — DOWNTREND ✓ (D1 mandatory + confident 2/3)  [{tf_summary}]")
             return True, 'downtrend'
 
         logger.debug(f"[PBShortFE] {sym}: alignment — mixed/sideways ({up_count} up {down_count} dn)  [{tf_summary}]")
