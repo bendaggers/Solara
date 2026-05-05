@@ -685,18 +685,17 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         Check trend alignment for LONG entries.
 
         Two-part filter:
-          1. D1 mandatory: D1 must classify as UPTREND with confidence ≥
-             MIN_D1_CONFIDENCE. If D1 is downtrend/sideways or uncertain, block
-             immediately — D1 is the structural direction for intraday trading.
+          1. D1 veto: if D1 confidently says DOWNTREND (prob_down ≥ 0.55), block
+             immediately — trading LONG against a clear D1 downtrend is wrong.
+             If D1 is sideways/uncertain, it is neutral and ignored.
           2. Confident 2/3 vote: each TF vote only counts if the winning
-             probability meets MIN_TREND_CONFIDENCE. Weak/uncertain calls
-             (e.g. prob_up=0.42) are treated as abstentions rather than votes.
+             probability meets MIN_TREND_CONFIDENCE (0.55). Weak/uncertain
+             calls abstain rather than vote. Need ≥ 2 confident votes.
 
         Returns (aligned: bool, consensus_direction: str).
         """
-        # ── Confidence thresholds ─────────────────────────────────────────────
-        MIN_TREND_CONFIDENCE = 0.55   # minimum prob for a TF vote to count
-        MIN_D1_CONFIDENCE    = 0.55   # D1 must beat this to satisfy mandatory gate
+        MIN_TREND_CONFIDENCE = 0.55   # minimum prob for any TF vote to count
+        D1_VETO_CONFIDENCE   = 0.55   # D1 blocks LONG if prob_down exceeds this
 
         tf_results = {}
         tf_votes   = {}   # tf -> confident predicted direction (or 'uncertain')
@@ -725,19 +724,24 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
 
         tf_summary = '  '.join(f"{tf}:{v}" for tf, v in tf_results.items())
 
-        # ── Gate A: D1 mandatory ──────────────────────────────────────────────
-        # D1 must be a confident UPTREND. If D1 is downtrend, sideways, uncertain,
-        # or missing — block. Prevents trading against the structural daily trend.
+        # ── Gate A: D1 veto ───────────────────────────────────────────────────
+        # Block LONG if D1 is confidently downtrend. D1 sideways/uncertain = neutral.
         d1_vote = tf_votes.get('D1', 'missing')
-        if d1_vote != 'uptrend':
+        if d1_vote == 'downtrend':
             logger.debug(
-                f"[PullBackFE] {sym}: alignment — D1 mandatory gate FAILED "
-                f"(D1={d1_vote}, need confident uptrend ≥{MIN_D1_CONFIDENCE})  [{tf_summary}]"
+                f"[PullBackFE] {sym}: alignment — D1 veto BLOCKED LONG "
+                f"(D1 confidently downtrend ≥{D1_VETO_CONFIDENCE})  [{tf_summary}]"
             )
             return False, 'sideways'
 
         # ── Gate B: confident 2/3 vote ────────────────────────────────────────
-        confident_votes = [v for v in tf_votes.values() if v in ('uptrend', 'downtrend')]
+        # H4 and W1 votes count; D1 uncertain/sideways abstains.
+        confident_votes = [v for tf, v in tf_votes.items()
+                           if tf != 'D1' and v in ('uptrend', 'downtrend')]
+        # Also count D1 if it has a confident uptrend vote (adds weight)
+        if d1_vote == 'uptrend':
+            confident_votes.append('uptrend')
+
         if len(confident_votes) < 2:
             logger.debug(
                 f"[PullBackFE] {sym}: alignment — fewer than 2 confident TF votes  [{tf_summary}]"
@@ -748,7 +752,7 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         down_count = confident_votes.count('downtrend')
 
         if up_count >= 2:
-            logger.debug(f"[PullBackFE] {sym}: alignment — UPTREND ✓ (D1 mandatory + confident 2/3)  [{tf_summary}]")
+            logger.debug(f"[PullBackFE] {sym}: alignment — UPTREND ✓ (confident 2/3 + D1 veto passed)  [{tf_summary}]")
             return True, 'uptrend'
         if down_count >= 2:
             logger.debug(f"[PullBackFE] {sym}: alignment — DOWNTREND ✓ (confident 2/3)  [{tf_summary}]")
