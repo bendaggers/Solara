@@ -258,6 +258,30 @@ class PullBackFeatureEngineer(BaseFeatureEngineer):
         current_h1_ts = h1['timestamp'].iloc[-1]
         h4_ctx        = self._get_h4_context(h4_classified, current_h1_ts)
 
+        # ── 7b. H4 momentum confirmation gate ────────────────────────────
+        # Problem: after a sharp H4 rise, price pulls back (bull pullback).
+        # The H4 pullback model classifies early pullback bars as exhaustion
+        # and the LONG entry fires — but H4 is still printing bearish bars,
+        # meaning the pullback is still in progress. Entering LONG while H4
+        # is still red means fighting the live pullback momentum.
+        #
+        # Gate: the most recently closed H4 bar must be BULLISH (close > open).
+        # A bullish H4 bar confirms the pullback is losing steam and rolling up.
+        # If H4 is still printing bearish bars, the pullback is not yet exhausted
+        # — wait for at least one H4 reversal bar before entering LONG.
+        if trend_aligned and trend_direction == 'uptrend':
+            latest_h4_bar = h4.iloc[-1]
+            h4_close = float(latest_h4_bar.get('close', 0))
+            h4_open  = float(latest_h4_bar.get('open',  0))
+            if h4_close <= h4_open:
+                logger.debug(
+                    f"[PullBackFE] {sym}: H4 momentum gate — latest H4 bar is bearish "
+                    f"(close={h4_close:.5f} <= open={h4_open:.5f}) "
+                    f"— pullback still in progress, blocking LONG entry"
+                )
+                trend_aligned   = False
+                trend_direction = 'sideways'
+
         # ── 8. candles_since_exhaustion ───────────────────────────────────
         cse = self._compute_candles_since_exhaustion(h4_classified, h1, max_candles=20)
 
