@@ -51,22 +51,23 @@ stages:
     description: "Soft floor +6p — TP still active"
 
   # Stage 4: TP REMOVED HERE — 5-pip buffer before 30p TP
+  # SL at +5p gives 20 pips breathing room (similar to original trade character)
   - stage: 4
     trigger_pips: 25
-    protection_pct: 0.84
-    description: "TP removed — SL at +21p (84% of 25p)"
+    protection_pct: 0.20
+    description: "TP removed — SL at +5p (20p breathing room)"
 
-  # Stage 5: Price at what would have been the TP — SL near TP value
+  # Stage 5: Price at original TP level — SL at +10p, still 20p room
   - stage: 5
     trigger_pips: 30
-    protection_pct: 0.83
-    description: "SL at +25p — protecting near-TP value"
+    protection_pct: 0.33
+    description: "SL at +10p — still breathing"
 
-  # Stage 6: Holding zone — SL stays at +25p (35 × 0.71 = 24.85 < 25, no regression)
+  # Stage 6: SL advances to +15p, 20p room before current price
   - stage: 6
     trigger_pips: 35
-    protection_pct: 0.71
-    description: "Hold at +25p — transition to runner territory"
+    protection_pct: 0.43
+    description: "SL at +15p — breathing room maintained"
 
   # Stage 7+: Runner territory — SL now exceeds original TP value
   - stage: 7
@@ -154,10 +155,10 @@ stages:
 #   +10p     →  SL: +2p
 #   +15p     →  SL: +3.75p
 #   +20p     →  SL: +6p
-#   +25p     →  SL: +21p  ← TP removed here
-#   +30p     →  SL: +25p  ← near original TP value
-#   +35p     →  SL: +25p  (holds)
-#   +40p     →  SL: +30p  ← now BETTER than original TP
+#   +25p     →  SL: +5p   ← TP removed here (20p breathing room)
+#   +30p     →  SL: +10p  ← 20p breathing room
+#   +35p     →  SL: +15p  ← 20p breathing room
+#   +40p     →  SL: +30p  ← runner starts, now BETTER than original TP
 #   +50p     →  SL: +38p
 #   +60p     →  SL: +48p
 #   +75p     →  SL: +54p
