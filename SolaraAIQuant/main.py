@@ -171,7 +171,7 @@ class SolaraAIQuant:
                     survivor_engine=self.survivor_engine,
                     mt5_manager=self.mt5_manager,
                     db_manager=self.db_manager,
-                    check_interval=60
+                    check_interval=30  # 30s — halved from 60s for tighter SL trailing
                 )
                 saq_log.startup_item("Survivor engine", ok=True,
                     detail="22-stage trailing stop")
