@@ -23,11 +23,23 @@ python main.py --log-level DEBUG       # Verbose output (goes to log file, not t
 
 Environment variables are loaded from a `.env` file in the project root. See `config.py` for all variables.
 
-### Monitoring logs in real time (PowerShell)
+### Log monitor windows (auto-opened by run_solara.bat)
+
+`run_solara.bat` automatically opens three windows on startup:
+- **Solara AI Quant - Main** — SAQ startup output and pipeline activity
+- **SAQ - Cycle Digest** — tails `logs/cycle_digest.log` (last 800 lines, live)
+- **SAQ - Survivor Log** — tails `logs/saq.log` filtered for `Survivor|ERROR`
+
+The log scripts (`log_cycle_digest.ps1`, `log_survivor.ps1`) wait for the log files to appear before tailing, so they work correctly on first run.
+
+### Monitoring logs manually (PowerShell)
 
 ```powershell
-# All Pull Back prediction scores per symbol per cycle
+# Pull Back prediction scores per symbol per cycle
 Get-Content .\logs\saq.log -Wait -Tail 50 -Encoding UTF8 | Select-String "PullBack|pull_back"
+
+# Survivor activity only
+Get-Content .\logs\saq.log -Wait -Tail 50 -Encoding UTF8 | Select-String "Survivor|ERROR"
 
 # All errors
 Get-Content .\logs\saq.log -Wait -Tail 50 -Encoding UTF8 | Select-String "ERROR"
@@ -62,8 +74,13 @@ Models are auto-disabled after 3 consecutive failures. After fixing a bug, run
 | `features/pull_back_features.py` | Pull Back 3-stage feature engineer. Loads H4/D1/W1 CSVs directly. Runs trend models + pullback model internally. |
 | `predictors/pull_back_entry.py` | Pull Back entry predictor. 4 gates: trend aligned → direction match → exhaust ≥ 0.65 → entry prob ≥ 0.80. |
 | `reset_model_health.py` | CLI utility to view and reset auto-disabled model health records in SQLite. |
-| `survivor/stage_definitions.yaml` | Trailing stop stage definitions. |
+| `survivor/stage_definitions.yaml` | 22-stage trailing stop definitions. Must be opened with `encoding='utf-8'` — contains em-dashes in comments that break Windows cp1252. |
+| `survivor/survivor_engine.py` | Core trailing stop logic. Processes positions, calculates SL per stage, removes TP at Stage 4. |
+| `survivor/survivor_runner.py` | 30-second loop that drives the engine. Logs cycle summary at INFO every cycle. |
+| `state/database.py` | All DB operations. All `get_*` methods that return ORM objects call `session.expunge()` before returning — see gotcha below. |
 | `state/models.py` | SQLAlchemy ORM. All database tables defined here. |
+| `log_cycle_digest.ps1` | Launched by `run_solara.bat` — tails `cycle_digest.log` in a titled window. |
+| `log_survivor.ps1` | Launched by `run_solara.bat` — tails `saq.log` filtered for Survivor/ERROR. |
 | `logger.py` | Terminal output. Uses ANSI cursor tricks for in-place pipeline block rendering. |
 
 ---
@@ -195,6 +212,58 @@ The Pull Back pipeline uses W1, D1, and H4 trend models — but their scope is l
 - **Entry model features**: H4 trend context only (`h4_trend_dir`, `h4_trend_prob_up`, `h4_trend_prob_down`)
 
 D1 and W1 act only as a pre-filter gate. The trained models themselves are blind to D1/W1 probabilities.
+
+### Pull Back D1 veto + confidence threshold (May 2026)
+`_check_alignment()` in both `pull_back_features.py` and `pull_back_short_features.py` has two layers of protection beyond the basic 2/3 vote:
+
+**Confidence threshold (`MIN_TREND_CONFIDENCE = 0.55`):** A TF's vote only counts if the winning probability ≥ 0.55. Weak/uncertain calls abstain rather than voting with low conviction.
+
+**D1 veto (`D1_VETO_CONFIDENCE = 0.55`):** D1 can *block* a trade even if H4+W1 agree:
+- LONG: blocked if D1 `prob_down ≥ 0.55` (D1 confidently downtrend)
+- SHORT: blocked if D1 `prob_up ≥ 0.55` (D1 confidently uptrend)
+- D1 sideways/uncertain = neutral — does not block, does not add a vote
+
+D1 typically outputs very low probabilities (≈ 0.004–0.005) on most pairs, so the veto rarely fires. This is intentional — it only blocks when D1 has genuine conviction against the trade direction.
+
+### SQLAlchemy detached instance error — fixed in database.py
+`session_scope()` calls `session.commit()` on exit which expires all ORM object attributes (SQLAlchemy default: `expire_on_commit=True`), then `session.close()` detaches the object. Accessing any attribute on the returned object outside the session raises:
+```
+Instance <PositionState> is not bound to a Session; attribute refresh operation cannot proceed
+```
+**Fix:** All `get_*` methods that return ORM objects for use outside the session call `session.expunge(obj)` inside the `with` block, before the context manager exits. Expunged objects are detached from session tracking before `commit()` runs, so commit cannot expire their attributes. The loaded values remain accessible.
+
+Methods fixed: `get_position_state()`, `get_all_position_states()`, `upsert_position_state()`, `get_model_health()`.
+
+If you add a new DB read method that returns an ORM object, always `session.expunge()` it before returning.
+
+### Survivor stage persistence — positions opened before Survivor started
+`update_position_stage()` in `database.py` does an UPDATE-only. If no row exists for a ticket, it logs a warning and silently returns — the stage never persists, and every 30-second cycle re-reads stage 0.
+
+**Fix:** `survivor_engine.process_all_positions()` calls `_initialize_position_state()` (which calls `upsert_position_state()`) when `state is None`. This creates the row on the first cycle Survivor sees a new position. `upsert_position_state()` is create-or-update; `update_position_stage()` is update-only — never use the latter for first-time initialization.
+
+### Survivor stage_definitions.yaml must use encoding='utf-8'
+The YAML file contains em-dash characters (`—`) in comment lines. Windows defaults to cp1252 which cannot decode the UTF-8 byte `0x90`. Always open with:
+```python
+with open(path, 'r', encoding='utf-8') as f:
+```
+Without this, the engine silently falls back to hardcoded default stages every restart.
+
+### Survivor cycle summary is always logged at INFO
+`survivor_runner.py` logs a cycle summary **every 30-second cycle** at INFO level, even when nothing changes:
+```
+Survivor cycle: 7 positions | stage changes: 0 | SL mods: 0 | TP removals: 0
+```
+Cycles with actual changes append ` ◀ CHANGES`. "0 changes" is the normal state when all positions are below the 10-pip minimum threshold or already at the correct stage — it does not indicate a bug.
+
+### Survivor stage_definitions.yaml — current design (May 2026)
+22-stage progressive trailing stop optimised for 30-pip TP / 20-pip SL Pull Back trades:
+- **Stages 1–3** (10–20p profit): soft floor, SL at +2/3/4p, TP still active
+- **Stage 4** (25p profit): TP removed, SL at +5p — 20p breathing room before original TP
+- **Stages 5–6** (30–35p): SL at +10/15p — 20p breathing room maintained
+- **Stage 7+** (40p+): runner territory — SL exceeds original TP value (+30p at entry +40p)
+- `remove_tp_at_stage: 4` — MT5 TP is deleted when position first reaches Stage 4
+- `check_interval_seconds: 30` — halved from 60s for tighter trailing
+- All SL values are whole-pip numbers (protection_pct chosen to floor cleanly)
 
 ---
 
