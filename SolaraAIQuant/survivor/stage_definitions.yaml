@@ -2,74 +2,64 @@
 #
 # Pull Back Strategy — Optimised for 30-pip TP / 20-pip SL
 #
-# Key design principles (Option B):
+# Key design principles:
 #   - TP removed at Stage 4 (25p profit) — 5-pip buffer before 30p TP
-#   - With 30s check interval, 5-pip buffer is safe under normal conditions
-#   - Early stages (4-5) use high protection % to lock in near-TP value
-#   - Stages 6 deliberately holds SL at +25p (no regression — SL never goes backward)
-#   - From Stage 7 onward SL advances beyond original TP value → rider territory
-#   - SL formula: entry + (max_profit_pips × protection_pct)
+#   - Stages 4-6: loose protection (~20p breathing room) matching original trade character
+#   - Stage 7+: runner territory — SL advances beyond original TP value
+#   - All SL values are whole numbers (protection_pct chosen to floor to clean integers)
+#   - SL formula: floor(max_profit_pips × protection_pct)
 #   - Stages only move forward (never backward)
 
 version: "1.0"
-description: "22-Stage Progressive Trailing Stop — Pull Back Optimised (Option B)"
+description: "22-Stage Progressive Trailing Stop — Pull Back Optimised"
 
 # Global settings
 settings:
   min_profit_to_start: 10        # Minimum pips profit before any trailing
-  check_interval_seconds: 30     # How often to check positions (was 60 — halved for tighter SL trailing)
-  use_server_time: true          # Use MT5 server time for checks
-  pip_buffer: 2                  # Buffer pips to account for spread
-  remove_tp_at_stage: 4          # Remove TP at Stage 4 (25p profit).
-                                 # 5-pip gap before 30p TP — gives Survivor time to
-                                 # remove before MT5 triggers. After removal the
-                                 # trailing SL is the sole exit mechanism.
+  check_interval_seconds: 30     # 30s checks — halved from 60s for tighter trailing
+  use_server_time: true
+  pip_buffer: 2
+  remove_tp_at_stage: 4          # Remove TP at Stage 4 (25p profit, 5-pip buffer before 30p TP)
 
-# Stage definitions
-# SL at each stage = trigger_pips × protection_pct  (must always advance)
 stages:
-  # Stage 0: Initial (no protection)
   - stage: 0
     trigger_pips: 0
     protection_pct: 0.0
-    description: "Initial - no trailing yet"
+    description: "Initial — no trailing yet"
 
-  # Stages 1-3: Soft floor before TP removal (TP still active)
+  # Stages 1-3: soft floor, TP still active
   - stage: 1
     trigger_pips: 10
     protection_pct: 0.20
-    description: "Soft floor +2p — TP still active"
+    description: "Soft floor — SL at +2p  (TP active)"
 
   - stage: 2
     trigger_pips: 15
-    protection_pct: 0.25
-    description: "Soft floor +3.75p — TP still active"
+    protection_pct: 0.20
+    description: "Soft floor — SL at +3p  (TP active)"
 
   - stage: 3
     trigger_pips: 20
-    protection_pct: 0.30
-    description: "Soft floor +6p — TP still active"
+    protection_pct: 0.20
+    description: "Soft floor — SL at +4p  (TP active)"
 
-  # Stage 4: TP REMOVED HERE — 5-pip buffer before 30p TP
-  # SL at +5p gives 20 pips breathing room (similar to original trade character)
+  # Stage 4: TP REMOVED — 20p breathing room
   - stage: 4
     trigger_pips: 25
     protection_pct: 0.20
-    description: "TP removed — SL at +5p (20p breathing room)"
+    description: "TP removed — SL at +5p  (20p breathing room)"
 
-  # Stage 5: Price at original TP level — SL at +10p, still 20p room
   - stage: 5
     trigger_pips: 30
-    protection_pct: 0.33
-    description: "SL at +10p — still breathing"
+    protection_pct: 0.34
+    description: "SL at +10p (20p breathing room)"
 
-  # Stage 6: SL advances to +15p, 20p room before current price
   - stage: 6
     trigger_pips: 35
     protection_pct: 0.43
-    description: "SL at +15p — breathing room maintained"
+    description: "SL at +15p (20p breathing room)"
 
-  # Stage 7+: Runner territory — SL now exceeds original TP value
+  # Stage 7: runner territory — SL now beyond original TP
   - stage: 7
     trigger_pips: 40
     protection_pct: 0.75
@@ -77,8 +67,8 @@ stages:
 
   - stage: 8
     trigger_pips: 45
-    protection_pct: 0.75
-    description: "Runner — SL at +33.75p"
+    protection_pct: 0.74
+    description: "Runner — SL at +33p"
 
   - stage: 9
     trigger_pips: 50
@@ -87,8 +77,8 @@ stages:
 
   - stage: 10
     trigger_pips: 55
-    protection_pct: 0.76
-    description: "Runner — SL at +41.8p"
+    protection_pct: 0.75
+    description: "Runner — SL at +41p"
 
   - stage: 11
     trigger_pips: 60
@@ -97,13 +87,13 @@ stages:
 
   - stage: 12
     trigger_pips: 65
-    protection_pct: 0.75
-    description: "Runner — SL at +48.75p"
+    protection_pct: 0.77
+    description: "Runner — SL at +50p"
 
   - stage: 13
     trigger_pips: 70
     protection_pct: 0.75
-    description: "Runner — SL at +52.5p"
+    description: "Runner — SL at +52p"
 
   - stage: 14
     trigger_pips: 75
@@ -118,7 +108,7 @@ stages:
   - stage: 16
     trigger_pips: 90
     protection_pct: 0.72
-    description: "Runner — SL at +64.8p"
+    description: "Runner — SL at +64p"
 
   - stage: 17
     trigger_pips: 100
@@ -128,7 +118,7 @@ stages:
   - stage: 18
     trigger_pips: 120
     protection_pct: 0.78
-    description: "Runner — SL at +93.6p"
+    description: "Runner — SL at +93p"
 
   - stage: 19
     trigger_pips: 140
@@ -138,7 +128,7 @@ stages:
   - stage: 20
     trigger_pips: 160
     protection_pct: 0.82
-    description: "Runner — SL at +131.2p"
+    description: "Runner — SL at +131p"
 
   - stage: 21
     trigger_pips: 180
@@ -150,18 +140,30 @@ stages:
     protection_pct: 0.88
     description: "Maximum protection — SL at +176p"
 
-# SL progression summary (what the trader sees):
-#   Entry    →  SL: none (raw SL only)
-#   +10p     →  SL: +2p
-#   +15p     →  SL: +3.75p
-#   +20p     →  SL: +6p
-#   +25p     →  SL: +5p   ← TP removed here (20p breathing room)
-#   +30p     →  SL: +10p  ← 20p breathing room
-#   +35p     →  SL: +15p  ← 20p breathing room
-#   +40p     →  SL: +30p  ← runner starts, now BETTER than original TP
-#   +50p     →  SL: +38p
-#   +60p     →  SL: +48p
-#   +75p     →  SL: +54p
-#   +100p    →  SL: +75p
-#   +150p    →  SL: +120p
-#   +200p    →  SL: +176p
+# SL progression (whole numbers, rounded down):
+#
+#   Profit   SL      Room
+#   ──────   ───     ────
+#   +10p  →  +2p     8p    (TP active)
+#   +15p  →  +3p     12p   (TP active)
+#   +20p  →  +4p     16p   (TP active)
+#   +25p  →  +5p     20p   ← TP removed here
+#   +30p  →  +10p    20p
+#   +35p  →  +15p    20p
+#   +40p  →  +30p    10p   ← runner starts
+#   +45p  →  +33p    12p
+#   +50p  →  +38p    12p
+#   +55p  →  +41p    14p
+#   +60p  →  +48p    12p
+#   +65p  →  +50p    15p
+#   +70p  →  +52p    18p
+#   +75p  →  +54p    21p
+#   +80p  →  +56p    24p
+#   +90p  →  +64p    26p
+#   +100p →  +75p    25p
+#   +120p →  +93p    27p
+#   +140p →  +112p   28p
+#   +150p →  +120p   30p   (interpolated — Stage 19 at 80%)
+#   +160p →  +131p   29p
+#   +180p →  +153p   27p
+#   +200p →  +176p   24p
