@@ -1,5 +1,5 @@
 @echo off
-title Solara AI Quant — Main
+title Solara AI Quant - Main
 cd /d "%~dp0"
 
 :: ── Log monitor windows ───────────────────────────────────────────────────────

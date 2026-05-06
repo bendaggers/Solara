@@ -116,7 +116,7 @@ class SurvivorEngine:
     def _load_definitions(self, path: Path):
         """Load stage definitions from YAML file."""
         try:
-            with open(path, 'r') as f:
+            with open(path, 'r', encoding='utf-8') as f:
                 data = yaml.safe_load(f)
             
             # Load settings
