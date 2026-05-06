@@ -192,15 +192,23 @@ class SurvivorRunner:
                 except Exception as e:
                     logger.error(f"SL modified callback error: {e}")
         
-        # 6. Log summary if changes occurred
+        # 6. Log cycle summary every cycle at INFO so the log window always
+        #    shows activity. Stage changes / SL mods additionally get a
+        #    prominent marker so they stand out when scanning the window.
         tp_removals = cycle_stats.get('tp_removals', 0)
-        if cycle_stats['stage_changes'] > 0 or cycle_stats['sl_modifications'] > 0 or tp_removals > 0:
-            logger.info(
-                f"Survivor cycle: {cycle_stats['processed']} positions, "
-                f"{cycle_stats['stage_changes']} stage changes, "
-                f"{cycle_stats['sl_modifications']} SL modifications, "
-                f"{tp_removals} TP removals"
-            )
+        has_changes = (
+            cycle_stats['stage_changes'] > 0
+            or cycle_stats['sl_modifications'] > 0
+            or tp_removals > 0
+        )
+        marker = " ◀ CHANGES" if has_changes else ""
+        logger.info(
+            f"Survivor cycle: {cycle_stats['processed']} positions | "
+            f"stage changes: {cycle_stats['stage_changes']} | "
+            f"SL mods: {cycle_stats['sl_modifications']} | "
+            f"TP removals: {tp_removals}"
+            f"{marker}"
+        )
     
     def _get_open_positions(self) -> List[Dict]:
         """Get open positions from MT5."""

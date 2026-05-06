@@ -398,7 +398,18 @@ class SurvivorEngine:
                 
                 # Get pip value for symbol
                 pip_value = self._get_pip_value(pos['symbol'])
-                
+
+                # Calculate current profit for the debug snapshot
+                if pos['direction'] == 'LONG':
+                    _profit_pips = (pos['current_price'] - pos['entry_price']) / pip_value
+                else:
+                    _profit_pips = (pos['entry_price'] - pos['current_price']) / pip_value
+                logger.debug(
+                    f"[Survivor] #{pos['ticket']} {pos['symbol']} {pos['direction']} "
+                    f"profit: {_profit_pips:+.1f}p  stage: {state['current_stage']}  "
+                    f"max: {state['max_profit_pips']:.1f}p  SL: {pos.get('sl')}"
+                )
+
                 # Process position
                 update = self.process_position(
                     ticket=pos['ticket'],
