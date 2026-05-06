@@ -384,9 +384,13 @@ class SurvivorEngine:
             try:
                 # Get position state from database
                 state = self._get_position_state(pos['ticket'])
-                
+
                 if state is None:
-                    # New position - initialize state
+                    # New position — create the DB record now so stage updates
+                    # have a row to UPDATE. Without this, update_position_stage()
+                    # finds no record and silently returns, causing the engine to
+                    # re-read stage 0 on every cycle indefinitely.
+                    self._initialize_position_state(pos)
                     state = {
                         'current_stage': 0,
                         'max_profit_pips': 0
@@ -527,18 +531,47 @@ class SurvivorEngine:
         """Get position state from database."""
         if self.db_manager is None:
             return None
-        
+
         state = self.db_manager.get_position_state(ticket)
-        
+
         if state is None:
             return None
-        
+
         return {
             'current_stage': state.current_stage,
             'max_profit_pips': state.max_profit_pips or 0,
             'highest_price': state.highest_price,
             'lowest_price': state.lowest_price
         }
+
+    def _initialize_position_state(self, pos: Dict):
+        """
+        Create a position_state DB record for a position the Survivor has
+        never seen before. Must be called before update_position_stage() so
+        there is a row to UPDATE on the first stage transition.
+        """
+        if self.db_manager is None:
+            return
+        try:
+            self.db_manager.upsert_position_state(
+                ticket=pos['ticket'],
+                symbol=pos['symbol'],
+                magic=pos.get('magic', 0),
+                direction=pos['direction'],
+                entry_price=pos['entry_price'],
+                volume=pos.get('volume', 0.01),
+                current_sl=pos.get('sl'),
+                current_tp=pos.get('tp'),
+            )
+            logger.debug(
+                f"[Survivor] Initialised DB record for new position "
+                f"#{pos['ticket']} ({pos['symbol']} {pos['direction']})"
+            )
+        except Exception as e:
+            logger.error(
+                f"[Survivor] Failed to initialise position state "
+                f"for #{pos['ticket']}: {e}"
+            )
     
     def _update_position_state(self, update: PositionUpdate):
         """Update position state in database."""
