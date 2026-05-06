@@ -141,7 +141,13 @@ class DatabaseManager:
     def get_position_state(self, ticket: int) -> Optional[PositionState]:
         """Get position state by ticket."""
         with self.session_scope() as session:
-            return session.query(PositionState).filter_by(ticket=ticket).first()
+            state = session.query(PositionState).filter_by(ticket=ticket).first()
+            if state is not None:
+                # Detach before session.commit() expires attrs and session.close()
+                # detaches the object. Without this, accessing state.current_stage
+                # outside the session raises "Instance is not bound to a Session".
+                session.expunge(state)
+            return state
     
     def upsert_position_state(
         self,
@@ -185,8 +191,9 @@ class DatabaseManager:
                 state.current_tp = current_tp
             
             session.commit()
+            session.expunge(state)
             return state
-    
+
     def update_position_stage(
         self,
         ticket: int,
@@ -238,7 +245,11 @@ class DatabaseManager:
     def get_all_position_states(self) -> list:
         """Get all open position states."""
         with self.session_scope() as session:
-            return session.query(PositionState).all()
+            states = session.query(PositionState).all()
+            # Detach all objects before commit expires them and close detaches them
+            for s in states:
+                session.expunge(s)
+            return states
     
     # =========================================================================
     # Model Health Operations
@@ -247,7 +258,10 @@ class DatabaseManager:
     def get_model_health(self, model_name: str) -> Optional[ModelHealth]:
         """Get model health record."""
         with self.session_scope() as session:
-            return session.query(ModelHealth).filter_by(model_name=model_name).first()
+            health = session.query(ModelHealth).filter_by(model_name=model_name).first()
+            if health is not None:
+                session.expunge(health)
+            return health
     
     def update_model_health(
         self,
