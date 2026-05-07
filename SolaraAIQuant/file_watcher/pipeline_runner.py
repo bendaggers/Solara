@@ -677,9 +677,10 @@ class PipelineRunner:
         # Break-based models — show only those with _last_cycle_results populated
         # (empty dict = model didn't run this cycle, e.g. Reversal on an H1 cycle)
         _BREAK_MODEL_LABELS = {
-            'Trend Reversal Short H4': 'Rev-SHORT H4',
-            'Trend Reversal Long H4':  'Rev-LONG  H4',
+            'Trend Reversal Short H4':   'Rev-SHORT H4',
+            'Trend Reversal Long H4':    'Rev-LONG  H4',
             'Volatility Breakout Short': 'VB-SHORT  H1',
+            'Failed PB Reversal Long':   'FPBRev LONG ',
         }
         extra_preds = {}
         for model_name, label in _BREAK_MODEL_LABELS.items():

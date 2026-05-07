@@ -74,6 +74,8 @@ Models are auto-disabled after 3 consecutive failures. After fixing a bug, run
 | `features/pull_back_features.py` | Pull Back 3-stage feature engineer. Loads H4/D1/W1 CSVs directly. Runs trend models + pullback model internally. |
 | `predictors/pull_back_entry.py` | Pull Back entry predictor. 4 gates: trend aligned → direction match → exhaust ≥ 0.65 → entry prob ≥ 0.80. |
 | `reset_model_health.py` | CLI utility to view and reset auto-disabled model health records in SQLite. |
+| `features/failed_pb_reversal_long_features.py` | FE for Failed PB Reversal Long. Loads H4/D1/W1 CSVs + runs trend models (short/ dir) + PB model read-only for exhaust prob. |
+| `predictors/failed_pb_reversal_long_entry.py` | 2-gate predictor: Gate 1 = H4 FPB condition, Gate 2 = XGBoost entry prob ≥ 0.80. |
 | `survivor/stage_definitions.yaml` | 22-stage trailing stop definitions. Must be opened with `encoding='utf-8'` — contains em-dashes in comments that break Windows cp1252. |
 | `survivor/survivor_engine.py` | Core trailing stop logic. Processes positions, calculates SL per stage, removes TP at Stage 4. |
 | `survivor/survivor_runner.py` | 30-second loop that drives the engine. Logs cycle summary at INFO every cycle. |
@@ -111,7 +113,7 @@ SolaraAIQuant/
 
 ---
 
-## Active Models (as of April 2026)
+## Active Models (as of May 2026)
 
 | Model | Magic | Trigger | Status | Notes |
 |-------|-------|---------|--------|-------|
@@ -119,6 +121,7 @@ SolaraAIQuant/
 | TI V2 Short | 400402 | H4 | ❌ disabled | Trend identifier only — not an entry model. Disabled intentionally. |
 | Pull Back Entry Long | 500301 | H1 | ✅ enabled | 3-stage pullback entry — fires every hour. Pipeline confirmed working. |
 | Pull Back Entry Short | 500302 | H1 | ❌ disabled | Enable after Pull Back Long validation |
+| Failed PB Reversal Long | 500501 | H1 | ✅ enabled | Counter-trend LONG after failed H4 pullback. WF precision=75.5% EV=+17.7p. |
 | Punk Hazard Long | 200401 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
 | Punk Hazard Short | 200402 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
 | UBB Rejection | — | H4/M15/H1 | ❌ disabled | Superseded |
@@ -224,6 +227,25 @@ D1 and W1 act only as a pre-filter gate. The trained models themselves are blind
 - D1 sideways/uncertain = neutral — does not block, does not add a vote
 
 D1 typically outputs very low probabilities (≈ 0.004–0.005) on most pairs, so the veto rarely fires. This is intentional — it only blocks when D1 has genuine conviction against the trade direction.
+
+### Failed PB Reversal Long — strategy and architecture (May 2026)
+**Model file:** `Models/reversal_entry_H1_long.joblib` | **Magic:** 500501 | **Trigger:** H1
+
+**Strategy thesis:** When a bullish pullback within a prior H4 downtrend *fails to exhaust* (PB model class-2 prob < 0.40), the downtrend is breaking — enter LONG on the reversal. The Pull Back model's rejection of exhaustion IS this model's entry signal.
+
+**2-gate pipeline:**
+- **Gate 1 (FE):** H4 trend DOWN (`trend_dir_encoded == -1`) + `exhaust_prob < 0.40` + pullback active ≥ 2 consecutive H4 bars. Gate column `_fpb_condition_met` — when False, gate=1.
+- **Gate 2 (predictor):** XGBoost H1 entry model prob ≥ 0.80 (auto-tuned threshold from pkg).
+
+**Trend models:** Uses `Models/trend_identifier/short/` (same as Pull Back Short). These are loaded by `FailedPBReversalLongFeatureEngineer` at class level — shared with PB Short if it runs the same cycle.
+
+**PB model:** `Models/pull_back_pullback_h4.joblib` — loaded read-only in the FE to get the exhaust probability. The predictor does not load it.
+
+**Walk-forward stats:** 6-fold expanding WF, 1999–2025, 28 pairs. Mean precision 75.5% ± 6.8%, mean EV +17.7p ± 3.4p/trade. All 6 folds positive EV (worst: +11.7p, best: +21.3p).
+
+**Cycle digest:** Appears in the `[ FPBRev LONG  ]` section. Gate 1 (no H4 condition) is suppressed. Gate 2 lines show `✗ G2 entry=X.XX  exh=X.XX`.
+
+**Key difference from Pull Back:** Pull Back looks for HIGH exhaust_prob (pullback exhausting, ready to resume). FPB Reversal looks for LOW exhaust_prob (pullback failing, trend reversing). They are complementary — same PB model, opposite interpretation.
 
 ### SQLAlchemy detached instance error — fixed in database.py
 `session_scope()` calls `session.commit()` on exit which expires all ORM object attributes (SQLAlchemy default: `expire_on_commit=True`), then `session.close()` detaches the object. Accessing any attribute on the returned object outside the session raises:

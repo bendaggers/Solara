@@ -284,7 +284,7 @@ models:
     max_positions: 10
 
     tp_pips: 30
-    sl_pips: 20
+    sl_pips: 30
     max_holding_bars: 24   # 24 H1 bars = 1 day
 
     symbols:
@@ -535,7 +535,7 @@ models:
     max_positions: 10
 
     tp_pips: 30
-    sl_pips: 20
+    sl_pips: 30
     max_holding_bars: 24
 
     symbols:
@@ -815,7 +815,7 @@ models:
   #   range_tightness=4.0, min_duration=3, bb_threshold=0.03, expiry_mult=2.0
   # =========================================================================
   - name: "Volatility Breakout Short"
-    enabled: true   # Set true after paper trading validation
+    enabled: false   # Set true after paper trading validation
     description: "3-stage volatility breakout SHORT — compression+H1breakout+entry | WF WR=35% EV=+8p | 27 pairs"
     class_path: "predictors.volatility_breakout_entry_short.VolatilityBreakoutEntryShortPredictor"
     model_file: "entry_breakout_H1_short.joblib"
@@ -881,6 +881,106 @@ models:
       - EURCAD
       - EURCHF
       # EURGBP excluded — 17.9% raw WR, 7pp below break-even on raw data
+      - EURJPY
+      - EURNZD
+      - EURUSD
+      - GBPAUD
+      - GBPCAD
+      - GBPCHF
+      - GBPJPY
+      - GBPNZD
+      - GBPUSD
+      - NZDCAD
+      - NZDCHF
+      - NZDJPY
+      - NZDUSD
+      - USDCAD
+      - USDCHF
+      - USDJPY
+
+
+
+
+
+  # =========================================================================
+  # FAILED PB REVERSAL LONG — H1 counter-trend entry after a failed pullback
+  # Trained: 2026-05-07 | SL=20p / TP=30p | 28 pairs | 1999–2025
+  #
+  # Training facts (6-fold expanding walk-forward):
+  #   algorithm:         XGBoost binary:logistic
+  #   features:          ~50 (H1 CSV + candle structure + H4 context + reversal)
+  #   entry_threshold:   0.80 (auto-tuned per fold)
+  #   failure_threshold: 0.40 (PB model exhaust_prob below this = failed pullback)
+  #   tp_pips:           30 / sl_pips: 20 (1.5:1 RR, matches Survivor trailing stop)
+  #   mean_precision:    0.755 ± 0.068
+  #   mean_EV_trade:     +17.74 ± 3.38 pips
+  #   all_folds_pos_EV:  true  (worst fold: +11.72p, best: +21.26p)
+  #
+  # Strategy thesis:
+  #   When a bullish pullback in a prior downtrend fails to exhaust (PB model
+  #   class-2 prob < 0.40), the downtrend is breaking — enter LONG on the reversal.
+  #   The Pull Back model's rejection IS this model's entry signal.
+  #
+  # 2-gate pipeline at inference:
+  #   Gate 1 — FE checks: H4 trend DOWN + exhaust_prob < 0.40 + pb_active ≥ 2 bars
+  #   Gate 2 — H1 entry model: prob ≥ threshold (0.80)
+  #
+  # Trend models: Models/trend_identifier/short/ (same as PB Short + Reversal H4)
+  # PB model:     Models/pull_back_pullback_h4.joblib (read-only, for exhaust prob)
+  # =========================================================================
+  - name: "Failed PB Reversal Long"
+    enabled: true   # Enable after paper trading validation
+    description: "H1 counter-trend LONG after failed H4 pullback — 28 pairs | WF precision=0.755 EV=+17.7p"
+    class_path: "predictors.failed_pb_reversal_long_entry.FailedPBReversalLongEntryPredictor"
+    model_file: "reversal_entry_H1_long.joblib"
+    feature_version: "fpbrev1"
+    model_type: "LONG"
+    timeframe: "H1"
+    trigger_timeframes: ["H1"]
+    merge_timeframes: []
+    feature_engineering_class: "features.failed_pb_reversal_long_features.FailedPBReversalLongFeatureEngineer"
+
+    # ── Confidence tiers (entry_prob from XGBoost) ──────────────────────────
+    # Walk-forward trained threshold: 0.80. Start conservative — raise after
+    # 30+ live signals are reviewed. Mean WF precision 75.5%, EV +17.7p.
+    confidence_tiers:
+      - min_confidence: 0.80
+        max_confidence: 0.849
+        fixed_lot: 0.01
+      - min_confidence: 0.85
+        max_confidence: 0.899
+        fixed_lot: 0.01
+      - min_confidence: 0.90
+        max_confidence: 0.949
+        fixed_lot: 0.02
+      - min_confidence: 0.95
+        max_confidence: 1.000
+        fixed_lot: 0.03
+
+    weight: 1.0
+    priority: 14
+    timeout: 90         # trend models + PB model per symbol
+    magic: 500501
+    comment: "FPBRev_Long"
+    max_positions: 10
+
+    tp_pips: 30
+    sl_pips: 20
+    max_holding_bars: 24   # 24 H1 bars = 1 day (matches PB entry holding period)
+
+    symbols:
+      - AUDCAD
+      - AUDCHF
+      - AUDJPY
+      - AUDNZD
+      - AUDUSD
+      - CADCHF
+      - CADJPY
+      - CHFJPY
+      - EURAUD
+      - EURCAD
+      - EURCHF
+      - EURGBP
       - EURJPY
       - EURNZD
       - EURUSD

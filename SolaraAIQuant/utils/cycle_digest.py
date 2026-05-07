@@ -87,19 +87,28 @@ def _fmt_pb_gate(result: dict) -> str:
 def _fmt_break_gate(result: dict, model_tag: str) -> Optional[str]:
     """
     Format a break-based model gate result.
-    Returns None for gate=1 (no break detected) — these are suppressed.
+    Returns None for gate=1 (no break / no condition detected) — suppressed.
+
+    Handles two dict formats:
+      - Reversal / VB:  {'gate': int, 'prob': float, 'bp_valid': float}
+      - FPB Reversal:   {'gate': int, 'entry_prob': float, 'exhaust_prob': float,
+                         'fpb_condition': bool, 'pb_duration': int}
     """
     if not result:
         return None
     g    = result.get('gate', 99)
-    prob = result.get('prob', 0.0)
+    # Support both 'prob' (Reversal/VB) and 'entry_prob' (FPB)
+    prob = result.get('prob') or result.get('entry_prob', 0.0)
 
     if g == 1:
-        return None   # suppress "no break" rows — too noisy (27 per cycle)
+        return None   # suppress "no break / no condition" rows — too noisy
     if g == 0:
         return f'{model_tag}  ✔ SIGNAL  prob={prob:.3f}'
     if g == 2:
-        bp = result.get('bp_valid')   # VB only
+        exh = result.get('exhaust_prob')   # FPB only
+        if exh is not None:
+            return f'{model_tag}  ✗ G2 entry={prob:.3f}  exh={exh:.3f}'
+        bp = result.get('bp_valid')        # VB only
         if bp is not None:
             return f'{model_tag}  ✗ G2 entry={prob:.3f}  bp_valid={bp:.3f}'
         return f'{model_tag}  ✗ G2 prob={prob:.3f}'

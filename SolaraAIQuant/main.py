@@ -155,7 +155,7 @@ class SolaraAIQuant:
             # Set SURVIVOR_ENABLED = True to re-enable the trailing stop system.
             # Disabled 2026-05-05 — TP removal at Stage 3 (20p) was closing
             # Pull Back trades before the trained 30-pip TP, reducing EV vs backtest.
-            SURVIVOR_ENABLED = False
+            SURVIVOR_ENABLED = True
 
             if self.production and SURVIVOR_ENABLED:
                 from survivor.survivor_engine import SurvivorEngine
