@@ -119,9 +119,9 @@ SolaraAIQuant/
 |-------|-------|---------|--------|-------|
 | TI V2 Long | 400401 | H4 | ❌ disabled | Trend identifier only — not an entry model. Disabled intentionally. |
 | TI V2 Short | 400402 | H4 | ❌ disabled | Trend identifier only — not an entry model. Disabled intentionally. |
-| Pull Back Entry Long | 500301 | H1 | ✅ enabled | 3-stage pullback entry — fires every hour. Pipeline confirmed working. |
-| Pull Back Entry Short | 500302 | H1 | ❌ disabled | Enable after Pull Back Long validation |
-| Failed PB Reversal Long | 500501 | H1 | ✅ enabled | Counter-trend LONG after failed H4 pullback. WF precision=75.5% EV=+17.7p. |
+| Pull Back Entry Long | 500301 | H1 | ✅ enabled | 3-stage pullback entry — fires every hour. TP=30p SL=30p (1:1 RR). |
+| Pull Back Entry Short | 500302 | H1 | ❌ disabled | Enable after Pull Back Long validation. TP=30p SL=30p. |
+| Failed PB Reversal Long | 500501 | H1 | ✅ enabled | Counter-trend LONG after failed H4 pullback. WF precision=75.5% EV=+17.7p. TP=30p SL=20p. |
 | Punk Hazard Long | 200401 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
 | Punk Hazard Short | 200402 | M15/H1/H4 | ❌ disabled | Awaiting model file generation |
 | UBB Rejection | — | H4/M15/H1 | ❌ disabled | Superseded |
@@ -286,6 +286,7 @@ Cycles with actual changes append ` ◀ CHANGES`. "0 changes" is the normal stat
 - `remove_tp_at_stage: 4` — MT5 TP is deleted when position first reaches Stage 4
 - `check_interval_seconds: 30` — halved from 60s for tighter trailing
 - All SL values are whole-pip numbers (protection_pct chosen to floor cleanly)
+- Pull Back live SL is 30p (changed 2026-05-07 from trained 20p). Survivor stages were designed around a 20p SL — the 30p live SL means the original SL is wider than the Stage 1 SL (+2p at 10p profit), so Survivor effectively replaces it from Stage 1 onward.
 
 ---
 
